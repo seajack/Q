@@ -26,6 +26,9 @@ export const departmentApi = {
   // 获取部门树
   tree: () => api.get<Department[]>('/departments/tree/'),
   
+  // 获取完整组织架构树（包含员工）
+  fullTree: () => api.get('/departments/full_tree/'),
+  
   // 创建部门
   create: (data: Partial<Department>) => api.post<Department>('/departments/', data),
   

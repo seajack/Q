@@ -62,6 +62,22 @@
             :render-after-expand="false"
           />
         </el-form-item>
+        <el-form-item label="负责人">
+          <el-select
+            v-model="formData.manager"
+            placeholder="请选择负责人（可选）"
+            clearable
+            filterable
+            :loading="loadingEmployees"
+          >
+            <el-option
+              v-for="employee in activeEmployees"
+              :key="employee.id"
+              :label="`${employee.name} (${employee.position_name || '无职位'})`"
+              :value="employee.user"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="部门描述">
           <el-input
             v-model="formData.description"
@@ -86,7 +102,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useOrganizationStore } from '@/stores/organization'
-import type { Department } from '@/types'
+import type { Department, Employee } from '@/types'
 
 const organizationStore = useOrganizationStore()
 
@@ -94,12 +110,15 @@ const organizationStore = useOrganizationStore()
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
+const loadingEmployees = ref(false)
 const formRef = ref()
+const currentDepartmentId = ref<number | null>(null)
 
 const formData = reactive({
   name: '',
   code: '',
   parent: null as number | null,
+  manager: null as number | null,
   description: ''
 })
 
@@ -111,6 +130,7 @@ const rules = {
 // 计算属性
 const departmentTree = computed(() => organizationStore.departmentTree)
 const loading = computed(() => organizationStore.loading)
+const activeEmployees = computed(() => organizationStore.activeEmployees)
 
 const departmentTreeOptions = computed(() => {
   const buildOptions = (departments: Department[]): any[] => {
@@ -124,18 +144,23 @@ const departmentTreeOptions = computed(() => {
 })
 
 // 方法
-const showCreateDialog = () => {
+const showCreateDialog = async () => {
   isEdit.value = false
+  currentDepartmentId.value = null
   resetForm()
+  await loadEmployees()
   dialogVisible.value = true
 }
 
-const editDepartment = (department: Department) => {
+const editDepartment = async (department: Department) => {
   isEdit.value = true
+  currentDepartmentId.value = department.id
   formData.name = department.name
   formData.code = department.code
   formData.parent = department.parent
+  formData.manager = department.manager
   formData.description = department.description
+  await loadEmployees()
   dialogVisible.value = true
 }
 
@@ -143,8 +168,20 @@ const resetForm = () => {
   formData.name = ''
   formData.code = ''
   formData.parent = null
+  formData.manager = null
   formData.description = ''
   formRef.value?.clearValidate()
+}
+
+const loadEmployees = async () => {
+  try {
+    loadingEmployees.value = true
+    await organizationStore.fetchEmployees()
+  } catch (error) {
+    console.error('加载员工列表失败:', error)
+  } finally {
+    loadingEmployees.value = false
+  }
 }
 
 const submitForm = async () => {
@@ -152,8 +189,8 @@ const submitForm = async () => {
     await formRef.value?.validate()
     submitting.value = true
     
-    if (isEdit.value) {
-      // 更新逻辑需要department id，这里简化处理
+    if (isEdit.value && currentDepartmentId.value) {
+      await organizationStore.updateDepartment(currentDepartmentId.value, formData)
       ElMessage.success('更新成功')
     } else {
       await organizationStore.createDepartment(formData)

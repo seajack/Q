@@ -45,6 +45,94 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @extend_schema(
+        summary='获取完整组织架构树',
+        description='返回包含部门和员工的完整组织架构树',
+        tags=['部门管理']
+    )
+    @action(detail=False, methods=['get'])
+    def full_tree(self, request):
+        """获取包含员工的完整组织架构树"""
+        from django.db.models import Prefetch
+        
+        # 获取所有部门，按层级和排序顺序
+        departments = Department.objects.filter(is_active=True).prefetch_related(
+            Prefetch('employees', 
+                    queryset=Employee.objects.filter(status='active')
+                    .select_related('position')
+                    .order_by('-position__level', 'name'))
+        ).order_by('level', 'sort_order')
+        
+        # 获取高层领导（无上级且职位级别高的员工）
+        top_executives = Employee.objects.filter(
+            supervisor=None, 
+            status='active',
+            position__level__gte=10  # 高层职位级别
+        ).select_related('position', 'department').order_by('-position__level', 'name')
+        
+        # 构建树形结构
+        def build_department_tree(departments_list, parent_id=None):
+            tree = []
+            for dept in departments_list:
+                if dept.parent_id == parent_id:
+                    # 部门节点
+                    dept_node = {
+                        'id': f'dept_{dept.id}',
+                        'name': dept.name,
+                        'type': 'department',
+                        'employee_count': dept.employees.count(),
+                        'children': []
+                    }
+                    
+                    # 添加部门下的员工
+                    for emp in dept.employees.all():
+                        emp_node = {
+                            'id': f'emp_{emp.id}',
+                            'name': emp.name,
+                            'type': 'employee',
+                            'position_name': emp.position.name if emp.position else '',
+                            'position_level': emp.position.level if emp.position else 0,
+                            'employee_id': emp.employee_id,
+                            'status': emp.status
+                        }
+                        dept_node['children'].append(emp_node)
+                    
+                    # 添加子部门
+                    dept_node['children'].extend(build_department_tree(departments_list, dept.id))
+                    tree.append(dept_node)
+            return tree
+        
+        # 构建根节点（公司）
+        root_dept = departments.filter(parent=None).first()
+        if root_dept:
+            result = {
+                'id': f'dept_{root_dept.id}',
+                'name': root_dept.name,
+                'type': 'department',
+                'employee_count': Employee.objects.filter(status='active').count(),
+                'children': []
+            }
+            
+            # 添加高层领导（直接在公司下面）
+            for emp in top_executives:
+                emp_node = {
+                    'id': f'emp_{emp.id}',
+                    'name': emp.name,
+                    'type': 'employee',
+                    'position_name': emp.position.name if emp.position else '',
+                    'position_level': emp.position.level if emp.position else 0,
+                    'employee_id': emp.employee_id,
+                    'status': emp.status
+                }
+                result['children'].append(emp_node)
+            
+            # 添加子部门
+            result['children'].extend(build_department_tree(departments, root_dept.id))
+            
+            return Response([result])
+        
+        return Response([])
+
+    @extend_schema(
         summary='获取部门的所有子部门',
         description='获取指定部门的所有子部门（递归）',
         tags=['部门管理']

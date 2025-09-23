@@ -14,7 +14,7 @@ class DepartmentTreeSerializer(serializers.ModelSerializer):
     """部门树形序列化器"""
     children = serializers.SerializerMethodField()
     parent_name = serializers.CharField(source='parent.name', read_only=True)
-    manager_name = serializers.CharField(source='manager.username', read_only=True)
+    manager_name = serializers.SerializerMethodField()
     full_path = serializers.CharField(source='get_full_path', read_only=True)
     employee_count = serializers.SerializerMethodField()
 
@@ -33,12 +33,40 @@ class DepartmentTreeSerializer(serializers.ModelSerializer):
     def get_employee_count(self, obj):
         """获取部门员工数量"""
         return obj.employees.filter(status='active').count()
+    
+    def get_manager_name(self, obj):
+        """获取部门经理姓名"""
+        # 先检查是否有设置的manager字段
+        if obj.manager:
+            # 查找对应的员工记录
+            try:
+                employee = obj.manager.employee
+                return f"{employee.name}({employee.position.name if employee.position else '无职位'})"
+            except:
+                # 如果找不到员工记录，返回用户名
+                return obj.manager.username
+        
+        # 自动查找部门经理（职位名称包含'经理'且级别较高的员工）
+        managers = obj.employees.filter(
+            status='active',
+            position__name__icontains='经理'
+        ).order_by('-position__level').first()
+        
+        if managers:
+            return f"{managers.name}({managers.position.name})"
+        
+        # 如果没有经理，查找职位级别最高的员工
+        top_employee = obj.employees.filter(status='active').order_by('-position__level').first()
+        if top_employee:
+            return f"{top_employee.name}({top_employee.position.name})"
+        
+        return '待分配'
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
     """部门序列化器"""
     parent_name = serializers.CharField(source='parent.name', read_only=True)
-    manager_name = serializers.CharField(source='manager.username', read_only=True)
+    manager_name = serializers.SerializerMethodField()
     full_path = serializers.CharField(source='get_full_path', read_only=True)
     employee_count = serializers.SerializerMethodField()
 
@@ -52,6 +80,34 @@ class DepartmentSerializer(serializers.ModelSerializer):
     def get_employee_count(self, obj):
         """获取部门员工数量"""
         return obj.employees.filter(status='active').count()
+    
+    def get_manager_name(self, obj):
+        """获取部门经理姓名"""
+        # 先检查是否有设置的manager字段
+        if obj.manager:
+            # 查找对应的员工记录
+            try:
+                employee = obj.manager.employee
+                return f"{employee.name}({employee.position.name if employee.position else '无职位'})"
+            except:
+                # 如果找不到员工记录，返回用户名
+                return obj.manager.username
+        
+        # 自动查找部门经理（职位名称包含'经理'且级别较高的员工）
+        managers = obj.employees.filter(
+            status='active',
+            position__name__icontains='经理'
+        ).order_by('-position__level').first()
+        
+        if managers:
+            return f"{managers.name}({managers.position.name})"
+        
+        # 如果没有经理，查找职位级别最高的员工
+        top_employee = obj.employees.filter(status='active').order_by('-position__level').first()
+        if top_employee:
+            return f"{top_employee.name}({top_employee.position.name})"
+        
+        return '待分配'
 
     def validate_parent(self, value):
         """验证上级部门"""
@@ -110,6 +166,32 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'user': {'read_only': True},  # user字段为只读，通过username和password创建
         }
 
+    def validate_hire_date(self, value):
+        """验证入职日期"""
+        print(f"hire_date 验证: 值={value}, 类型={type(value)}")
+        
+        if not value:
+            raise serializers.ValidationError("入职日期不能为空")
+        
+        from datetime import date
+        import datetime
+        
+        # 如果是字符串，尝试解析
+        if isinstance(value, str):
+            try:
+                parsed_date = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+                return parsed_date
+            except ValueError:
+                raise serializers.ValidationError("日期格式错误，请使用 YYYY-MM-DD 格式")
+        
+        # 如果是 date 或 datetime 对象
+        if isinstance(value, datetime.datetime):
+            return value.date()
+        if isinstance(value, date):
+            return value
+            
+        raise serializers.ValidationError("不支持的日期格式")
+
     def get_subordinate_count(self, obj):
         """获取下属数量"""
         return obj.subordinates.filter(status='active').count()
@@ -126,8 +208,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         """验证用户名唯一性"""
-        if not value:
-            return value
+        # 如果值为空或空字符串，返回 None
+        if not value or not value.strip():
+            return None
+            
         # 检查用户名是否已存在
         from django.contrib.auth.models import User
         if self.instance and hasattr(self.instance, 'user') and self.instance.user.username == value:
@@ -138,12 +222,15 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """验证员工数据"""
-        department = attrs.get('department', self.instance.department if self.instance else None)
-        position = attrs.get('position', self.instance.position if self.instance else None)
+        print(f"验证员工数据: {attrs}")
+        
+        # 移除职位与部门的关联验证
+        # department = attrs.get('department', self.instance.department if self.instance else None)
+        # position = attrs.get('position', self.instance.position if self.instance else None)
         
         # 验证职位是否属于所选部门
-        if position and department and position.department != department:
-            raise serializers.ValidationError("所选职位不属于所选部门")
+        # if position and department and position.department != department:
+        #     raise serializers.ValidationError("所选职位不属于所选部门")
         
         return attrs
     
@@ -151,32 +238,64 @@ class EmployeeSerializer(serializers.ModelSerializer):
         """创建员工时同时创建用户账号"""
         from django.contrib.auth.models import User
         
+        print(f"创建员工，验证后数据: {validated_data}")
+        
         # 提取用户相关字段
         username = validated_data.pop('username', None) or validated_data['employee_id']
         password = validated_data.pop('password', '123456')
         
+        # 确保用户名唯一性
+        original_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{original_username}_{counter}"
+            counter += 1
+        
+        print(f"创建用户: username={username}, password={password}")
+        
         # 创建User账号
-        user = User.objects.create_user(
-            username=username,
-            email=validated_data.get('email', ''),
-            password=password,
-            first_name=validated_data.get('name', '').split()[0] if validated_data.get('name') else '',
-            last_name=' '.join(validated_data.get('name', '').split()[1:]) if len(validated_data.get('name', '').split()) > 1 else ''
-        )
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=validated_data.get('email', ''),
+                password=password,
+                first_name=validated_data.get('name', '').split()[0] if validated_data.get('name') else '',
+                last_name=' '.join(validated_data.get('name', '').split()[1:]) if len(validated_data.get('name', '').split()) > 1 else ''
+            )
+            print(f"用户创建成功: {user}")
+        except Exception as e:
+            print(f"用户创建失败: {e}")
+            raise serializers.ValidationError(f"用户创建失败: {str(e)}")
         
         # 创建Employee
         validated_data['user'] = user
-        return super().create(validated_data)
+        
+        try:
+            employee = super().create(validated_data)
+            print(f"员工创建成功: {employee}")
+            return employee
+        except Exception as e:
+            print(f"员工创建失败: {e}")
+            # 如果员工创建失败，删除已创建的用户
+            user.delete()
+            raise
     
     def update(self, instance, validated_data):
         """更新员工信息时同时更新用户账号"""
+        print(f"更新员工: {instance.name} ({instance.employee_id})")
+        print(f"更新数据: {validated_data}")
+        
         # 提取用户相关字段
         username = validated_data.pop('username', None)
         password = validated_data.pop('password', None)
         
+        print(f"用户相关字段: username={username}, password={password}")
+        
         # 更新User账号
         if hasattr(instance, 'user'):
             user = instance.user
+            print(f"更新用户账号: {user.username}")
+            
             if username:
                 user.username = username
             if validated_data.get('email'):
@@ -188,8 +307,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
             if password:
                 user.set_password(password)
             user.save()
+            print(f"用户账号更新成功")
         
-        return super().update(instance, validated_data)
+        result = super().update(instance, validated_data)
+        print(f"员工更新成功: {result}")
+        return result
 
 
 class EmployeeTreeSerializer(serializers.ModelSerializer):

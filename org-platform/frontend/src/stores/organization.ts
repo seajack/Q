@@ -52,6 +52,19 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
+  const fetchFullOrganizationTree = async () => {
+    try {
+      loading.value = true
+      const response = await departmentApi.fullTree()
+      return response.data
+    } catch (error) {
+      console.error('获取完整组织架构树失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   const createDepartment = async (data: Partial<Department>) => {
     try {
       const response = await departmentApi.create(data)
@@ -222,6 +235,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     // 方法
     fetchDepartments,
     fetchDepartmentTree,
+    fetchFullOrganizationTree,
     createDepartment,
     updateDepartment,
     deleteDepartment,

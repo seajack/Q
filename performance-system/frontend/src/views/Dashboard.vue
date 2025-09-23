@@ -17,6 +17,10 @@
             <el-icon><DataBoard /></el-icon>
             <span>考核指标</span>
           </el-menu-item>
+          <el-menu-item index="/rules">
+            <el-icon><Setting /></el-icon>
+            <span>考核规则</span>
+          </el-menu-item>
           <el-menu-item index="/employees">
             <el-icon><User /></el-icon>
             <span>员工管理</span>
@@ -111,7 +115,7 @@
                   <el-progress 
                     :percentage="stats?.completion_rate || 0"
                     :format="(percentage) => `${percentage}%`"
-                    stroke-width="20"
+                    :stroke-width="20"
                   />
                 </div>
                 <div class="metrics-grid">
@@ -226,6 +230,7 @@ import {
   House, 
   Calendar, 
   DataBoard, 
+  Setting,
   User, 
   Document, 
   TrendCharts,

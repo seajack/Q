@@ -5,9 +5,12 @@ from . import views
 router = DefaultRouter()
 router.register(r'cycles', views.EvaluationCycleViewSet)
 router.register(r'indicators', views.EvaluationIndicatorViewSet)
+router.register(r'rules', views.EvaluationRuleViewSet)
+router.register(r'manual-assignments', views.ManualEvaluationAssignmentViewSet)
 router.register(r'tasks', views.EvaluationTaskViewSet)
 router.register(r'scores', views.EvaluationScoreViewSet)
 router.register(r'results', views.EvaluationResultViewSet)
+router.register(r'employees', views.EmployeeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

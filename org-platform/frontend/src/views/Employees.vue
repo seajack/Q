@@ -85,12 +85,12 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="手机号" prop="phone">
-              <el-input v-model="form.phone" placeholder="请输入手机号" />
+              <el-input v-model="form.phone" placeholder="请输入手机号（可选）" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="邮箱" prop="email">
-              <el-input v-model="form.email" placeholder="请输入邮箱" />
+              <el-input v-model="form.email" placeholder="请输入邮箱（可选）" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -110,7 +110,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="职位" prop="position">
-              <el-select v-model="form.position" placeholder="请选择职位" style="width: 100%">
+              <el-select 
+                v-model="form.position" 
+                placeholder="请选择职位" 
+                style="width: 100%"
+              >
                 <el-option
                   v-for="pos in filteredPositions"
                   :key="pos.id"
@@ -129,10 +133,18 @@
                 <el-option
                   v-for="emp in availableSupervisors"
                   :key="emp.id"
-                  :label="emp.name"
+                  :label="`${emp.name} - ${emp.position_name}`"
                   :value="emp.id"
-                />
+                >
+                  <span>{{ emp.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 13px">
+                    {{ emp.position_name }}
+                  </span>
+                </el-option>
               </el-select>
+              <div style="font-size: 12px; color: #999; margin-top: 4px;">
+                可以选择任意部门的员工作为上级
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -163,20 +175,6 @@
               <el-input 
                 v-model="form.username" 
                 placeholder="默认为员工号"
-                clearable
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-row :gutter="20" v-if="!isEdit">
-          <el-col :span="12">
-            <el-form-item label="初始密码">
-              <el-input 
-                v-model="form.password" 
-                type="password" 
-                placeholder="默认123456"
-                show-password
                 clearable
               />
             </el-form-item>
@@ -242,10 +240,9 @@ const form = reactive<EmployeeForm>({
   department: undefined,
   position: undefined,
   supervisor: undefined,
-  hire_date: '',
+  hire_date: null,
   status: 'active',
-  username: '',
-  password: ''
+  username: ''
 })
 
 // 表单验证规则
@@ -262,11 +259,9 @@ const rules: FormRules = {
     { required: true, message: '请选择性别', trigger: 'change' }
   ],
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
   ],
   email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
   ],
   department: [
@@ -282,16 +277,26 @@ const rules: FormRules = {
 
 // 计算属性
 const filteredPositions = computed(() => {
-  if (!form.department) return positions.value
-  return positions.value.filter(pos => pos.department === form.department)
+  // 移除部门过滤，返回所有激活的职位
+  return positions.value.filter(pos => pos.is_active)
 })
 
 const availableSupervisors = computed(() => {
-  return employees.value.filter(emp => 
+  // 返回所有激活状态的员工（除了当前编辑的员工）
+  // 不再限制必须在同一部门
+  const activeEmployees = employees.value.filter(emp => 
     emp.id !== form.id && 
-    emp.status === 'active' && 
-    emp.department === form.department
+    emp.status === 'active'
   )
+  
+  console.log('可选上级:', {
+    totalEmployees: employees.value.length,
+    activeEmployees: activeEmployees.length,
+    currentFormId: form.id,
+    currentDepartment: form.department
+  })
+  
+  return activeEmployees
 })
 
 // 状态类型和文本获取
@@ -327,12 +332,18 @@ const resetForm = () => {
   form.department = undefined
   form.position = undefined
   form.supervisor = undefined
-  form.hire_date = ''
+  form.hire_date = null
   form.status = 'active'
   form.username = ''
-  form.password = ''
   formRef.value?.clearValidate()
 }
+
+// 监听员工号变化，自动更新用户名
+watch(() => form.employee_id, (newEmployeeId) => {
+  if (!isEdit.value && newEmployeeId) {
+    form.username = newEmployeeId
+  }
+})
 
 // 打开新建对话框
 const openCreateDialog = () => {
@@ -347,7 +358,7 @@ const openEditDialog = (row: Employee) => {
   Object.assign(form, {
     ...row,
     birth_date: row.birth_date ? new Date(row.birth_date) : null,
-    hire_date: row.hire_date ? new Date(row.hire_date) : ''
+    hire_date: row.hire_date ? new Date(row.hire_date) : null
   })
   dialogVisible.value = true
 }
@@ -362,17 +373,52 @@ const handleSubmit = async () => {
     
     const formatDate = (date: any): string | null => {
       if (!date) return null
-      if (date instanceof Date) {
+      
+      // 如果已经是正确格式的字符串，直接返回
+      if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return date
+      }
+      
+      // 如果是 Date 对象，转换为 YYYY-MM-DD 格式
+      if (date instanceof Date && !isNaN(date.getTime())) {
         return date.toISOString().split('T')[0]
       }
-      return date as string
+      
+      // 其他情况返回 null
+      console.warn('无法格式化日期:', date)
+      return null
     }
     
     const submitData = {
-      ...form,
+      id: form.id,
+      name: form.name,
+      employee_id: form.employee_id,
+      gender: form.gender,
       birth_date: formatDate(form.birth_date),
-      hire_date: formatDate(form.hire_date) || ''
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      department: form.department,
+      position: form.position,
+      supervisor: form.supervisor,
+      hire_date: formatDate(form.hire_date),
+      status: form.status
     }
+    
+    // 只在新建时或者用户名不为空时才发送username字段
+    if (!isEdit.value || (form.username && form.username.trim())) {
+      submitData.username = form.username
+    }
+    
+    console.log('原始表单数据:', {
+      birth_date: form.birth_date,
+      hire_date: form.hire_date,
+      department: form.department,
+      position: form.position,
+      name: form.name,
+      employee_id: form.employee_id
+    })
+    console.log('提交数据:', submitData)
     
     if (isEdit.value) {
       await organizationStore.updateEmployee(form.id!, submitData)
@@ -415,16 +461,17 @@ const handleDelete = async (row: Employee) => {
   }
 }
 
-// 监听部门变化，重置职位选择
-watch(() => form.department, (newDept) => {
-  if (newDept && form.position) {
-    const currentPosition = positions.value.find(pos => pos.id === form.position)
-    if (currentPosition && currentPosition.department !== newDept) {
-      form.position = undefined
+// 监听部门变化，重置上级选择
+watch(() => form.department, (newDept, oldDept) => {
+  if (newDept !== oldDept) {
+    // 部门变化时，只重置上级选择（不再重置职位）
+    form.supervisor = undefined
+    
+    // 清除上级字段的验证错误
+    if (formRef.value) {
+      formRef.value.clearValidate(['supervisor'])
     }
   }
-  // 重置上级选择
-  form.supervisor = undefined
 })
 
 onMounted(async () => {

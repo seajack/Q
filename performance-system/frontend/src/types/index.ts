@@ -17,8 +17,28 @@ export interface EvaluationIndicator {
   name: string
   category: 'performance' | 'ability' | 'attitude' | 'teamwork' | 'innovation'
   description: string
-  weight: number
-  max_score: number
+  weight: number | string  // 支持数字和字符串类型
+  max_score: number | string  // 支持数字和字符串类型
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+// 考核规则类型
+export interface EvaluationRule {
+  id: number
+  name: string
+  description: string
+  relation_types: string[]
+  evaluation_scope: 'department' | 'unit' | 'company' | 'cross_department' | 'cross_unit' | 'manual'
+  max_evaluators_per_relation: number
+  min_evaluators_per_relation: number
+  relation_weights: Record<string, number>
+  allow_cross_department: boolean
+  allow_cross_unit: boolean
+  allow_self_evaluation: boolean
+  position_level_diff_limit: number
+  custom_rules: Record<string, any>
   is_active: boolean
   created_at: string
   updated_at: string
@@ -49,6 +69,10 @@ export interface EvaluationTask {
   evaluatee: number
   evaluator_name?: string
   evaluatee_name?: string
+  evaluator_position?: string
+  evaluatee_position?: string
+  evaluator_position_level?: number
+  evaluatee_position_level?: number
   relation_type: 'superior' | 'peer' | 'subordinate'
   evaluation_code: string
   weight: number

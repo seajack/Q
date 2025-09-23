@@ -7,8 +7,32 @@
       
       <el-table :data="tasks" v-loading="loading">
         <el-table-column prop="evaluation_code" label="考核码" />
-        <el-table-column prop="evaluator_name" label="考核人" />
-        <el-table-column prop="evaluatee_name" label="被考核人" />
+        <el-table-column prop="evaluator_name" label="考核人" width="200">
+          <template #default="{ row }">
+            <div>
+              <div class="employee-name">{{ row.evaluator_name }}</div>
+              <div class="employee-position" v-if="row.evaluator_position">
+                {{ row.evaluator_position }}
+                <span class="position-level" v-if="row.evaluator_position_level">
+                  (L{{ row.evaluator_position_level }})
+                </span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="evaluatee_name" label="被考核人" width="200">
+          <template #default="{ row }">
+            <div>
+              <div class="employee-name">{{ row.evaluatee_name }}</div>
+              <div class="employee-position" v-if="row.evaluatee_position">
+                {{ row.evaluatee_position }}
+                <span class="position-level" v-if="row.evaluatee_position_level">
+                  (L{{ row.evaluatee_position_level }})
+                </span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="relation_type" label="考核关系">
           <template #default="{ row }">
             <el-tag>{{ getRelationText(row.relation_type) }}</el-tag>
@@ -72,5 +96,22 @@ onMounted(() => {
 <style scoped>
 .evaluation-tasks {
   padding: 20px;
+}
+
+.employee-name {
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 2px;
+}
+
+.employee-position {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.2;
+}
+
+.position-level {
+  font-weight: 500;
+  color: #409eff;
 }
 </style>

@@ -12,13 +12,12 @@
       </template>
       
       <el-table :data="positions" v-loading="loading">
-        <el-table-column prop="name" label="职位名称" />
-        <el-table-column prop="code" label="职位编码" />
-        <el-table-column prop="department_name" label="所属部门" />
-        <el-table-column prop="management_level_display" label="管理层级" width="100" />
-        <el-table-column prop="level_display" label="职位级别" width="120" />
-        <el-table-column prop="employee_count" label="员工数" width="80" />
-        <el-table-column prop="is_active" label="状态" width="80">
+        <el-table-column prop="name" label="职位名称" width="200" />
+        <el-table-column prop="code" label="职位编码" width="150" />
+        <el-table-column prop="management_level_display" label="管理层级" width="120" />
+        <el-table-column prop="level_display" label="职位级别" width="150" />
+        <el-table-column prop="employee_count" label="员工数" width="100" />
+        <el-table-column prop="is_active" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.is_active ? 'success' : 'danger'">
               {{ row.is_active ? '活跃' : '停用' }}
@@ -53,8 +52,8 @@
         <el-form-item label="职位编码" prop="code">
           <el-input v-model="form.code" placeholder="请输入职位编码" />
         </el-form-item>
-        <el-form-item label="所属部门" prop="department">
-          <el-select v-model="form.department" placeholder="请选择部门" style="width: 100%">
+        <el-form-item label="所属部门">
+          <el-select v-model="form.department" placeholder="请选择部门（可选）" style="width: 100%" clearable>
             <el-option
               v-for="dept in departments"
               :key="dept.id"
@@ -62,6 +61,9 @@
               :value="dept.id"
             />
           </el-select>
+          <div style="font-size: 12px; color: #999; margin-top: 4px;">
+            部门关联为可选，可以不选择部门
+          </div>
         </el-form-item>
         <el-form-item label="管理层级" prop="management_level">
           <el-select v-model="form.management_level" placeholder="请选择管理层级" style="width: 100%">
@@ -154,7 +156,7 @@ const formRef = ref<FormInstance>()
 const form = reactive<Partial<Position>>({
   name: '',
   code: '',
-  department: undefined,
+  department: null,
   management_level: 'junior',
   level: 1,
   description: '',
@@ -173,9 +175,9 @@ const rules: FormRules = {
     { required: true, message: '请输入职位编码', trigger: 'blur' },
     { pattern: /^[A-Z0-9_]+$/, message: '职位编码只能包含大写字母、数字和下划线', trigger: 'blur' }
   ],
-  department: [
-    { required: true, message: '请选择所属部门', trigger: 'change' }
-  ],
+  // department: [
+  //   { required: true, message: '请选择所属部门', trigger: 'change' }
+  // ],
   management_level: [
     { required: true, message: '请选择管理层级', trigger: 'change' }
   ],
@@ -188,7 +190,7 @@ const rules: FormRules = {
 const resetForm = () => {
   form.name = ''
   form.code = ''
-  form.department = undefined
+  form.department = null
   form.management_level = 'junior'
   form.level = 1
   form.description = ''

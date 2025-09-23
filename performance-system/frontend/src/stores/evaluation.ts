@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { 
   EvaluationCycle, 
   EvaluationIndicator, 
+  EvaluationRule,
   Employee, 
   EvaluationTask, 
   EvaluationResult,
@@ -13,6 +14,7 @@ import type {
 import { 
   cycleApi, 
   indicatorApi, 
+  ruleApi,
   employeeApi, 
   taskApi, 
   resultApi, 
@@ -24,6 +26,7 @@ export const useEvaluationStore = defineStore('evaluation', () => {
   // 状态
   const cycles = ref<EvaluationCycle[]>([])
   const indicators = ref<EvaluationIndicator[]>([])
+  const evaluationRules = ref<EvaluationRule[]>([])
   const employees = ref<Employee[]>([])
   const tasks = ref<EvaluationTask[]>([])
   const results = ref<EvaluationResult[]>([])
@@ -125,6 +128,33 @@ export const useEvaluationStore = defineStore('evaluation', () => {
     }
   }
 
+  const updateIndicator = async (id: number, data: Partial<EvaluationIndicator>) => {
+    try {
+      const response = await indicatorApi.update(id, data)
+      const index = indicators.value.findIndex(indicator => indicator.id === id)
+      if (index !== -1) {
+        indicators.value[index] = response.data
+      }
+      return response.data
+    } catch (error) {
+      console.error('更新考核指标失败:', error)
+      throw error
+    }
+  }
+
+  const deleteIndicator = async (id: number) => {
+    try {
+      await indicatorApi.delete(id)
+      const index = indicators.value.findIndex(indicator => indicator.id === id)
+      if (index !== -1) {
+        indicators.value.splice(index, 1)
+      }
+    } catch (error) {
+      console.error('删除考核指标失败:', error)
+      throw error
+    }
+  }
+
   // 员工相关方法
   const fetchEmployees = async (params?: any) => {
     try {
@@ -190,7 +220,7 @@ export const useEvaluationStore = defineStore('evaluation', () => {
   const generateTasksForCycle = async (cycleId: number) => {
     try {
       loading.value = true
-      await taskApi.generateForCycle(cycleId)
+      await cycleApi.generateTasks(cycleId)
       await fetchTasks({ cycle: cycleId }) // 重新获取任务
     } catch (error) {
       console.error('生成考核任务失败:', error)
@@ -227,13 +257,76 @@ export const useEvaluationStore = defineStore('evaluation', () => {
   const calculateResults = async (cycleId: number) => {
     try {
       loading.value = true
-      await resultApi.calculate(cycleId)
-      await fetchResults({ cycle: cycleId }) // 重新获取结果
+      await resultApi.calculateCycleResults(cycleId)
+      await fetchResults({ cycle_id: cycleId }) // 重新获取结果
     } catch (error) {
       console.error('计算考核结果失败:', error)
       throw error
     } finally {
       loading.value = false
+    }
+  }
+
+  // 考核规则相关方法
+  const fetchEvaluationRules = async (params?: any) => {
+    try {
+      loading.value = true
+      const response = await ruleApi.list(params)
+      evaluationRules.value = response.data.results || []
+    } catch (error) {
+      console.error('获取考核规则失败:', error)
+      evaluationRules.value = [] // 确保失败时也返回空数组
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const createEvaluationRule = async (data: Partial<EvaluationRule>) => {
+    try {
+      const response = await ruleApi.create(data)
+      evaluationRules.value.push(response.data)
+      return response.data
+    } catch (error) {
+      console.error('创建考核规则失败:', error)
+      throw error
+    }
+  }
+
+  const updateEvaluationRule = async (id: number, data: Partial<EvaluationRule>) => {
+    try {
+      const response = await ruleApi.update(id, data)
+      const index = evaluationRules.value.findIndex(rule => rule.id === id)
+      if (index !== -1) {
+        evaluationRules.value[index] = response.data
+      }
+      return response.data
+    } catch (error) {
+      console.error('更新考核规则失败:', error)
+      throw error
+    }
+  }
+
+  const deleteEvaluationRule = async (id: number) => {
+    try {
+      await ruleApi.delete(id)
+      const index = evaluationRules.value.findIndex(rule => rule.id === id)
+      if (index !== -1) {
+        evaluationRules.value.splice(index, 1)
+      }
+    } catch (error) {
+      console.error('删除考核规则失败:', error)
+      throw error
+    }
+  }
+
+  const createDefaultRules = async () => {
+    try {
+      await ruleApi.createDefaults()
+      await fetchEvaluationRules() // 重新获取规则列表
+    } catch (error) {
+      console.error('创建默认规则失败:', error)
+      throw error
     }
   }
 
@@ -252,6 +345,7 @@ export const useEvaluationStore = defineStore('evaluation', () => {
     // 状态
     cycles,
     indicators,
+    evaluationRules,
     employees,
     tasks,
     results,
@@ -274,6 +368,14 @@ export const useEvaluationStore = defineStore('evaluation', () => {
     
     fetchIndicators,
     createIndicator,
+    updateIndicator,
+    deleteIndicator,
+    
+    fetchEvaluationRules,
+    createEvaluationRule,
+    updateEvaluationRule,
+    deleteEvaluationRule,
+    createDefaultRules,
     
     fetchEmployees,
     syncEmployees,

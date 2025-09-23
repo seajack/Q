@@ -24,6 +24,12 @@ const routes = [
     meta: { title: '考核指标管理' }
   },
   {
+    path: '/rules',
+    name: 'EvaluationRules',
+    component: () => import('@/views/EvaluationRules.vue'),
+    meta: { title: '考核规则管理' }
+  },
+  {
     path: '/employees',
     name: 'Employees',
     component: () => import('@/views/Employees.vue'),

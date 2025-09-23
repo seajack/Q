@@ -58,13 +58,28 @@
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="周期描述">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入周期描述"
-          />
+        <el-form-item label="考核规则" prop="evaluation_rule">
+          <el-select 
+            v-model="formData.evaluation_rule" 
+            placeholder="请选择考核规则" 
+            style="width: 100%"
+            :loading="rulesLoading"
+          >
+            <el-option
+              v-for="rule in activeRules"
+              :key="rule.id"
+              :label="rule.name"
+              :value="rule.id"
+            >
+              <div>
+                <span>{{ rule.name }}</span>
+                <span style="color: #8492a6; font-size: 12px; margin-left: 8px">{{ rule.description }}</span>
+              </div>
+            </el-option>
+          </el-select>
+          <div class="form-tip">
+            选择用于该考核周期的规则，将根据规则自动生成考核任务
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -89,23 +104,29 @@ const evaluationStore = useEvaluationStore()
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
+const rulesLoading = ref(false)
 const formRef = ref()
+const currentCycle = ref<EvaluationCycle | null>(null)
 
 const formData = reactive({
   name: '',
   start_date: '',
   end_date: '',
-  description: ''
+  description: '',
+  evaluation_rule: null as number | null
 })
 
 const rules = {
   name: [{ required: true, message: '请输入周期名称', trigger: 'blur' }],
   start_date: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
-  end_date: [{ required: true, message: '请选择结束日期', trigger: 'change' }]
+  end_date: [{ required: true, message: '请选择结束日期', trigger: 'change' }],
+  evaluation_rule: [{ required: true, message: '请选择考核规则', trigger: 'change' }]
 }
 
 const cycles = computed(() => evaluationStore.cycles)
 const loading = computed(() => evaluationStore.loading)
+const evaluationRules = computed(() => evaluationStore.evaluationRules)
+const activeRules = computed(() => evaluationRules.value.filter(rule => rule.is_active))
 
 const getStatusType = (status: string) => {
   const statusMap = {
@@ -127,19 +148,24 @@ const getStatusText = (status: string) => {
   return statusMap[status as keyof typeof statusMap] || status
 }
 
-const showCreateDialog = () => {
+const showCreateDialog = async () => {
   isEdit.value = false
+  currentCycle.value = null
   resetForm()
   dialogVisible.value = true
+  await loadRules()
 }
 
-const editCycle = (cycle: EvaluationCycle) => {
+const editCycle = async (cycle: EvaluationCycle) => {
   isEdit.value = true
+  currentCycle.value = cycle
   formData.name = cycle.name
   formData.start_date = cycle.start_date
   formData.end_date = cycle.end_date
   formData.description = cycle.description
+  formData.evaluation_rule = cycle.evaluation_rule || null
   dialogVisible.value = true
+  await loadRules()
 }
 
 const resetForm = () => {
@@ -147,6 +173,7 @@ const resetForm = () => {
   formData.start_date = ''
   formData.end_date = ''
   formData.description = ''
+  formData.evaluation_rule = null
   formRef.value?.clearValidate()
 }
 
@@ -155,10 +182,22 @@ const submitForm = async () => {
     await formRef.value?.validate()
     submitting.value = true
     
-    if (isEdit.value) {
+    // 格式化日期为字符串
+    const submitData = {
+      ...formData,
+      start_date: formData.start_date instanceof Date 
+        ? formData.start_date.toISOString().split('T')[0] 
+        : formData.start_date,
+      end_date: formData.end_date instanceof Date 
+        ? formData.end_date.toISOString().split('T')[0] 
+        : formData.end_date
+    }
+    
+    if (isEdit.value && currentCycle.value) {
+      await evaluationStore.updateCycle(currentCycle.value.id, submitData)
       ElMessage.success('更新成功')
     } else {
-      await evaluationStore.createCycle(formData)
+      await evaluationStore.createCycle(submitData)
       ElMessage.success('创建成功')
     }
     
@@ -209,6 +248,17 @@ const deleteCycle = async (cycle: EvaluationCycle) => {
   }
 }
 
+const loadRules = async () => {
+  try {
+    rulesLoading.value = true
+    await evaluationStore.fetchEvaluationRules()
+  } catch (error) {
+    console.error('加载考核规则失败:', error)
+  } finally {
+    rulesLoading.value = false
+  }
+}
+
 const loadData = async () => {
   try {
     await evaluationStore.fetchCycles()
@@ -232,5 +282,12 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+  line-height: 1.4;
 }
 </style>

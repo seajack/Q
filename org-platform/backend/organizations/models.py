@@ -68,7 +68,8 @@ class Position(models.Model):
     name = models.CharField('职位名称', max_length=100)
     code = models.CharField('职位编码', max_length=50, unique=True)
     department = models.ForeignKey(Department, verbose_name='所属部门', 
-                                  on_delete=models.CASCADE, related_name='positions')
+                                  on_delete=models.SET_NULL, related_name='positions', 
+                                  null=True, blank=True)
     management_level = models.CharField('管理层级', max_length=20, choices=MANAGEMENT_LEVEL_CHOICES, default='junior')
     level = models.IntegerField('职位级别', choices=POSITION_LEVEL_CHOICES, default=1)
     description = models.TextField('职位描述', blank=True)
@@ -81,10 +82,11 @@ class Position(models.Model):
     class Meta:
         verbose_name = '职位'
         verbose_name_plural = '职位'
-        ordering = ['department', '-level', 'code']  # 按职位级别从高到低排序
+        ordering = ['-level', 'code']  # 按职位级别从高到低排序
 
     def __str__(self):
-        return f"{self.department.name} - {self.name}"
+        dept_name = self.department.name if self.department else '无部门'
+        return f"{dept_name} - {self.name}"
     
     def get_level_display_with_management(self):
         """获取包含管理层级的完整显示名称"""

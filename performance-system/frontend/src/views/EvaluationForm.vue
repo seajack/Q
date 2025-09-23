@@ -1,6 +1,6 @@
 <template>
   <div class="evaluation-form">
-    <el-card>
+    <el-card v-loading="loading">
       <template #header>
         <span>考核评分 - {{ task?.evaluatee_name }}</span>
       </template>
@@ -8,7 +8,12 @@
       <div v-if="task" class="evaluation-content">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="考核码">{{ task.evaluation_code }}</el-descriptions-item>
-          <el-descriptions-item label="被考核人">{{ task.evaluatee_name }}</el-descriptions-item>
+          <el-descriptions-item label="被考核人">
+            {{ task.evaluatee_name }}
+            <span v-if="task.evaluatee_position" class="position-info">
+              ({{ task.evaluatee_position }})
+            </span>
+          </el-descriptions-item>
           <el-descriptions-item label="考核关系">{{ getRelationText(task.relation_type) }}</el-descriptions-item>
           <el-descriptions-item label="考核权重">{{ task.weight }}</el-descriptions-item>
         </el-descriptions>
@@ -38,7 +43,13 @@
         </div>
 
         <div class="submit-section">
-          <el-button type="primary" size="large" @click="submitEvaluation">
+          <el-button 
+            type="primary" 
+            size="large" 
+            @click="submitEvaluation"
+            :loading="loading"
+            :disabled="loading"
+          >
             提交评分
           </el-button>
           <el-button size="large" @click="$router.go(-1)">
@@ -62,7 +73,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useEvaluationStore } from '@/stores/evaluation'
+import { taskApi, scoreApi } from '@/utils/api'
+import type { EvaluationTask, EvaluationIndicator } from '@/types'
 
 const props = defineProps<{
   code: string
@@ -70,12 +82,12 @@ const props = defineProps<{
 
 const route = useRoute()
 const router = useRouter()
-const evaluationStore = useEvaluationStore()
 
-const task = ref(null)
-const indicators = ref([])
-const scoreForm = reactive({})
-const commentForm = reactive({})
+const task = ref<EvaluationTask | null>(null)
+const indicators = ref<EvaluationIndicator[]>([])
+const scoreForm = reactive<Record<number, number>>({})
+const commentForm = reactive<Record<number, string>>({})
+const loading = ref(false)
 
 const getRelationText = (type: string) => {
   const map = {
@@ -87,21 +99,75 @@ const getRelationText = (type: string) => {
 }
 
 const submitEvaluation = async () => {
+  if (!task.value) {
+    ElMessage.error('考核任务不存在')
+    return
+  }
+  
   try {
+    loading.value = true
+    
+    // 准备评分数据
+    const scores = indicators.value.map(indicator => ({
+      indicator_id: indicator.id,
+      score: Math.round((scoreForm[indicator.id] || 0) * 20), // 将星级评分(1-5)转换为百分制(0-100)
+      comment: commentForm[indicator.id] || ''
+    })).filter(score => score.score > 0) // 只提交有评分的指标
+    
+    if (scores.length === 0) {
+      ElMessage.warning('请至少对一个指标进行评分')
+      return
+    }
+    
+    await scoreApi.submitTaskScores(task.value.id, scores)
     ElMessage.success('评分提交成功')
     router.push('/dashboard')
   } catch (error) {
+    console.error('提交评分失败:', error)
     ElMessage.error('提交失败，请重试')
+  } finally {
+    loading.value = false
   }
 }
 
 onMounted(async () => {
+  const evaluationCode = props.code || route.params.code as string
+  
+  if (!evaluationCode) {
+    ElMessage.error('缺少考核码参数')
+    router.push('/dashboard')
+    return
+  }
+  
   try {
-    // 这里应该根据考核码获取任务和指标
-    // task.value = await evaluationStore.getTaskByCode(props.code)
-    // indicators.value = await evaluationStore.fetchIndicators()
-  } catch (error) {
+    loading.value = true
+    const response = await taskApi.getByCode(evaluationCode)
+    
+    task.value = response.data.task
+    indicators.value = response.data.indicators
+    
+    // 初始化表单数据，如果有已存在的评分则填入
+    const existingScores = response.data.existing_scores || {}
+    indicators.value.forEach(indicator => {
+      const existingScore = existingScores[indicator.id.toString()]
+      if (existingScore) {
+        scoreForm[indicator.id] = existingScore.score / 20 // 转换为星级评分
+        commentForm[indicator.id] = existingScore.comment
+      } else {
+        scoreForm[indicator.id] = 0
+        commentForm[indicator.id] = ''
+      }
+    })
+    
+  } catch (error: any) {
     console.error('加载考核任务失败:', error)
+    if (error.response?.status === 404) {
+      ElMessage.error('考核任务不存在，请检查考核码是否正确')
+    } else {
+      ElMessage.error('加载失败，请重试')
+    }
+  } finally {
+    loading.value = false
   }
 })
 </script>
@@ -113,6 +179,12 @@ onMounted(async () => {
 
 .evaluation-content {
   margin-top: 20px;
+}
+
+.position-info {
+  color: #909399;
+  font-size: 12px;
+  margin-left: 4px;
 }
 
 .indicators-section {

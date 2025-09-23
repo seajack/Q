@@ -2,7 +2,8 @@ import axios from 'axios'
 import type { 
   ApiResponse, 
   EvaluationCycle, 
-  EvaluationIndicator, 
+  EvaluationIndicator,
+  EvaluationRule,
   Employee, 
   EvaluationTask, 
   EvaluationScore, 
@@ -54,6 +55,7 @@ export const cycleApi = {
   get: (id: number) => api.get<EvaluationCycle>(`/cycles/${id}/`),
   update: (id: number, data: Partial<EvaluationCycle>) => api.put<EvaluationCycle>(`/cycles/${id}/`, data),
   delete: (id: number) => api.delete(`/cycles/${id}/`),
+  generateTasks: (id: number) => api.post(`/cycles/${id}/generate_tasks/`),
 }
 
 // 考核指标API
@@ -63,6 +65,16 @@ export const indicatorApi = {
   get: (id: number) => api.get<EvaluationIndicator>(`/indicators/${id}/`),
   update: (id: number, data: Partial<EvaluationIndicator>) => api.put<EvaluationIndicator>(`/indicators/${id}/`, data),
   delete: (id: number) => api.delete(`/indicators/${id}/`),
+}
+
+// 考核规则API
+export const ruleApi = {
+  list: (params?: any) => api.get<ApiResponse<EvaluationRule[]>>('/rules/', { params }),
+  create: (data: Partial<EvaluationRule>) => api.post<EvaluationRule>('/rules/', data),
+  get: (id: number) => api.get<EvaluationRule>(`/rules/${id}/`),
+  update: (id: number, data: Partial<EvaluationRule>) => api.put<EvaluationRule>(`/rules/${id}/`, data),
+  delete: (id: number) => api.delete(`/rules/${id}/`),
+  createDefaults: () => api.post('/rules/create_defaults/'),
 }
 
 // 员工API（本地）
@@ -80,7 +92,7 @@ export const taskApi = {
   update: (id: number, data: Partial<EvaluationTask>) => api.put<EvaluationTask>(`/tasks/${id}/`, data),
   delete: (id: number) => api.delete(`/tasks/${id}/`),
   generateForCycle: (cycleId: number) => api.post(`/tasks/generate-for-cycle/`, { cycle_id: cycleId }),
-  getByCode: (code: string) => api.get<EvaluationTask>(`/tasks/by-code/${code}/`),
+  getByCode: (code: string) => api.get(`/tasks/by-code/${code}/`),
 }
 
 // 考核评分API
@@ -88,15 +100,15 @@ export const scoreApi = {
   list: (params?: any) => api.get<ApiResponse<EvaluationScore[]>>('/scores/', { params }),
   create: (data: Partial<EvaluationScore>) => api.post<EvaluationScore>('/scores/', data),
   update: (id: number, data: Partial<EvaluationScore>) => api.put<EvaluationScore>(`/scores/${id}/`, data),
-  submitScores: (taskId: number, scores: Partial<EvaluationScore>[]) => 
-    api.post(`/scores/submit-task/`, { task_id: taskId, scores }),
+  submitTaskScores: (taskId: number, scores: Array<{indicator_id: number, score: number, comment?: string}>) => 
+    api.post(`/scores/submit_task_scores/`, { task_id: taskId, scores }),
 }
 
 // 考核结果API
 export const resultApi = {
   list: (params?: any) => api.get<ApiResponse<EvaluationResult[]>>('/results/', { params }),
   get: (id: number) => api.get<EvaluationResult>(`/results/${id}/`),
-  calculate: (cycleId: number) => api.post(`/results/calculate/`, { cycle_id: cycleId }),
+  calculateCycleResults: (cycleId: number) => api.post(`/results/calculate_cycle_results/`, { cycle_id: cycleId }),
   export: (cycleId: number) => api.get(`/results/export/`, { 
     params: { cycle_id: cycleId },
     responseType: 'blob'

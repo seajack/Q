@@ -1,37 +1,40 @@
 <template>
-  <div class="positions">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>职位管理</span>
-          <el-button type="primary" @click="openCreateDialog">
-            <el-icon><Plus /></el-icon>
-            新建职位
-          </el-button>
-        </div>
-      </template>
-      
-      <el-table :data="positions" v-loading="loading">
-        <el-table-column prop="name" label="职位名称" width="200" />
-        <el-table-column prop="code" label="职位编码" width="150" />
-        <el-table-column prop="management_level_display" label="管理层级" width="120" />
-        <el-table-column prop="level_display" label="职位级别" width="150" />
-        <el-table-column prop="employee_count" label="员工数" width="100" />
-        <el-table-column prop="is_active" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.is_active ? 'success' : 'danger'">
-              {{ row.is_active ? '活跃' : '停用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+  <div class="container">
+    <!-- 顶部工具条：标题 + 新建按钮 -->
+    <div class="row" style="margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">职位管理</h3>
+      <div class="toolbar">
+        <el-button type="primary" @click="openCreateDialog">
+          <el-icon><Plus /></el-icon>
+          新建职位
+        </el-button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <el-table :data="positions" v-loading="loading" border stripe>
+          <el-table-column prop="name" label="职位名称" width="200" />
+          <el-table-column prop="code" label="职位编码" width="150" />
+          <el-table-column prop="management_level_display" label="管理层级" width="120" />
+          <el-table-column prop="level_display" label="职位级别" width="150" />
+          <el-table-column prop="employee_count" label="员工数" width="100" />
+          <el-table-column prop="is_active" label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.is_active ? 'success' : 'danger'">
+                {{ row.is_active ? '活跃' : '停用' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="160" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
 
     <!-- 新建/编辑职位对话框 -->
     <el-dialog
@@ -156,7 +159,7 @@ const formRef = ref<FormInstance>()
 const form = reactive<Partial<Position>>({
   name: '',
   code: '',
-  department: null,
+  department: undefined,
   management_level: 'junior',
   level: 1,
   description: '',
@@ -175,9 +178,6 @@ const rules: FormRules = {
     { required: true, message: '请输入职位编码', trigger: 'blur' },
     { pattern: /^[A-Z0-9_]+$/, message: '职位编码只能包含大写字母、数字和下划线', trigger: 'blur' }
   ],
-  // department: [
-  //   { required: true, message: '请选择所属部门', trigger: 'change' }
-  // ],
   management_level: [
     { required: true, message: '请选择管理层级', trigger: 'change' }
   ],
@@ -190,7 +190,7 @@ const rules: FormRules = {
 const resetForm = () => {
   form.name = ''
   form.code = ''
-  form.department = null
+  form.department = undefined
   form.management_level = 'junior'
   form.level = 1
   form.description = ''
@@ -272,13 +272,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.positions {
-  padding: 20px;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+.table-wrap { padding: 16px; }
 </style>

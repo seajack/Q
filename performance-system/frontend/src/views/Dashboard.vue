@@ -1,494 +1,758 @@
 <template>
-  <div class="performance-dashboard">
-    <!-- 导航栏 -->
-    <el-header class="header">
+  <div class="modern-dashboard">
+    <!-- 页面标题 -->
+    <header class="dashboard-header">
       <div class="header-content">
-        <h1 class="title">绩效考核管理系统</h1>
-        <el-menu mode="horizontal" :default-active="activeMenu" class="nav-menu" router>
-          <el-menu-item index="/dashboard">
-            <el-icon><House /></el-icon>
-            <span>仪表板</span>
-          </el-menu-item>
-          <el-menu-item index="/cycles">
-            <el-icon><Calendar /></el-icon>
-            <span>考核周期</span>
-          </el-menu-item>
-          <el-menu-item index="/indicators">
-            <el-icon><DataBoard /></el-icon>
-            <span>考核指标</span>
-          </el-menu-item>
-          <el-menu-item index="/rules">
-            <el-icon><Setting /></el-icon>
-            <span>考核规则</span>
-          </el-menu-item>
-          <el-menu-item index="/employees">
-            <el-icon><User /></el-icon>
-            <span>员工管理</span>
-          </el-menu-item>
-          <el-menu-item index="/tasks">
-            <el-icon><Document /></el-icon>
-            <span>考核任务</span>
-          </el-menu-item>
-          <el-menu-item index="/results">
-            <el-icon><TrendCharts /></el-icon>
-            <span>考核结果</span>
-          </el-menu-item>
-          <el-menu-item index="/organization">
-            <el-icon><OfficeBuilding /></el-icon>
-            <span>组织架构</span>
-          </el-menu-item>
-        </el-menu>
+        <h1 class="dashboard-title">仪表板</h1>
+        <p class="dashboard-subtitle">绩效考核系统概览与数据统计</p>
       </div>
-    </el-header>
+      <div class="header-actions">
+        <Button variant="outline" size="sm" @click="refreshData">
+          <template #icon>
+            <el-icon><Refresh /></el-icon>
+          </template>
+          刷新数据
+        </Button>
+        <Button variant="primary" size="sm" @click="goToCycles">
+          <template #icon>
+            <el-icon><Plus /></el-icon>
+          </template>
+          创建考核
+        </Button>
+      </div>
+    </header>
+
+    <!-- 统计卡片网格 -->
+    <section class="stats-section" aria-label="数据统计">
+      <div class="stats-grid">
+        <StatCard
+          :value="stats?.active_cycles || 0"
+          label="活跃考核周期"
+          description="当前正在进行的考核周期数量"
+          variant="primary"
+          :icon="Calendar"
+          :trend="{ value: 12, type: 'up' }"
+          class="animate-fade-in"
+          style="animation-delay: 0.1s"
+        />
+        
+        <StatCard
+          :value="stats?.total_tasks || 0"
+          label="考核任务总数"
+          description="系统中所有考核任务的总数量"
+          variant="success"
+          :icon="Document"
+          :trend="{ value: 8, type: 'up' }"
+          class="animate-fade-in"
+          style="animation-delay: 0.2s"
+        />
+        
+        <StatCard
+          :value="stats?.completed_tasks || 0"
+          label="已完成任务"
+          description="已经完成的考核任务数量"
+          variant="warning"
+          :icon="Check"
+          :trend="{ value: 15, type: 'up' }"
+          class="animate-fade-in"
+          style="animation-delay: 0.3s"
+        />
+        
+        <StatCard
+          :value="stats?.completion_rate || 0"
+          label="完成率"
+          description="整体考核任务的完成情况"
+          variant="info"
+          :icon="TrendCharts"
+          :trend="{ value: 5, type: 'up' }"
+          format="percentage"
+          class="animate-fade-in"
+          style="animation-delay: 0.4s"
+        />
+      </div>
+    </section>
 
     <!-- 主要内容区域 -->
-    <el-container class="main-container">
-      <el-main class="main-content">
-        <!-- 统计卡片 -->
-        <el-row :gutter="20" class="stats-row">
-          <el-col :span="6">
-            <el-card class="stat-card">
-              <div class="stat-content">
-                <div class="stat-icon cycles">
-                  <el-icon><Calendar /></el-icon>
+    <el-row :gutter="24" class="content-row">
+      <!-- 考核周期概览 -->
+      <el-col :xs="24" :lg="16">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <h3>考核周期概览</h3>
+              <el-button type="primary" size="small" @click="goToCycles">
+                查看全部
+                <el-icon><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+          </template>
+          <div class="chart-container">
+            <div v-if="loading" class="loading-container">
+              <el-skeleton :rows="5" animated />
+            </div>
+            <EmptyState 
+              v-else-if="cycles.length === 0"
+              icon="Calendar"
+              title="暂无考核周期"
+              description="当前没有活跃的考核周期，请创建新的考核周期"
+              action-text="创建考核周期"
+              @action="goToCycles"
+            />
+            <div v-else class="cycles-list">
+              <div 
+                v-for="cycle in cycles.slice(0, 5)" 
+                :key="cycle.id" 
+                class="cycle-item"
+              >
+                <div class="cycle-info">
+                  <h4>{{ cycle.name }}</h4>
+                  <p>{{ cycle.description }}</p>
+                  <div class="cycle-meta">
+                    <el-tag :type="getCycleStatusType(cycle.status)" size="small">
+                      {{ getCycleStatusText(cycle.status) }}
+                    </el-tag>
+                    <span class="cycle-date">{{ formatDate(cycle.start_date) }} - {{ formatDate(cycle.end_date) }}</span>
+                  </div>
                 </div>
-                <div class="stat-info">
-                  <h3>{{ stats?.active_cycles || 0 }}</h3>
-                  <p>活跃考核周期</p>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card class="stat-card">
-              <div class="stat-content">
-                <div class="stat-icon tasks">
-                  <el-icon><Document /></el-icon>
-                </div>
-                <div class="stat-info">
-                  <h3>{{ stats?.total_tasks || 0 }}</h3>
-                  <p>考核任务总数</p>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card class="stat-card">
-              <div class="stat-content">
-                <div class="stat-icon completed">
-                  <el-icon><Check /></el-icon>
-                </div>
-                <div class="stat-info">
-                  <h3>{{ stats?.completed_tasks || 0 }}</h3>
-                  <p>已完成任务</p>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card class="stat-card">
-              <div class="stat-content">
-                <div class="stat-icon rate">
-                  <el-icon><TrendCharts /></el-icon>
-                </div>
-                <div class="stat-info">
-                  <h3>{{ (stats?.completion_rate || 0).toFixed(1) }}%</h3>
-                  <p>完成率</p>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-
-        <!-- 考核进度和部门统计 -->
-        <el-row :gutter="20" class="chart-row">
-          <el-col :span="12">
-            <el-card class="chart-card">
-              <template #header>
-                <div class="card-header">
-                  <span>考核进度概览</span>
-                </div>
-              </template>
-              <div class="progress-content">
-                <div class="progress-item">
-                  <span class="progress-label">总体完成率</span>
+                <div class="cycle-progress">
                   <el-progress 
-                    :percentage="stats?.completion_rate || 0"
-                    :format="(percentage) => `${percentage}%`"
-                    :stroke-width="20"
+                    :percentage="getCycleProgress(cycle)" 
+                    :color="getProgressColor(getCycleProgress(cycle))"
+                    :show-text="false"
                   />
-                </div>
-                <div class="metrics-grid">
-                  <div class="metric-item">
-                    <span class="metric-label">平均分数</span>
-                    <span class="metric-value">{{ (stats?.average_score || 0).toFixed(1) }}</span>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">参与部门</span>
-                    <span class="metric-value">{{ stats?.department_stats?.length || 0 }}</span>
-                  </div>
+                  <span class="progress-text">{{ getCycleProgress(cycle) }}%</span>
                 </div>
               </div>
-            </el-card>
-          </el-col>
-          <el-col :span="12">
-            <el-card class="chart-card">
-              <template #header>
-                <div class="card-header">
-                  <span>各部门考核情况</span>
-                </div>
-              </template>
-              <div class="department-stats">
-                <div 
-                  v-for="dept in stats?.department_stats?.slice(0, 5)" 
-                  :key="dept.department_name"
-                  class="dept-item"
-                >
-                  <div class="dept-name">{{ dept.department_name }}</div>
-                  <div class="dept-metrics">
-                    <span class="dept-count">{{ dept.employee_count }}人</span>
-                    <el-progress 
-                      :percentage="dept.completion_rate"
-                      :format="() => `${dept.average_score.toFixed(1)}分`"
-                      :stroke-width="12"
-                      :color="getProgressColor(dept.average_score)"
-                    />
-                  </div>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
 
-        <!-- 快速操作和考核码入口 -->
-        <el-row :gutter="20" class="action-row">
-          <el-col :span="12">
-            <el-card class="action-card">
-              <template #header>
-                <div class="card-header">
-                  <span>快速操作</span>
-                </div>
-              </template>
-              <div class="action-buttons">
-                <el-button type="primary" size="large" @click="$router.push('/cycles')">
-                  <el-icon><Plus /></el-icon>
-                  新建考核周期
-                </el-button>
-                <el-button type="success" size="large" @click="syncEmployees">
-                  <el-icon><Refresh /></el-icon>
-                  同步员工数据
-                </el-button>
-                <el-button type="info" size="large" @click="$router.push('/tasks')">
-                  <el-icon><View /></el-icon>
-                  查看考核任务
-                </el-button>
+      <!-- 快速操作 -->
+      <el-col :xs="24" :lg="8">
+        <el-card class="quick-actions-card">
+          <template #header>
+            <h3>快速操作</h3>
+          </template>
+          <div class="quick-actions">
+            <el-button 
+              type="primary" 
+              class="action-btn"
+              @click="goToCycles"
+            >
+              <el-icon><Calendar /></el-icon>
+              创建考核周期
+            </el-button>
+            <el-button 
+              type="success" 
+              class="action-btn"
+              @click="goToTasks"
+            >
+              <el-icon><Document /></el-icon>
+              查看考核任务
+            </el-button>
+            <el-button 
+              type="info" 
+              class="action-btn"
+              @click="goToResults"
+            >
+              <el-icon><TrendCharts /></el-icon>
+              查看考核结果
+            </el-button>
+            <el-button 
+              type="warning" 
+              class="action-btn"
+              @click="goToEmployees"
+            >
+              <el-icon><User /></el-icon>
+              员工管理
+            </el-button>
+          </div>
+        </el-card>
+
+        <!-- 系统通知 -->
+        <el-card class="notifications-card">
+          <template #header>
+            <h3>系统通知</h3>
+          </template>
+          <div class="notifications-list">
+            <div class="notification-item">
+              <el-icon class="notification-icon"><Bell /></el-icon>
+              <div class="notification-content">
+                <p>新的考核周期已创建</p>
+                <span class="notification-time">2小时前</span>
               </div>
-            </el-card>
-          </el-col>
-          <el-col :span="12">
-            <el-card class="evaluation-card">
-              <template #header>
-                <div class="card-header">
-                  <span>考核评分入口</span>
-                </div>
-              </template>
-              <div class="evaluation-form">
-                <el-input
-                  v-model="evaluationCode"
-                  placeholder="请输入16位考核码"
-                  maxlength="16"
-                  show-word-limit
-                  size="large"
-                  class="code-input"
-                >
-                  <template #prepend>考核码</template>
-                </el-input>
-                <el-button 
-                  type="primary" 
-                  size="large" 
-                  @click="goToEvaluation"
-                  :disabled="!evaluationCode || evaluationCode.length !== 16"
-                  class="eval-button"
-                >
-                  开始考核
-                </el-button>
+            </div>
+            <div class="notification-item">
+              <el-icon class="notification-icon"><Document /></el-icon>
+              <div class="notification-content">
+                <p>有3个考核任务待处理</p>
+                <span class="notification-time">4小时前</span>
               </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </el-main>
-    </el-container>
+            </div>
+            <div class="notification-item">
+              <el-icon class="notification-icon"><TrendCharts /></el-icon>
+              <div class="notification-content">
+                <p>考核结果已生成</p>
+                <span class="notification-time">1天前</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 最近活动 -->
+    <el-row :gutter="24" class="activity-row">
+      <el-col :span="24">
+        <el-card class="activity-card">
+          <template #header>
+            <div class="card-header">
+              <h3>最近活动</h3>
+              <el-button type="text" size="small">查看全部</el-button>
+            </div>
+          </template>
+          <div class="activity-list">
+            <div class="activity-item">
+              <el-icon class="activity-icon"><User /></el-icon>
+              <div class="activity-content">
+                <p>张三完成了2024年第一季度考核</p>
+                <span class="activity-time">10分钟前</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <el-icon class="activity-icon"><Calendar /></el-icon>
+              <div class="activity-content">
+                <p>创建了新的考核周期"2024年第二季度"</p>
+                <span class="activity-time">1小时前</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <el-icon class="activity-icon"><Document /></el-icon>
+              <div class="activity-content">
+                <p>李四提交了考核任务评分</p>
+                <span class="activity-time">2小时前</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useEvaluationStore } from '@/stores/evaluation'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
-  House, 
-  Calendar, 
-  DataBoard, 
-  Setting,
-  User, 
-  Document, 
-  TrendCharts,
-  OfficeBuilding,
-  Check,
-  Plus,
-  Refresh,
-  View
+  Calendar, Document, Check, TrendCharts, ArrowUp, ArrowRight, 
+  Bell, User, Refresh, Plus
 } from '@element-plus/icons-vue'
+import { statsApi, cycleApi } from '@/utils/api'
+import type { EvaluationCycle, EvaluationStats } from '@/types'
+import { Button, Card, StatCard, Progress, EmptyState } from '@/components/ui'
+import EmptyStateComponent from '@/components/EmptyState.vue'
 
-const route = useRoute()
 const router = useRouter()
-const evaluationStore = useEvaluationStore()
 
-const evaluationCode = ref('')
-const activeMenu = computed(() => route.path)
-const stats = computed(() => evaluationStore.stats)
+// 数据状态
+const loading = ref(true)
+const stats = ref<EvaluationStats | null>(null)
+const cycles = ref<EvaluationCycle[]>([])
 
-const getProgressColor = (score: number) => {
-  if (score >= 90) return '#67C23A'
-  if (score >= 80) return '#E6A23C'
-  if (score >= 70) return '#F56C6C'
-  return '#909399'
-}
+// 快捷操作配置
+const quickActions = ref([
+  {
+    key: 'cycles',
+    title: '创建考核周期',
+    description: '设置新的绩效考核时间周期',
+    icon: Calendar,
+    variant: 'primary',
+    handler: () => goToCycles()
+  },
+  {
+    key: 'tasks',
+    title: '查看考核任务',
+    description: '管理和跟踪考核任务进度',
+    icon: Document,
+    variant: 'success',
+    handler: () => goToTasks()
+  },
+  {
+    key: 'results',
+    title: '查看考核结果',
+    description: '分析和查看考核数据报告',
+    icon: TrendCharts,
+    variant: 'info',
+    handler: () => goToResults()
+  },
+  {
+    key: 'employees',
+    title: '员工管理',
+    description: '管理员工信息和组织架构',
+    icon: User,
+    variant: 'warning',
+    handler: () => goToEmployees()
+  }
+])
 
-const syncEmployees = async () => {
+// 加载数据
+const loadData = async () => {
   try {
-    await evaluationStore.syncEmployees()
-    ElMessage.success('员工数据同步成功')
+    loading.value = true
+    
+    // 并行加载统计数据
+    const [statsResponse, cyclesResponse] = await Promise.all([
+      statsApi.overview(),
+      cycleApi.list()
+    ])
+    
+    stats.value = statsResponse.data
+    cycles.value = cyclesResponse.data.results || []
   } catch (error) {
-    ElMessage.error('员工数据同步失败')
+    console.error('加载数据失败:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-const goToEvaluation = () => {
-  if (evaluationCode.value && evaluationCode.value.length === 16) {
-    router.push(`/evaluation/${evaluationCode.value}`)
-  }
+// 刷新数据
+const refreshData = async () => {
+  await loadData()
 }
 
-onMounted(async () => {
-  try {
-    await evaluationStore.fetchStats()
-  } catch (error) {
-    console.error('加载统计数据失败:', error)
+// 导航方法
+const goToCycles = () => router.push('/cycles')
+const goToTasks = () => router.push('/tasks')
+const goToResults = () => router.push('/results')
+const goToEmployees = () => router.push('/employees')
+
+// 工具方法
+const getCycleStatusType = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'draft': 'info',
+    'active': 'success',
+    'completed': 'warning',
+    'cancelled': 'danger'
   }
+  return statusMap[status] || 'info'
+}
+
+const getCycleStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'draft': '草稿',
+    'active': '进行中',
+    'completed': '已完成',
+    'cancelled': '已取消'
+  }
+  return statusMap[status] || status
+}
+
+const getCycleProgress = (cycle: EvaluationCycle) => {
+  // 简单的进度计算逻辑
+  if (cycle.status === 'completed') return 100
+  if (cycle.status === 'draft') return 0
+  return Math.floor(Math.random() * 80) + 20 // 模拟进度
+}
+
+const getProgressColor = (percentage: number) => {
+  if (percentage < 30) return '#f56c6c'
+  if (percentage < 70) return '#e6a23c'
+  return '#67c23a'
+}
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('zh-CN')
+}
+
+onMounted(() => {
+  loadData()
 })
 </script>
 
 <style scoped>
-.performance-dashboard {
-  min-height: 100vh;
-  background-color: #f5f5f5;
+/* 现代化仪表板样式 */
+.modern-dashboard {
+  padding: 0;
+  min-height: 100%;
+  background: var(--surface-secondary);
 }
 
-.header {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 0;
+/* 仪表板头部 */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-8);
+  padding: var(--spacing-6) 0;
+  background: var(--surface-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-subtle);
 }
 
 .header-content {
+  flex: 1;
+  padding: 0 var(--spacing-6);
+}
+
+.dashboard-title {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-2) 0;
+  letter-spacing: -0.025em;
+  line-height: var(--leading-tight);
+}
+
+.dashboard-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: var(--font-normal);
+  line-height: var(--leading-relaxed);
+}
+
+.header-actions {
   display: flex;
   align-items: center;
+  gap: var(--spacing-3);
+  padding: 0 var(--spacing-6);
+}
+
+/* 统计区域 */
+.stats-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-6);
+}
+
+/* 内容区域 */
+.content-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: var(--spacing-6);
+}
+
+/* 卡片通用样式 */
+.card-header-with-action {
+  display: flex;
   justify-content: space-between;
-  height: 100%;
-  padding: 0 20px;
+  align-items: flex-start;
+  gap: var(--spacing-4);
 }
 
-.title {
-  color: #303133;
-  font-size: 20px;
+.card-title-section {
+  flex: 1;
+}
+
+.card-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+  line-height: var(--leading-tight);
+}
+
+.card-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
   margin: 0;
+  line-height: var(--leading-normal);
 }
 
-.nav-menu {
-  background: none;
-  border: none;
+/* 考核周期概览 */
+.cycles-overview-card {
+  min-height: 500px;
 }
 
-.main-container {
-  background: none;
+.cycles-content {
+  padding: var(--spacing-2) 0;
 }
 
-.main-content {
-  padding: 20px;
+.loading-state {
+  padding: var(--spacing-6);
 }
 
-.stats-row {
-  margin-bottom: 20px;
+.loading-skeleton {
+  padding: var(--spacing-4);
 }
 
-.stat-card {
-  height: 120px;
-}
-
-.stat-content {
+.cycles-list {
   display: flex;
-  align-items: center;
-  height: 100%;
+  flex-direction: column;
+  gap: var(--spacing-4);
 }
 
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+.cycle-item {
+  padding: var(--spacing-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-tertiary);
+  transition: all var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.cycle-item:hover {
+  border-color: var(--border-default);
+  background: var(--surface-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.cycle-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-3);
 }
 
-.stat-icon.cycles {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.cycle-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.stat-icon.tasks {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
+.cycle-name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+  line-height: var(--leading-tight);
 }
 
-.stat-icon.completed {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: white;
-}
-
-.stat-icon.rate {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  color: white;
-}
-
-.stat-icon .el-icon {
-  font-size: 24px;
-}
-
-.stat-info h3 {
-  font-size: 28px;
-  font-weight: bold;
+.cycle-description {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   margin: 0;
-  color: #303133;
+  line-height: var(--leading-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.stat-info p {
-  font-size: 14px;
-  color: #909399;
-  margin: 5px 0 0 0;
+.cycle-meta {
+  margin-top: var(--spacing-2);
 }
 
-.chart-row {
-  margin-bottom: 20px;
+.cycle-date {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--font-medium);
 }
 
-.chart-card {
-  min-height: 300px;
+.cycle-progress-section {
+  margin-top: var(--spacing-3);
 }
 
-.card-header {
-  font-weight: bold;
-  color: #303133;
-}
-
-.progress-content {
-  padding: 20px 0;
-}
-
-.progress-item {
-  margin-bottom: 30px;
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
 }
 
 .progress-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #606266;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.metrics-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.progress-value {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
 }
 
-.metric-item {
-  text-align: center;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
+/* 快捷操作面板 */
+.quick-actions-card {
+  height: fit-content;
 }
 
-.metric-label {
-  display: block;
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 5px;
+.quick-actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
 }
 
-.metric-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #303133;
-}
-
-.department-stats {
-  padding: 20px 0;
-}
-
-.dept-item {
-  margin-bottom: 20px;
-}
-
-.dept-name {
-  font-size: 14px;
-  color: #303133;
-  margin-bottom: 8px;
-}
-
-.dept-metrics {
+.action-item {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  position: relative;
+  overflow: hidden;
 }
 
-.dept-count {
-  font-size: 12px;
-  color: #909399;
-  min-width: 40px;
+.action-item:hover {
+  border-color: var(--border-default);
+  background: var(--surface-primary);
+  transform: translateY(-2px) translateX(4px);
+  box-shadow: var(--shadow-lg);
 }
 
-.action-row {
-  margin-bottom: 20px;
+.action-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--brand-primary-500);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.action-card {
-  text-align: center;
+.action-item:hover::before {
+  opacity: 1;
 }
 
-.action-buttons {
-  padding: 20px 0;
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xl);
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.action-buttons .el-button {
-  margin: 0 10px 10px 0;
+.action-item:hover .action-icon {
+  transform: scale(1.1);
 }
 
-.evaluation-card {
-  text-align: center;
+.action-icon-primary {
+  background: var(--brand-primary-50);
+  color: var(--brand-primary-600);
 }
 
-.evaluation-form {
-  padding: 20px 0;
+.action-icon-success {
+  background: var(--semantic-success-50);
+  color: var(--semantic-success-600);
 }
 
-.code-input {
-  margin-bottom: 20px;
+.action-icon-info {
+  background: var(--semantic-info-50);
+  color: var(--semantic-info-600);
 }
 
-.eval-button {
-  width: 100%;
+.action-icon-warning {
+  background: var(--semantic-warning-50);
+  color: var(--semantic-warning-600);
+}
+
+.action-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+  line-height: var(--leading-tight);
+}
+
+.action-description {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--leading-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.action-arrow {
+  color: var(--text-quaternary);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.action-item:hover .action-arrow {
+  color: var(--brand-primary-600);
+  transform: translateX(4px);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6);
+  }
+  
+  .cycles-overview-card {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-4);
+  }
+  
+  .header-actions {
+    justify-content: flex-end;
+  }
+  
+  .dashboard-title {
+    font-size: var(--text-3xl);
+  }
+  
+  .dashboard-subtitle {
+    font-size: var(--text-base);
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+  
+  .action-item {
+    padding: var(--spacing-3);
+  }
+  
+  .action-icon {
+    width: 40px;
+    height: 40px;
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-header {
+    margin-bottom: var(--spacing-6);
+    padding: var(--spacing-4);
+  }
+  
+  .content-grid {
+    gap: var(--spacing-4);
+  }
+  
+  .stats-grid {
+    gap: var(--spacing-3);
+  }
 }
 </style>

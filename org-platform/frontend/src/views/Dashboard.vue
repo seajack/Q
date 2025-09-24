@@ -1,33 +1,10 @@
 <template>
-  <div class="dashboard">
-    <!-- 导航栏 -->
-    <el-header class="header">
-      <div class="header-content">
-        <h1 class="title">组织架构中台管理系统</h1>
-        <el-menu mode="horizontal" :default-active="activeMenu" class="nav-menu" router>
-          <el-menu-item index="/dashboard">
-            <el-icon><House /></el-icon>
-            <span>仪表板</span>
-          </el-menu-item>
-          <el-menu-item index="/departments">
-            <el-icon><OfficeBuilding /></el-icon>
-            <span>部门管理</span>
-          </el-menu-item>
-          <el-menu-item index="/positions">
-            <el-icon><UserFilled /></el-icon>
-            <span>职位管理</span>
-          </el-menu-item>
-          <el-menu-item index="/employees">
-            <el-icon><User /></el-icon>
-            <span>员工管理</span>
-          </el-menu-item>
-          <el-menu-item index="/organization-tree">
-            <el-icon><Grid /></el-icon>
-            <span>组织架构</span>
-          </el-menu-item>
-        </el-menu>
-      </div>
-    </el-header>
+  <div class="container">
+    <!-- 顶部工具条（仪表板） -->
+    <div class="row" style="margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">组织架构中台 - 仪表板</h3>
+      <div class="toolbar"></div>
+    </div>
 
     <!-- 主要内容区域 -->
     <el-container class="main-container">
@@ -175,7 +152,12 @@ import {
   User, 
   Grid, 
   Plus, 
-  View 
+  View,
+  Setting,
+  Tools,
+  List,
+  Document,
+  Connection
 } from '@element-plus/icons-vue'
 
 const route = useRoute()

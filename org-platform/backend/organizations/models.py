@@ -178,3 +178,128 @@ class OrganizationStructure(models.Model):
             # 确保只有一个当前版本
             OrganizationStructure.objects.filter(is_current=True).update(is_current=False)
         super().save(*args, **kwargs)
+
+
+class SystemConfig(models.Model):
+    """系统配置模型"""
+    CATEGORY_CHOICES = [
+        ('organization', '组织架构配置'),
+        ('position', '职位配置'),
+        ('employee', '员工配置'),
+        ('workflow', '工作流配置'),
+        ('integration', '集成配置'),
+        ('security', '安全配置'),
+        ('notification', '通知配置'),
+    ]
+    
+    key = models.CharField('配置键', max_length=100, unique=True)
+    value = models.TextField('配置值')
+    category = models.CharField('配置分类', max_length=20, choices=CATEGORY_CHOICES)
+    description = models.TextField('配置描述', blank=True)
+    data_type = models.CharField('数据类型', max_length=20, default='string',
+                                choices=[
+                                    ('string', '字符串'),
+                                    ('integer', '整数'),
+                                    ('boolean', '布尔值'),
+                                    ('json', 'JSON对象'),
+                                    ('list', '列表'),
+                                ])
+    is_encrypted = models.BooleanField('是否加密', default=False)
+    is_required = models.BooleanField('是否必需', default=False)
+    is_active = models.BooleanField('是否启用', default=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+    
+    class Meta:
+        verbose_name = '系统配置'
+        verbose_name_plural = '系统配置'
+        ordering = ['category', 'key']
+    
+    def __str__(self):
+        return f"{self.get_category_display()} - {self.key}"
+
+
+class Dictionary(models.Model):
+    """数据字典模型"""
+    CATEGORY_CHOICES = [
+        ('employee_status', '员工状态'),
+        ('position_type', '职位类型'),
+        ('department_type', '部门类型'),
+        ('education_level', '学历层次'),
+        ('skill_level', '技能等级'),
+        ('language', '语言类型'),
+        ('nationality', '国籍'),
+        ('marital_status', '婚姻状况'),
+        ('custom', '自定义'),
+    ]
+    
+    category = models.CharField('字典分类', max_length=50, choices=CATEGORY_CHOICES)
+    code = models.CharField('字典编码', max_length=50)
+    name = models.CharField('字典名称', max_length=100)
+    value = models.CharField('字典值', max_length=200, blank=True)
+    description = models.TextField('描述', blank=True)
+    sort_order = models.PositiveIntegerField('排序', default=0)
+    is_active = models.BooleanField('是否启用', default=True)
+    parent = models.ForeignKey('self', verbose_name='父级字典', 
+                              on_delete=models.CASCADE, null=True, blank=True,
+                              related_name='children')
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+    
+    class Meta:
+        verbose_name = '数据字典'
+        verbose_name_plural = '数据字典'
+        unique_together = ['category', 'code']
+        ordering = ['category', 'sort_order', 'code']
+    
+    def __str__(self):
+        return f"{self.get_category_display()} - {self.name}"
+
+
+class PositionTemplate(models.Model):
+    """职位模板模型"""
+    name = models.CharField('模板名称', max_length=100)
+    description = models.TextField('模板描述', blank=True)
+    management_level = models.CharField('管理层级', max_length=20, 
+                                       choices=Position.MANAGEMENT_LEVEL_CHOICES)
+    level = models.IntegerField('职位级别', choices=Position.POSITION_LEVEL_CHOICES)
+    default_requirements = models.TextField('默认任职要求', blank=True)
+    default_responsibilities = models.TextField('默认岗位职责', blank=True)
+    is_active = models.BooleanField('是否启用', default=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+    
+    class Meta:
+        verbose_name = '职位模板'
+        verbose_name_plural = '职位模板'
+        ordering = ['-level', 'name']
+    
+    def __str__(self):
+        return f"{self.get_management_level_display()} - {self.name}"
+
+
+class WorkflowRule(models.Model):
+    """工作流规则模型"""
+    RULE_TYPE_CHOICES = [
+        ('approval', '审批流程'),
+        ('notification', '通知规则'),
+        ('data_sync', '数据同步'),
+        ('permission', '权限控制'),
+    ]
+    
+    name = models.CharField('规则名称', max_length=100)
+    rule_type = models.CharField('规则类型', max_length=20, choices=RULE_TYPE_CHOICES)
+    trigger_conditions = models.JSONField('触发条件', default=dict)
+    action_config = models.JSONField('动作配置', default=dict)
+    is_active = models.BooleanField('是否启用', default=True)
+    priority = models.PositiveIntegerField('优先级', default=0)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+    
+    class Meta:
+        verbose_name = '工作流规则'
+        verbose_name_plural = '工作流规则'
+        ordering = ['-priority', 'name']
+    
+    def __str__(self):
+        return f"{self.get_rule_type_display()} - {self.name}"

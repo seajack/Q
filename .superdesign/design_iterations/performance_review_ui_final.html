@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>绩效考核系统 · 最终稿</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.css" />
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{50:'#eef7fd',100:'#d7ecfa',200:'#abd8f4',300:'#7ec3ee',400:'#4faee7',500:'#2598e0',600:'#177fc1',700:'#0f689e',800:'#0c537e',900:'#0a4163'},ink:{50:'#fafafa',100:'#f5f5f5',200:'#eeeeee',300:'#e0e0e0',400:'#bdbdbd',500:'#9e9e9e',600:'#757575',700:'#616161',800:'#424242',900:'#212121'}}}}}</script>
+<style>
+:root{--border:#e5e7eb;--ring:rgba(23,127,193,.28)}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial!important}
+.card{background:#fff;border:1px solid var(--border)}
+body.layout-top .top-wrap{display:block}body.layout-top .side-wrap{display:none}
+body.layout-side .top-wrap{display:none}body.layout-side .side-wrap{display:flex}
+.sidebar-sticky{position:sticky;top:0;height:calc(100dvh)}
+</style>
+</head>
+<body class="layout-top">
+<header class="sticky top-0 z-40 border-b bg-white">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-14 items-center justify-between gap-3">
+      <div class="flex items-center gap-3"><img src="E:/code/Q/logo.jpg" class="h-8 w-auto" alt="logo"><span class="font-semibold">绩效考核系统</span></div>
+      <div class="hidden md:flex items-center gap-3">
+        <div class="inline-flex rounded-lg border p-0.5" title="切换布局">
+          <button id="btn-top" class="rounded p-2 text-gray-700 hover:bg-gray-50" title="顶部"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button id="btn-side" class="rounded p-2 text-gray-700 hover:bg-gray-50" title="侧边栏"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h7v14H4zM13 5h7v14h-7z" stroke-width="2"/></svg></button>
+        </div>
+        <div class="relative"><input placeholder="请输入关键词" class="w-64 rounded-lg border px-3 py-2 text-sm focus:border-brand-600 focus:ring-0"/><span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="2"/><path d="M20 20l-3-3" stroke-width="2"/></svg></span></div>
+      </div>
+      <div class="flex items-center gap-2"><select class="rounded-lg border px-3 py-2 text-sm focus:border-brand-600 focus:ring-0"><option>2025 Q3</option><option>2025 Q2</option></select><button class="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50" data-drawer-target="filter" data-drawer-show="filter" data-drawer-placement="right" title="筛选"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M6 12h12M10 18h4" stroke-width="2" stroke-linecap="round"/></svg></button><button class="hidden sm:inline-flex items-center rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700">新增评审</button></div>
+    </div>
+  </div>
+</header>
+
+<!-- 顶部导航布局 -->
+<div class="top-wrap">
+  <nav class="bg-brand-600 text-white"><div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex h-12 items-center gap-6 overflow-x-auto text-sm"><a href="#" class="hover:underline">首页</a><a href="#" class="hover:underline">考核看板</a><a href="#" class="hover:underline">评审任务</a><a href="#" class="hover:underline">KPI指标</a><a href="#" class="hover:underline">员工档案</a><a href="#" class="hover:underline">组织架构</a><a href="#" class="hover:underline">报表中心</a><a href="#" class="hover:underline">系统设置</a></div></div></nav>
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <!-- 图表 -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card rounded-xl p-4 lg:col-span-2"><div class="flex items-center justify-between"><h3 class="font-semibold">评分分布</h3><button id="expTop" class="text-xs text-gray-600">导出</button></div><div id="chartTop" class="h-64"></div></div>
+      <div class="card rounded-xl p-4"><div class="flex items-center justify-between"><h3 class="font-semibold">部门完成度</h3><span class="text-xs text-gray-600">目标100%</span></div><div id="deptTop" class="h-64"></div></div>
+    </section>
+    <!-- 表格（排序/分页/斑马/吸顶） -->
+    <section class="mt-6">
+      <div class="flex items-center justify-between"><h3 class="font-semibold">员工绩效</h3><div class="text-sm flex items-center gap-2">每页<select id="psTop" class="ml-1 rounded border px-2 py-1 text-sm focus:border-brand-600 focus:ring-0"><option>5</option><option selected>10</option><option>20</option></select>条</div></div>
+      <div class="mt-3 overflow-hidden rounded-xl border">
+        <table class="min-w-full divide-y">
+          <thead class="bg-gray-50 sticky top-14 z-10">
+            <tr class="text-left text-xs text-gray-600 uppercase">
+              <th class="px-4 py-3"><button data-sort="name" class="inline-flex items-center gap-1">员工<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th>
+              <th class="px-4 py-3"><button data-sort="dept" class="inline-flex items-center gap-1">部门<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th>
+              <th class="px-4 py-3"><button data-sort="target" class="inline-flex items-center gap-1">目标达成<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th>
+              <th class="px-4 py-3"><button data-sort="grade" class="inline-flex items-center gap-1">评分<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th>
+              <th class="px-4 py-3">状态</th>
+              <th class="px-4 py-3 text-right">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbTop" class="divide-y bg-white"></tbody>
+        </table>
+      </div>
+      <div class="mt-3 flex items-center justify-between text-xs text-gray-700"><div id="sumTop">共 0 人 · 第 1 / 1 页</div><div class="inline-flex overflow-hidden rounded-lg border"><button id="preTop" class="px-3 py-1.5 hover:bg-gray-50">上一页</button><button id="nxtTop" class="border-l px-3 py-1.5 hover:bg-gray-50">下一页</button></div></div>
+    </section>
+  </main>
+</div>
+
+<!-- 侧边栏布局 -->
+<div class="side-wrap">
+  <aside class="hidden md:flex md:w-64 md:flex-col md:border-r md:bg-white sidebar-sticky">
+    <div class="p-4 border-b"><div class="flex items-center gap-3"><img src="E:/code/Q/logo.jpg" class="h-8 w-auto" alt="logo"><div class="font-semibold">绩效考核</div></div></div>
+    <nav class="flex-1 overflow-y-auto p-3 text-sm">
+      <ul class="space-y-1">
+        <li><a class="block rounded-lg px-3 py-2 hover:bg-brand-50 hover:text-brand-700" href="#">首页</a></li>
+        <li>
+          <button class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-brand-50 hover:text-brand-700" data-accordion-target="#acc-board">考核看板<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg></button>
+          <ul id="acc-board" class="ml-4 mt-1 hidden space-y-1"><li><a class="block rounded-lg px-3 py-1.5 hover:bg-brand-50 hover:text-brand-700" href="#">全公司</a></li><li><a class="block rounded-lg px-3 py-1.5 hover:bg-brand-50 hover:text-brand-700" href="#">按部门</a></li></ul>
+        </li>
+        <li>
+          <button class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-brand-50 hover:text-brand-700" data-accordion-target="#acc-tasks">评审任务<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg></button>
+          <ul id="acc-tasks" class="ml-4 mt-1 hidden space-y-1"><li><a class="block rounded-lg px-3 py-1.5 hover:bg-brand-50 hover:text-brand-700" href="#">我的待办</a></li><li><a class="block rounded-lg px-3 py-1.5 hover:bg-brand-50 hover:text-brand-700" href="#">我发起的</a></li><li><a class="block rounded-lg px-3 py-1.5 hover:bg-brand-50 hover:text-brand-700" href="#">全部任务</a></li></ul>
+        </li>
+        <li><a class="block rounded-lg px-3 py-2 hover:bg-brand-50 hover:text-brand-700" href="#">KPI指标</a></li>
+        <li><a class="block rounded-lg px-3 py-2 hover:bg-brand-50 hover:text-brand-700" href="#">员工档案</a></li>
+        <li><a class="block rounded-lg px-3 py-2 hover:bg-brand-50 hover:text-brand-700" href="#">组织架构</a></li>
+        <li><a class="block rounded-lg px-3 py-2 hover:bg-brand-50 hover:text-brand-700" href="#">报表中心</a></li>
+        <li><a class="block rounded-lg px-3 py-2 hover:bg-brand-50 hover:text-brand-700" href="#">系统设置</a></li>
+      </ul>
+      <div class="mt-6 rounded-lg bg-brand-50 p-3 text-brand-800"><div class="text-xs font-semibold">快速操作</div><div class="mt-2 space-y-2"><button class="w-full rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700">新增评审</button><button class="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 hover:bg-brand-50">导出报表</button></div></div>
+    </nav>
+  </aside>
+  <main class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6">
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4"><div class="card rounded-xl p-4 lg:col-span-2"><div class="flex items-center justify-between"><h3 class="font-semibold">评分分布</h3><button id="expSide" class="text-xs text-gray-600">导出</button></div><div id="chartSide" class="h-64"></div></div><div class="card rounded-xl p-4"><div class="flex items-center justify-between"><h3 class="font-semibold">部门完成度</h3><span class="text-xs text-gray-600">目标100%</span></div><div id="deptSide" class="h-64"></div></div></section>
+    <section class="mt-6">
+      <div class="flex items-center justify-between"><h3 class="font-semibold">员工绩效</h3><div class="text-sm flex items-center gap-2">每页<select id="psSide" class="ml-1 rounded border px-2 py-1 text-sm focus:border-brand-600 focus:ring-0"><option>5</option><option selected>10</option><option>20</option></select>条</div></div>
+      <div class="mt-3 overflow-hidden rounded-xl border"><table class="min-w-full divide-y"><thead class="bg-gray-50 sticky top-14 z-10"><tr class="text-left text-xs text-gray-600 uppercase"><th class="px-4 py-3"><button data-sort="name" data-scope="side" class="inline-flex items-center gap-1">员工<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th><th class="px-4 py-3"><button data-sort="dept" data-scope="side" class="inline-flex items-center gap-1">部门<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th><th class="px-4 py-3"><button data-sort="target" data-scope="side" class="inline-flex items-center gap-1">目标达成<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th><th class="px-4 py-3"><button data-sort="grade" data-scope="side" class="inline-flex items-center gap-1">评分<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg></button></th><th class="px-4 py-3">状态</th><th class="px-4 py-3 text-right">操作</th></tr></thead><tbody id="tbSide" class="divide-y bg-white"></tbody></table></div>
+      <div class="mt-3 flex items-center justify-between text-xs text-gray-700"><div id="sumSide">共 0 人 · 第 1 / 1 页</div><div class="inline-flex overflow-hidden rounded-lg border"><button id="preSide" class="px-3 py-1.5 hover:bg-gray-50">上一页</button><button id="nxtSide" class="border-l px-3 py-1.5 hover:bg-gray-50">下一页</button></div></div>
+    </section>
+  </main>
+</div>
+
+<!-- 筛选抽屉 -->
+<div id="filter" class="fixed top-0 right-0 z-50 h-screen w-80 translate-x-full overflow-y-auto border-l bg-white p-5 transition-transform" tabindex="-1" aria-labelledby="filter-label"><div class="flex items-start justify-between"><h5 id="filter-label" class="font-semibold">筛选</h5><button type="button" data-drawer-hide="filter" aria-controls="filter" class="text-gray-500 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M6 18L18 6" stroke-width="2" stroke-linecap="round"/></svg></button></div><div class="mt-4 space-y-4"><select class="w-full rounded-lg border px-3 py-2 text-sm focus:border-brand-600 focus:ring-0"><option>全部部门</option><option>产品</option><option>平台</option><option>销售</option></select><input class="w-full rounded-lg border px-3 py-2 text-sm focus:border-brand-600 focus:ring-0" placeholder="职位关键词"/><div class="grid grid-cols-2 gap-2"><input class="rounded-lg border px-3 py-2 text-sm" placeholder="评分最小"><input class="rounded-lg border px-3 py-2 text-sm" placeholder="评分最大"></div><button class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700">应用筛选</button></div></div>
+
+<script>
+// 默认布局=顶部 + 图标切换 + 记忆
+(function(){const b=document.body,LS='perf_layout_mode';function set(m){b.classList.toggle('layout-top',m==='top');b.classList.toggle('layout-side',m==='side');localStorage.setItem(LS,m)};set(localStorage.getItem(LS)==='side'?'side':'top');document.getElementById('btn-top')?.addEventListener('click',()=>set('top'));document.getElementById('btn-side')?.addEventListener('click',()=>set('side'));document.querySelectorAll('[data-accordion-target]').forEach(btn=>btn.addEventListener('click',()=>{const el=document.querySelector(btn.getAttribute('data-accordion-target'));el&&el.classList.toggle('hidden')}));})();
+
+// 表格数据/排序/分页（复用控制器）
+const rows=[{name:'Lee',role:'高级产品经理',dept:'产品',target:92,grade:'A',status:'已完成',color:'emerald'},{name:'Wang',role:'资深前端工程师',dept:'平台',target:75,grade:'B+',status:'进行中',color:'amber'},{name:'Zhang',role:'商务拓展',dept:'销售',target:58,grade:'C',status:'缺少自评',color:'rose'},{name:'Li',role:'测试工程师',dept:'平台',target:81,grade:'B+',status:'进行中',color:'amber'},{name:'Zhao',role:'算法工程师',dept:'产品',target:88,grade:'A-',status:'已完成',color:'emerald'},{name:'Chen',role:'后端工程师',dept:'平台',target:66,grade:'B',status:'进行中',color:'amber'},{name:'Sun',role:'销售经理',dept:'销售',target:72,grade:'B',status:'进行中',color:'amber'},{name:'Zhou',role:'产品经理',dept:'产品',target:95,grade:'A',status:'已完成',color:'emerald'},{name:'Wu',role:'设计师',dept:'产品',target:79,grade:'B+',status:'进行中',color:'amber'},{name:'Qian',role:'数据分析师',dept:'平台',target:84,grade:'A-',status:'已完成',color:'emerald'},{name:'Lin',role:'实施顾问',dept:'销售',target:63,grade:'C',status:'缺少自评',color:'rose'}];
+function tableCtrl(scope){const tb=document.getElementById('tb'+scope),sum=document.getElementById('sum'+scope),psSel=document.getElementById('ps'+scope),pre=document.getElementById('pre'+scope),nxt=document.getElementById('nxt'+scope);let data=[...rows],sortKey=null,dir='asc',page=1,pageSize=parseInt(psSel?.value||'10',10);function cmp(a,b,k){let va=a[k],vb=b[k];if(k==='grade'){const o=['A+','A','A-','B+','B','B-','C'];va=o.indexOf(va);vb=o.indexOf(vb);}if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}return va<vb?(dir==='asc'?-1:1):va>vb?(dir==='asc'?1:-1):0}function render(){if(sortKey)data.sort((a,b)=>cmp(a,b,sortKey));const total=data.length,pages=Math.max(1,Math.ceil(total/pageSize));page=Math.min(Math.max(1,page),pages);const start=(page-1)*pageSize,cur=data.slice(start,start+pageSize);tb.innerHTML=cur.map((r,i)=>{const zebra=i%2?" bg-gray-50":"";const badge=`<span class=\"rounded-full bg-${r.color}-50 px-2 py-0.5 text-xs text-${r.color}-700\">${r.status}</span>`;const grad=r.color==='emerald'?'from-brand-400 to-brand-600':(r.color==='amber'?'from-amber-400 to-orange-500':'from-fuchsia-400 to-pink-500');const gradeColor=r.color==='rose'?'text-rose-700':(r.color==='emerald'?'text-emerald-700':'text-amber-700');return `<tr class=\"hover:bg-gray-50${zebra}\"><td class=\"px-4 py-3\"><div class=\"flex items-center gap-3\"><span class=\"inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br ${grad} text-white font-semibold\">${r.name[0]}</span><div><div class=\"text-sm font-medium\">${r.name}</div><div class=\"text-xs text-gray-600\">${r.role}</div></div></div></td><td class=\"px-4 py-3 text-sm\">${r.dept}</td><td class=\"px-4 py-3 text-sm\">${r.target}%</td><td class=\"px-4 py-3 text-sm font-semibold ${gradeColor}\">${r.grade}</td><td class=\"px-4 py-3\">${badge}</td><td class=\"px-4 py-3 text-right\"><div class=\"inline-flex gap-2\"><button class=\"rounded-lg border px-2 py-1 text-xs hover:bg-gray-50\">详情</button><button class=\"rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700\">编辑</button></div></td></tr>`}).join('');sum.textContent=`共 ${total} 人 · 第 ${page} / ${pages} 页`;}document.querySelectorAll(`button[data-sort]${scope==='Side'?"[data-scope='side']":""}`).forEach(b=>b.addEventListener('click',()=>{const k=b.getAttribute('data-sort');if(sortKey===k){dir=dir==='asc'?'desc':'asc'}else{sortKey=k;dir='asc'}render()}));psSel?.addEventListener('change',()=>{pageSize=parseInt(psSel.value,10);page=1;render()});pre?.addEventListener('click',()=>{page=Math.max(1,page-1);render()});nxt?.addEventListener('click',()=>{page=page+1;render()});render();}
+ tableCtrl('Top'); tableCtrl('Side');
+
+// ECharts（品牌蓝主色）
+function initCharts(){const brand='#177fc1', pal=[brand,'#4faee7','#0f689e','#2598e0'];function dist(el){const c=echarts.init(el);c.setOption({grid:{left:40,right:10,top:10,bottom:28},tooltip:{trigger:'axis'},xAxis:{type:'category',data:['C','B-','B','B+','A-','A','A+']},yAxis:{type:'value',splitLine:{lineStyle:{color:'#eee'}}},series:[{type:'bar',data:[5,12,22,30,18,9,4],itemStyle:{color:brand},barWidth:'55%'}]});return c}function dept(el){const c=echarts.init(el);c.setOption({grid:{left:40,right:10,top:10,bottom:28},tooltip:{},xAxis:{type:'value',max:100},yAxis:{type:'category',data:['产品','平台','销售']},series:[{type:'bar',data:[82,70,61],itemStyle:{color:(p)=>pal[p.dataIndex%pal.length]}}]});return c}const ct=dist(document.getElementById('chartTop')),cd=dept(document.getElementById('deptTop')),cs=dist(document.getElementById('chartSide')),cds=dept(document.getElementById('deptSide'));window.addEventListener('resize',()=>{ct.resize();cd.resize();cs.resize();cds.resize();});}
+initCharts();
+</script>
+</body>
+</html>

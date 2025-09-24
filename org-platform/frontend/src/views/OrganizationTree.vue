@@ -1,16 +1,16 @@
 <template>
-  <div class="organization-tree">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>组织架构树</span>
-          <el-button type="primary" @click="refreshTree">
-            <el-icon><Refresh /></el-icon>
-            刷新
-          </el-button>
-        </div>
-      </template>
-      
+  <div class="container">
+    <div class="row" style="margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">组织架构树</h3>
+      <div class="toolbar">
+        <el-button type="primary" @click="refreshTree">
+          <el-icon><Refresh /></el-icon>
+          刷新
+        </el-button>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="tree-container" v-loading="loading">
         <el-tree
           :data="organizationTree"
@@ -39,7 +39,7 @@
           </template>
         </el-tree>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -87,12 +87,6 @@ onMounted(() => {
 <style scoped>
 .organization-tree {
   padding: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .tree-container {

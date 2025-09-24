@@ -1,0 +1,2945 @@
+openapi: 3.0.3
+info:
+  title: 绩效考核系统API
+  version: 1.0.0
+  description: 企业绩效考核管理系统API接口文档
+paths:
+  /api/cycles/:
+    get:
+      operationId: api_cycles_list
+      description: 考核周期管理
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          title: 状态
+          enum:
+          - active
+          - cancelled
+          - completed
+          - draft
+        description: |-
+          * `draft` - 草稿
+          * `active` - 进行中
+          * `completed` - 已完成
+          * `cancelled` - 已取消
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationCycleList'
+          description: ''
+    post:
+      operationId: api_cycles_create
+      description: 考核周期管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCycle'
+          description: ''
+  /api/cycles/{id}/:
+    get:
+      operationId: api_cycles_retrieve
+      description: 考核周期管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核周期.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCycle'
+          description: ''
+    put:
+      operationId: api_cycles_update
+      description: 考核周期管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核周期.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCycle'
+          description: ''
+    patch:
+      operationId: api_cycles_partial_update
+      description: 考核周期管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核周期.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationCycle'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationCycle'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationCycle'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCycle'
+          description: ''
+    delete:
+      operationId: api_cycles_destroy
+      description: 考核周期管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核周期.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/cycles/{id}/generate_tasks/:
+    post:
+      operationId: api_cycles_generate_tasks_create
+      description: 为指定周期生成考核任务
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核周期.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationCycle'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCycle'
+          description: ''
+  /api/employees/:
+    get:
+      operationId: api_employees_list
+      description: 员工管理（本地副本）
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEmployeeList'
+          description: ''
+    post:
+      operationId: api_employees_create
+      description: 员工管理（本地副本）
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Employee'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Employee'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+  /api/employees/{id}/:
+    get:
+      operationId: api_employees_retrieve
+      description: 员工管理（本地副本）
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 员工.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+    put:
+      operationId: api_employees_update
+      description: 员工管理（本地副本）
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 员工.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Employee'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Employee'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+    patch:
+      operationId: api_employees_partial_update
+      description: 员工管理（本地副本）
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 员工.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEmployee'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEmployee'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEmployee'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+    delete:
+      operationId: api_employees_destroy
+      description: 员工管理（本地副本）
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 员工.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/employees/sync/:
+    post:
+      operationId: api_employees_sync_create
+      description: 同步组织架构中台的员工数据
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Employee'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Employee'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+  /api/indicators/:
+    get:
+      operationId: api_indicators_list
+      description: 考核指标管理
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+          title: 指标类别
+          enum:
+          - ability
+          - attitude
+          - innovation
+          - performance
+          - teamwork
+        description: |-
+          * `performance` - 工作绩效
+          * `ability` - 工作能力
+          * `attitude` - 工作态度
+          * `teamwork` - 团队合作
+          * `innovation` - 创新能力
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationIndicatorList'
+          description: ''
+    post:
+      operationId: api_indicators_create
+      description: 考核指标管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationIndicator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationIndicator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationIndicator'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationIndicator'
+          description: ''
+  /api/indicators/{id}/:
+    get:
+      operationId: api_indicators_retrieve
+      description: 考核指标管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核指标.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationIndicator'
+          description: ''
+    put:
+      operationId: api_indicators_update
+      description: 考核指标管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核指标.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationIndicator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationIndicator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationIndicator'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationIndicator'
+          description: ''
+    patch:
+      operationId: api_indicators_partial_update
+      description: 考核指标管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核指标.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationIndicator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationIndicator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationIndicator'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationIndicator'
+          description: ''
+    delete:
+      operationId: api_indicators_destroy
+      description: 考核指标管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核指标.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/manual-assignments/:
+    get:
+      operationId: api_manual_assignments_list
+      description: 手动评价分配管理
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedManualEvaluationAssignmentList'
+          description: ''
+    post:
+      operationId: api_manual_assignments_create
+      description: 手动评价分配管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualEvaluationAssignment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ManualEvaluationAssignment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ManualEvaluationAssignment'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualEvaluationAssignment'
+          description: ''
+  /api/manual-assignments/{id}/:
+    get:
+      operationId: api_manual_assignments_retrieve
+      description: 手动评价分配管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 手动评价分配.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualEvaluationAssignment'
+          description: ''
+    put:
+      operationId: api_manual_assignments_update
+      description: 手动评价分配管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 手动评价分配.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualEvaluationAssignment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ManualEvaluationAssignment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ManualEvaluationAssignment'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualEvaluationAssignment'
+          description: ''
+    patch:
+      operationId: api_manual_assignments_partial_update
+      description: 手动评价分配管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 手动评价分配.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedManualEvaluationAssignment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedManualEvaluationAssignment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedManualEvaluationAssignment'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualEvaluationAssignment'
+          description: ''
+    delete:
+      operationId: api_manual_assignments_destroy
+      description: 手动评价分配管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 手动评价分配.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/results/:
+    get:
+      operationId: api_results_list
+      description: 考核结果管理
+      parameters:
+      - in: query
+        name: cycle
+        schema:
+          type: integer
+      - in: query
+        name: employee
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationResultList'
+          description: ''
+    post:
+      operationId: api_results_create
+      description: 考核结果管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResult'
+          description: ''
+  /api/results/{id}/:
+    get:
+      operationId: api_results_retrieve
+      description: 考核结果管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核结果.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResult'
+          description: ''
+    put:
+      operationId: api_results_update
+      description: 考核结果管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核结果.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResult'
+          description: ''
+    patch:
+      operationId: api_results_partial_update
+      description: 考核结果管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核结果.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationResult'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationResult'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationResult'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResult'
+          description: ''
+    delete:
+      operationId: api_results_destroy
+      description: 考核结果管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核结果.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/results/calculate_cycle_results/:
+    post:
+      operationId: api_results_calculate_cycle_results_create
+      description: 计算指定周期的考核结果
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationResult'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResult'
+          description: ''
+  /api/rules/:
+    get:
+      operationId: api_rules_list
+      description: 考核规则管理
+      parameters:
+      - in: query
+        name: evaluation_scope
+        schema:
+          type: string
+          title: 评价范围
+          enum:
+          - company
+          - cross_department
+          - cross_unit
+          - department
+          - manual
+          - unit
+        description: |-
+          * `department` - 本部门
+          * `unit` - 本单位
+          * `company` - 全公司
+          * `cross_department` - 跨部门
+          * `cross_unit` - 跨单位
+          * `manual` - 手动选择
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationRuleList'
+          description: ''
+    post:
+      operationId: api_rules_create
+      description: 考核规则管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationRule'
+          description: ''
+  /api/rules/{id}/:
+    get:
+      operationId: api_rules_retrieve
+      description: 考核规则管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核规则.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationRule'
+          description: ''
+    put:
+      operationId: api_rules_update
+      description: 考核规则管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核规则.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationRule'
+          description: ''
+    patch:
+      operationId: api_rules_partial_update
+      description: 考核规则管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核规则.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationRule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationRule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationRule'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationRule'
+          description: ''
+    delete:
+      operationId: api_rules_destroy
+      description: 考核规则管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核规则.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/rules/create_defaults/:
+    post:
+      operationId: api_rules_create_defaults_create
+      description: 创建默认考核规则
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationRule'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationRule'
+          description: ''
+  /api/scores/:
+    get:
+      operationId: api_scores_list
+      description: 考核评分管理
+      parameters:
+      - in: query
+        name: indicator
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: task
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationScoreList'
+          description: ''
+    post:
+      operationId: api_scores_create
+      description: 考核评分管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationScore'
+          description: ''
+  /api/scores/{id}/:
+    get:
+      operationId: api_scores_retrieve
+      description: 考核评分管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核评分.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationScore'
+          description: ''
+    put:
+      operationId: api_scores_update
+      description: 考核评分管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核评分.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationScore'
+          description: ''
+    patch:
+      operationId: api_scores_partial_update
+      description: 考核评分管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核评分.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationScore'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationScore'
+          description: ''
+    delete:
+      operationId: api_scores_destroy
+      description: 考核评分管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核评分.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/scores/submit_task_scores/:
+    post:
+      operationId: api_scores_submit_task_scores_create
+      description: 提交任务的所有评分
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationScore'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationScore'
+          description: ''
+  /api/stats/cycle/{cycle_id}/:
+    get:
+      operationId: api_stats_cycle_retrieve
+      description: 获取指定周期的统计信息
+      parameters:
+      - in: path
+        name: cycle_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/stats/overview/:
+    get:
+      operationId: api_stats_overview_retrieve
+      description: 获取系统概览统计信息
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/tasks/:
+    get:
+      operationId: api_tasks_list
+      description: 考核任务管理
+      parameters:
+      - in: query
+        name: cycle
+        schema:
+          type: integer
+      - in: query
+        name: evaluatee
+        schema:
+          type: integer
+      - in: query
+        name: evaluator
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: relation_type
+        schema:
+          type: string
+          title: 考核关系
+          enum:
+          - peer
+          - subordinate
+          - superior
+        description: |-
+          * `superior` - 上级考核下级
+          * `peer` - 同级互评
+          * `subordinate` - 下级评价上级
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          title: 状态
+          enum:
+          - completed
+          - in_progress
+          - overdue
+          - pending
+        description: |-
+          * `pending` - 待考核
+          * `in_progress` - 进行中
+          * `completed` - 已完成
+          * `overdue` - 已过期
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationTaskList'
+          description: ''
+    post:
+      operationId: api_tasks_create
+      description: 考核任务管理
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationTask'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationTask'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationTask'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationTask'
+          description: ''
+  /api/tasks/{id}/:
+    get:
+      operationId: api_tasks_retrieve
+      description: 考核任务管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核任务.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationTask'
+          description: ''
+    put:
+      operationId: api_tasks_update
+      description: 考核任务管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核任务.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationTask'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationTask'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationTask'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationTask'
+          description: ''
+    patch:
+      operationId: api_tasks_partial_update
+      description: 考核任务管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核任务.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationTask'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationTask'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationTask'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationTask'
+          description: ''
+    delete:
+      operationId: api_tasks_destroy
+      description: 考核任务管理
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核任务.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/tasks/{id}/evaluation_form/:
+    get:
+      operationId: api_tasks_evaluation_form_retrieve
+      description: 获取考核表单
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this 考核任务.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationTask'
+          description: ''
+  /api/tasks/by-code/{evaluation_code}/:
+    get:
+      operationId: api_tasks_by_code_retrieve
+      description: 根据考核码获取任务和相关信息
+      parameters:
+      - in: path
+        name: evaluation_code
+        schema:
+          type: string
+          title: 考核码
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationTask'
+          description: ''
+components:
+  schemas:
+    CategoryEnum:
+      enum:
+      - performance
+      - ability
+      - attitude
+      - teamwork
+      - innovation
+      type: string
+      description: |-
+        * `performance` - 工作绩效
+        * `ability` - 工作能力
+        * `attitude` - 工作态度
+        * `teamwork` - 团队合作
+        * `innovation` - 创新能力
+    Employee:
+      type: object
+      description: 员工序列化器（本地副本）
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        employee_id:
+          type: string
+          title: 员工号
+          maxLength: 20
+        name:
+          type: string
+          title: 姓名
+          maxLength: 50
+        department_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 部门ID
+        department_name:
+          type: string
+          title: 部门名称
+          maxLength: 100
+        position_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 职位 ID
+        position_name:
+          type: string
+          title: 职位名称
+          maxLength: 100
+        position_level:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 职位级别
+        supervisor_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          title: 上级ID
+        email:
+          type: string
+          format: email
+          title: 邮箱
+          maxLength: 254
+        phone:
+          type: string
+          title: 手机
+          maxLength: 20
+        status:
+          type: string
+          title: 状态
+          maxLength: 20
+        is_active:
+          type: boolean
+          title: 是否激活
+        last_sync:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 最后同步时间
+      required:
+      - department_id
+      - department_name
+      - employee_id
+      - id
+      - last_sync
+      - name
+      - position_id
+      - position_name
+    EvaluationCycle:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 周期名称
+          maxLength: 100
+        description:
+          type: string
+          title: 周期描述
+        start_date:
+          type: string
+          format: date
+          title: 开始日期
+        end_date:
+          type: string
+          format: date
+          title: 结束日期
+        status:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationCycleStatusEnum'
+          title: 状态
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+        evaluation_rule:
+          type: integer
+          nullable: true
+          title: 考核规则
+      required:
+      - created_at
+      - end_date
+      - id
+      - name
+      - start_date
+      - updated_at
+    EvaluationCycleStatusEnum:
+      enum:
+      - draft
+      - active
+      - completed
+      - cancelled
+      type: string
+      description: |-
+        * `draft` - 草稿
+        * `active` - 进行中
+        * `completed` - 已完成
+        * `cancelled` - 已取消
+    EvaluationIndicator:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 指标名称
+          maxLength: 100
+        category:
+          allOf:
+          - $ref: '#/components/schemas/CategoryEnum'
+          title: 指标类别
+        description:
+          type: string
+          title: 指标描述
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: 权重
+        max_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 最高分数
+        is_active:
+          type: boolean
+          title: 是否激活
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+      required:
+      - category
+      - created_at
+      - description
+      - id
+      - name
+      - updated_at
+      - weight
+    EvaluationResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        employee_name:
+          type: string
+          readOnly: true
+        employee_department:
+          type: string
+          readOnly: true
+        employee_position:
+          type: string
+          readOnly: true
+        cycle_name:
+          type: string
+          readOnly: true
+        total_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          title: 总分
+        weighted_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          title: 加权平均分
+        superior_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          nullable: true
+          title: 上级评分
+        peer_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          nullable: true
+          title: 同级评分
+        subordinate_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          nullable: true
+          title: 下级评分
+        rank:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          title: 排名
+        is_final:
+          type: boolean
+          title: 是否最终结果
+        calculated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 计算时间
+        cycle:
+          type: integer
+          title: 考核周期
+        employee:
+          type: integer
+          title: 被考核员工
+      required:
+      - calculated_at
+      - cycle
+      - cycle_name
+      - employee
+      - employee_department
+      - employee_name
+      - employee_position
+      - id
+    EvaluationRule:
+      type: object
+      description: 考核规则序列化器
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 规则名称
+          maxLength: 100
+        description:
+          type: string
+          title: 规则描述
+        relation_types:
+          type: object
+          additionalProperties: {}
+          title: 评价关系类型
+          description: 允许的评价关系类型列表
+        evaluation_scope:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationScopeEnum'
+          title: 评价范围
+        max_evaluators_per_relation:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 每种关系最大评价人数
+        min_evaluators_per_relation:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 每种关系最少评价人数
+        relation_weights:
+          type: object
+          additionalProperties: {}
+          title: 关系权重
+          description: 不同关系的权重分配
+        allow_cross_department:
+          type: boolean
+          title: 允许跨部门
+        allow_cross_unit:
+          type: boolean
+          title: 允许跨单位
+        allow_self_evaluation:
+          type: boolean
+          title: 允许自评
+        position_level_diff_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 职位级别差距限制
+          description: 允许的职位级别差距
+        custom_rules:
+          type: object
+          additionalProperties: {}
+          title: 自定义规则
+          description: 高级自定义规则配置
+        is_active:
+          type: boolean
+          title: 是否启用
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    EvaluationScopeEnum:
+      enum:
+      - department
+      - unit
+      - company
+      - cross_department
+      - cross_unit
+      - manual
+      type: string
+      description: |-
+        * `department` - 本部门
+        * `unit` - 本单位
+        * `company` - 全公司
+        * `cross_department` - 跨部门
+        * `cross_unit` - 跨单位
+        * `manual` - 手动选择
+    EvaluationScore:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        indicator_name:
+          type: string
+          readOnly: true
+        score:
+          type: integer
+          maximum: 100
+          minimum: 0
+          title: 评分
+        comment:
+          type: string
+          title: 评价意见
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+        task:
+          type: integer
+          title: 考核任务
+        indicator:
+          type: integer
+          title: 考核指标
+      required:
+      - created_at
+      - id
+      - indicator
+      - indicator_name
+      - score
+      - task
+      - updated_at
+    EvaluationTask:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        evaluatee_name:
+          type: string
+          readOnly: true
+        evaluator_name:
+          type: string
+          readOnly: true
+        evaluatee_position:
+          type: string
+          readOnly: true
+        evaluator_position:
+          type: string
+          readOnly: true
+        evaluatee_position_level:
+          type: integer
+          readOnly: true
+        evaluator_position_level:
+          type: integer
+          readOnly: true
+        cycle_name:
+          type: string
+          readOnly: true
+        relation_type:
+          allOf:
+          - $ref: '#/components/schemas/RelationTypeEnum'
+          title: 考核关系
+        evaluation_code:
+          type: string
+          title: 考核码
+          maxLength: 16
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: 考核权重
+        status:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationTaskStatusEnum'
+          title: 状态
+        assigned_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 分配时间
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: 完成时间
+        cycle:
+          type: integer
+          title: 考核周期
+        evaluator:
+          type: integer
+          title: 考核人
+        evaluatee:
+          type: integer
+          title: 被考核人
+      required:
+      - assigned_at
+      - cycle
+      - cycle_name
+      - evaluatee
+      - evaluatee_name
+      - evaluatee_position
+      - evaluatee_position_level
+      - evaluation_code
+      - evaluator
+      - evaluator_name
+      - evaluator_position
+      - evaluator_position_level
+      - id
+      - relation_type
+    EvaluationTaskStatusEnum:
+      enum:
+      - pending
+      - in_progress
+      - completed
+      - overdue
+      type: string
+      description: |-
+        * `pending` - 待考核
+        * `in_progress` - 进行中
+        * `completed` - 已完成
+        * `overdue` - 已过期
+    ManualEvaluationAssignment:
+      type: object
+      description: 手动评价分配序列化器
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        evaluator_name:
+          type: string
+          readOnly: true
+        evaluatee_name:
+          type: string
+          readOnly: true
+        relation_type:
+          type: string
+          title: 关系类型
+          maxLength: 20
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: 权重
+        reason:
+          type: string
+          title: 分配原因
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        cycle:
+          type: integer
+          title: 考核周期
+        evaluator:
+          type: integer
+          title: 评价人
+        evaluatee:
+          type: integer
+          title: 被评价人
+        created_by:
+          type: integer
+          title: 创建者
+      required:
+      - created_at
+      - created_by
+      - cycle
+      - evaluatee
+      - evaluatee_name
+      - evaluator
+      - evaluator_name
+      - id
+    PaginatedEmployeeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+    PaginatedEvaluationCycleList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationCycle'
+    PaginatedEvaluationIndicatorList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationIndicator'
+    PaginatedEvaluationResultList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationResult'
+    PaginatedEvaluationRuleList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationRule'
+    PaginatedEvaluationScoreList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationScore'
+    PaginatedEvaluationTaskList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationTask'
+    PaginatedManualEvaluationAssignmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ManualEvaluationAssignment'
+    PatchedEmployee:
+      type: object
+      description: 员工序列化器（本地副本）
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        employee_id:
+          type: string
+          title: 员工号
+          maxLength: 20
+        name:
+          type: string
+          title: 姓名
+          maxLength: 50
+        department_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 部门ID
+        department_name:
+          type: string
+          title: 部门名称
+          maxLength: 100
+        position_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 职位 ID
+        position_name:
+          type: string
+          title: 职位名称
+          maxLength: 100
+        position_level:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 职位级别
+        supervisor_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          title: 上级ID
+        email:
+          type: string
+          format: email
+          title: 邮箱
+          maxLength: 254
+        phone:
+          type: string
+          title: 手机
+          maxLength: 20
+        status:
+          type: string
+          title: 状态
+          maxLength: 20
+        is_active:
+          type: boolean
+          title: 是否激活
+        last_sync:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 最后同步时间
+    PatchedEvaluationCycle:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 周期名称
+          maxLength: 100
+        description:
+          type: string
+          title: 周期描述
+        start_date:
+          type: string
+          format: date
+          title: 开始日期
+        end_date:
+          type: string
+          format: date
+          title: 结束日期
+        status:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationCycleStatusEnum'
+          title: 状态
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+        evaluation_rule:
+          type: integer
+          nullable: true
+          title: 考核规则
+    PatchedEvaluationIndicator:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 指标名称
+          maxLength: 100
+        category:
+          allOf:
+          - $ref: '#/components/schemas/CategoryEnum'
+          title: 指标类别
+        description:
+          type: string
+          title: 指标描述
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: 权重
+        max_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 最高分数
+        is_active:
+          type: boolean
+          title: 是否激活
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+    PatchedEvaluationResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        employee_name:
+          type: string
+          readOnly: true
+        employee_department:
+          type: string
+          readOnly: true
+        employee_position:
+          type: string
+          readOnly: true
+        cycle_name:
+          type: string
+          readOnly: true
+        total_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          title: 总分
+        weighted_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          title: 加权平均分
+        superior_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          nullable: true
+          title: 上级评分
+        peer_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          nullable: true
+          title: 同级评分
+        subordinate_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          nullable: true
+          title: 下级评分
+        rank:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          title: 排名
+        is_final:
+          type: boolean
+          title: 是否最终结果
+        calculated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 计算时间
+        cycle:
+          type: integer
+          title: 考核周期
+        employee:
+          type: integer
+          title: 被考核员工
+    PatchedEvaluationRule:
+      type: object
+      description: 考核规则序列化器
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: 规则名称
+          maxLength: 100
+        description:
+          type: string
+          title: 规则描述
+        relation_types:
+          type: object
+          additionalProperties: {}
+          title: 评价关系类型
+          description: 允许的评价关系类型列表
+        evaluation_scope:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationScopeEnum'
+          title: 评价范围
+        max_evaluators_per_relation:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 每种关系最大评价人数
+        min_evaluators_per_relation:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 每种关系最少评价人数
+        relation_weights:
+          type: object
+          additionalProperties: {}
+          title: 关系权重
+          description: 不同关系的权重分配
+        allow_cross_department:
+          type: boolean
+          title: 允许跨部门
+        allow_cross_unit:
+          type: boolean
+          title: 允许跨单位
+        allow_self_evaluation:
+          type: boolean
+          title: 允许自评
+        position_level_diff_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: 职位级别差距限制
+          description: 允许的职位级别差距
+        custom_rules:
+          type: object
+          additionalProperties: {}
+          title: 自定义规则
+          description: 高级自定义规则配置
+        is_active:
+          type: boolean
+          title: 是否启用
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+    PatchedEvaluationScore:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        indicator_name:
+          type: string
+          readOnly: true
+        score:
+          type: integer
+          maximum: 100
+          minimum: 0
+          title: 评分
+        comment:
+          type: string
+          title: 评价意见
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 更新时间
+        task:
+          type: integer
+          title: 考核任务
+        indicator:
+          type: integer
+          title: 考核指标
+    PatchedEvaluationTask:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        evaluatee_name:
+          type: string
+          readOnly: true
+        evaluator_name:
+          type: string
+          readOnly: true
+        evaluatee_position:
+          type: string
+          readOnly: true
+        evaluator_position:
+          type: string
+          readOnly: true
+        evaluatee_position_level:
+          type: integer
+          readOnly: true
+        evaluator_position_level:
+          type: integer
+          readOnly: true
+        cycle_name:
+          type: string
+          readOnly: true
+        relation_type:
+          allOf:
+          - $ref: '#/components/schemas/RelationTypeEnum'
+          title: 考核关系
+        evaluation_code:
+          type: string
+          title: 考核码
+          maxLength: 16
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: 考核权重
+        status:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationTaskStatusEnum'
+          title: 状态
+        assigned_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 分配时间
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: 完成时间
+        cycle:
+          type: integer
+          title: 考核周期
+        evaluator:
+          type: integer
+          title: 考核人
+        evaluatee:
+          type: integer
+          title: 被考核人
+    PatchedManualEvaluationAssignment:
+      type: object
+      description: 手动评价分配序列化器
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        evaluator_name:
+          type: string
+          readOnly: true
+        evaluatee_name:
+          type: string
+          readOnly: true
+        relation_type:
+          type: string
+          title: 关系类型
+          maxLength: 20
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: 权重
+        reason:
+          type: string
+          title: 分配原因
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: 创建时间
+        cycle:
+          type: integer
+          title: 考核周期
+        evaluator:
+          type: integer
+          title: 评价人
+        evaluatee:
+          type: integer
+          title: 被评价人
+        created_by:
+          type: integer
+          title: 创建者
+    RelationTypeEnum:
+      enum:
+      - superior
+      - peer
+      - subordinate
+      type: string
+      description: |-
+        * `superior` - 上级考核下级
+        * `peer` - 同级互评
+        * `subordinate` - 下级评价上级
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

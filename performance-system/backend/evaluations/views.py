@@ -15,12 +15,18 @@ from .serializers import (
 )
 import requests
 from django.conf import settings
+from django.http import HttpResponse
+import openpyxl
 
 
 class EvaluationCycleViewSet(viewsets.ModelViewSet):
     """考核周期管理"""
     queryset = EvaluationCycle.objects.all().order_by('-created_at')
     serializer_class = EvaluationCycleSerializer
+    # 服务端筛选/检索/排序
+    filterset_fields = ['status']
+    search_fields = ['name', 'description']
+    ordering_fields = ['created_at', 'start_date', 'end_date', 'name']
     
     def perform_create(self, serializer):
         """创建考核周期时自动设置创建者"""
@@ -65,12 +71,20 @@ class EvaluationIndicatorViewSet(viewsets.ModelViewSet):
     """考核指标管理"""
     queryset = EvaluationIndicator.objects.all().order_by('category', 'name')
     serializer_class = EvaluationIndicatorSerializer
+    # 与前端对齐：类别/启用状态、名称/描述检索
+    filterset_fields = ['category', 'is_active']
+    search_fields = ['name', 'description']
+    ordering_fields = ['category', 'name', 'weight', 'updated_at']
 
 
 class EvaluationRuleViewSet(viewsets.ModelViewSet):
     """考核规则管理"""
     queryset = EvaluationRule.objects.all().order_by('-created_at')
     serializer_class = EvaluationRuleSerializer
+    # 规则为全局配置：支持启用状态/范围筛选，名称与描述检索
+    filterset_fields = ['is_active', 'evaluation_scope']
+    search_fields = ['name', 'description']
+    ordering_fields = ['created_at', 'updated_at', 'name']
     
     @action(detail=False, methods=['post'])
     def create_defaults(self, request):
@@ -92,6 +106,10 @@ class ManualEvaluationAssignmentViewSet(viewsets.ModelViewSet):
     """手动评价分配管理"""
     queryset = ManualEvaluationAssignment.objects.all().order_by('-created_at')
     serializer_class = ManualEvaluationAssignmentSerializer
+    # 服务端筛选/检索/排序
+    filterset_fields = ['cycle', 'evaluator', 'evaluatee', 'relation_type']
+    search_fields = ['evaluator__name', 'evaluatee__name', 'reason']
+    ordering_fields = ['created_at', 'weight']
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -122,6 +140,10 @@ class EvaluationTaskViewSet(viewsets.ModelViewSet):
     """考核任务管理"""
     queryset = EvaluationTask.objects.all().order_by('-assigned_at')
     serializer_class = EvaluationTaskSerializer
+    # 基本筛选：周期、评价人、被评价人、关系/状态
+    filterset_fields = ['cycle', 'evaluator', 'evaluatee', 'relation_type', 'status']
+    search_fields = ['evaluation_code', 'evaluator__name', 'evaluatee__name']
+    ordering_fields = ['assigned_at', 'completed_at', 'status']
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -183,6 +205,8 @@ class EvaluationScoreViewSet(viewsets.ModelViewSet):
     """考核评分管理"""
     queryset = EvaluationScore.objects.all()
     serializer_class = EvaluationScoreSerializer
+    filterset_fields = ['task', 'indicator']
+    search_fields = ['comment', 'task__evaluation_code', 'indicator__name']
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -241,6 +265,10 @@ class EvaluationResultViewSet(viewsets.ModelViewSet):
     """考核结果管理"""
     queryset = EvaluationResult.objects.all().order_by('-calculated_at')
     serializer_class = EvaluationResultSerializer
+    # 支持周期与被评价人筛选
+    filterset_fields = ['cycle', 'employee']
+    search_fields = ['employee__name']
+    ordering_fields = ['weighted_score', 'total_score', 'rank', 'calculated_at']
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -379,6 +407,52 @@ class EvaluationResultViewSet(viewsets.ModelViewSet):
                 'error': f'计算结果失败: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """导出考核结果为 Excel (xlsx)。支持 ?cycle= 或 ?cycle_id= 过滤。"""
+        try:
+            cycle_id = request.query_params.get('cycle') or request.query_params.get('cycle_id')
+            qs = self.get_queryset()
+            if cycle_id:
+                qs = qs.filter(cycle_id=cycle_id)
+
+            # 创建工作簿
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = '考核结果'
+            headers = ['周期ID', '周期名称', '员工ID', '员工姓名', '加权平均分', '总分', '上级评分', '同级评分', '下级评分', '排名', '是否最终', '计算时间']
+            ws.append(headers)
+
+            # 批量预取
+            qs = qs.select_related('cycle', 'employee')
+            for r in qs:
+                ws.append([
+                    r.cycle_id,
+                    getattr(r.cycle, 'name', ''),
+                    r.employee_id,
+                    getattr(r.employee, 'name', ''),
+                    float(r.weighted_score or 0),
+                    float(r.total_score or 0),
+                    float(r.superior_score or 0) if r.superior_score is not None else None,
+                    float(r.peer_score or 0) if r.peer_score is not None else None,
+                    float(r.subordinate_score or 0) if r.subordinate_score is not None else None,
+                    r.rank,
+                    '是' if r.is_final else '否',
+                    r.calculated_at.strftime('%Y-%m-%d %H:%M:%S') if r.calculated_at else ''
+                ])
+
+            from io import BytesIO
+            bio = BytesIO()
+            wb.save(bio)
+            bio.seek(0)
+
+            filename = 'results.xlsx' if not cycle_id else f'results_cycle_{cycle_id}.xlsx'
+            resp = HttpResponse(bio.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+        except Exception as e:
+            return Response({'error': f'导出失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 def overview_stats(request):
@@ -499,6 +573,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     """员工管理（本地副本）"""
     queryset = Employee.objects.all().order_by('id')
     serializer_class = EmployeeSerializer
+    # 服务端筛选/检索/排序
+    filterset_fields = ['department_name', 'status', 'is_active']
+    search_fields = ['name', 'email', 'phone', 'employee_id']
+    ordering_fields = ['department_name', 'position_level', 'employee_id', 'name']
     
     @action(detail=False, methods=['post'])
     def sync(self, request):

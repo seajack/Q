@@ -99,4 +99,86 @@ export const statsApi = {
   overview: () => api.get<OrganizationStats>('/stats/overview/'),
 }
 
+// 系统配置API
+export const configApi = {
+  // 获取配置列表
+  getConfigs: (params?: any) => api.get('/configs/', { params }),
+  
+  // 创建配置
+  createConfig: (data: any) => api.post('/configs/', data),
+  
+  // 更新配置
+  updateConfig: (id: number, data: any) => api.put(`/configs/${id}/`, data),
+  
+  // 删除配置
+  deleteConfig: (id: number) => api.delete(`/configs/${id}/`),
+  
+  // 按分类获取配置
+  getByCategory: (category: string) => api.get(`/configs/by_category/?category=${category}`),
+  
+  // 批量更新配置
+  bulkUpdate: (data: any) => api.post('/configs/bulk_update/', data),
+  
+  // 导出配置
+  exportConfigs: () => api.get('/configs/export/'),
+  
+  // 导入配置
+  importConfigs: (data: any) => api.post('/configs/import_configs/', data),
+}
+
+// 数据字典API
+export const dictionaryApi = {
+  // 获取字典列表
+  getDictionaries: (params?: any) => api.get('/dictionaries/', { params }),
+  
+  // 创建字典项
+  createDictionary: (data: any) => api.post('/dictionaries/', data),
+  
+  // 更新字典项
+  updateDictionary: (id: number, data: any) => api.put(`/dictionaries/${id}/`, data),
+  
+  // 删除字典项
+  deleteDictionary: (id: number) => api.delete(`/dictionaries/${id}/`),
+  
+  // 按分类获取字典
+  getByCategory: (category: string) => api.get(`/dictionaries/by_category/?category=${category}`),
+  
+  // 获取树形结构
+  getTree: (category: string) => api.get(`/dictionaries/tree/?category=${category}`),
+}
+
+// 职位模板API
+export const templateApi = {
+  // 获取模板列表
+  getTemplates: (params?: any) => api.get('/position-templates/', { params }),
+  
+  // 创建模板
+  createTemplate: (data: any) => api.post('/position-templates/', data),
+  
+  // 更新模板
+  updateTemplate: (id: number, data: any) => api.put(`/position-templates/${id}/`, data),
+  
+  // 删除模板
+  deleteTemplate: (id: number) => api.delete(`/position-templates/${id}/`),
+  
+  // 基于模板创建职位
+  createPositionFromTemplate: (templateId: number, data: any) => 
+    api.post(`/position-templates/${templateId}/create_position/`, data),
+}
+
+// 工作流规则API
+export const workflowApi = {
+  // 获取规则列表
+  getRules: (params?: any) => api.get('/workflow-rules/', { params }),
+  
+  // 创建规则
+  createRule: (data: any) => api.post('/workflow-rules/', data),
+  
+  // 更新规则
+  updateRule: (id: number, data: any) => api.put(`/workflow-rules/${id}/`, data),
+  
+  // 删除规则
+  deleteRule: (id: number) => api.delete(`/workflow-rules/${id}/`),
+}
+
 export default api

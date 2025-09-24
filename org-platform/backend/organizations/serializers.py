@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Department, Position, Employee, OrganizationStructure
+from .models import Department, Position, Employee, OrganizationStructure, SystemConfig, Dictionary, PositionTemplate, WorkflowRule
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -357,3 +357,99 @@ class OrganizationStatsSerializer(serializers.Serializer):
     active_employees = serializers.IntegerField()
     department_levels = serializers.ListField(child=serializers.DictField())
     position_levels = serializers.ListField(child=serializers.DictField())
+
+
+# 配置数据序列化器
+class SystemConfigSerializer(serializers.ModelSerializer):
+    """系统配置序列化器"""
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    data_type_display = serializers.CharField(source='get_data_type_display', read_only=True)
+    
+    class Meta:
+        model = SystemConfig
+        fields = ['id', 'key', 'value', 'category', 'category_display', 'description', 
+                 'data_type', 'data_type_display', 'is_encrypted', 'is_required', 
+                 'is_active', 'created_at', 'updated_at']
+    
+    def validate_value(self, value):
+        """验证配置值格式"""
+        data_type = self.initial_data.get('data_type', 'string')
+        
+        if data_type == 'integer':
+            try:
+                int(value)
+            except ValueError:
+                raise serializers.ValidationError("整数类型的配置值必须是有效数字")
+        elif data_type == 'boolean':
+            if value.lower() not in ['true', 'false', '1', '0', 'yes', 'no']:
+                raise serializers.ValidationError("布尔类型的配置值必须是 true/false 或 1/0")
+        elif data_type in ['json', 'list']:
+            import json
+            try:
+                json.loads(value)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("JSON类型的配置值必须是有效的JSON格式")
+        
+        return value
+
+
+class DictionarySerializer(serializers.ModelSerializer):
+    """数据字典序列化器"""
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    parent_name = serializers.CharField(source='parent.name', read_only=True)
+    children = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Dictionary
+        fields = ['id', 'category', 'category_display', 'code', 'name', 'value', 
+                 'description', 'sort_order', 'is_active', 'parent', 'parent_name', 
+                 'children', 'created_at', 'updated_at']
+    
+    def get_children(self, obj):
+        """获取子字典项"""
+        children = obj.children.filter(is_active=True).order_by('sort_order')
+        return DictionarySerializer(children, many=True, context=self.context).data
+    
+    def validate_code(self, value):
+        """验证字典编码唯一性"""
+        category = self.initial_data.get('category')
+        if self.instance and self.instance.code == value and self.instance.category == category:
+            return value
+        
+        if Dictionary.objects.filter(category=category, code=value).exists():
+            raise serializers.ValidationError("该分类下已存在相同编码的字典项")
+        return value
+
+
+class PositionTemplateSerializer(serializers.ModelSerializer):
+    """职位模板序列化器"""
+    management_level_display = serializers.CharField(source='get_management_level_display', read_only=True)
+    level_display = serializers.CharField(source='get_level_display', read_only=True)
+    
+    class Meta:
+        model = PositionTemplate
+        fields = ['id', 'name', 'description', 'management_level', 'management_level_display',
+                 'level', 'level_display', 'default_requirements', 'default_responsibilities',
+                 'is_active', 'created_at', 'updated_at']
+
+
+class WorkflowRuleSerializer(serializers.ModelSerializer):
+    """工作流规则序列化器"""
+    rule_type_display = serializers.CharField(source='get_rule_type_display', read_only=True)
+    
+    class Meta:
+        model = WorkflowRule
+        fields = ['id', 'name', 'rule_type', 'rule_type_display', 'trigger_conditions',
+                 'action_config', 'is_active', 'priority', 'created_at', 'updated_at']
+    
+    def validate_trigger_conditions(self, value):
+        """验证触发条件格式"""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("触发条件必须是JSON对象格式")
+        return value
+    
+    def validate_action_config(self, value):
+        """验证动作配置格式"""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("动作配置必须是JSON对象格式")
+        return value

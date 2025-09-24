@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>绩效考核系统 · 顶部/侧边栏可切换（v1.2.1.1）</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Flowbite -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#eef7fd',
+              100: '#d7ecfa',
+              200: '#abd8f4',
+              300: '#7ec3ee',
+              400: '#4faee7',
+              500: '#2598e0',
+              600: '#177fc1',
+              700: '#0f689e',
+              800: '#0c537e',
+              900: '#0a4163'
+            },
+            ink: {
+              50:  '#fafafa',
+              100: '#f5f5f5',
+              200: '#eeeeee',
+              300: '#e0e0e0',
+              400: '#bdbdbd',
+              500: '#9e9e9e',
+              600: '#757575',
+              700: '#616161',
+              800: '#424242',
+              900: '#212121'
+            }
+          },
+          boxShadow: { subtle: '0 1px 2px rgba(0,0,0,0.06), 0 1px 1px rgba(0,0,0,0.04)' },
+          borderRadius: { xl: '0.9rem' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #1f2937;
+      --card: #ffffff;
+      --muted: #f6f7f9;
+      --border: #e5e7eb;
+      --ring: rgba(23,127,193,.28);
+    }
+
+    html, body { height: 100%; }
+    body { font-family: Inter, DM Sans, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important; background: var(--background) !important; color: var(--foreground) !important; }
+    .card { background: var(--card) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow, 0 1px 2px rgba(16,24,40,.06)); }
+    .ring-focus:focus { box-shadow: 0 0 0 3px var(--ring) !important; outline: none !important; }
+
+    /* 布局切换可见性控制 */
+    body.layout-top .top-nav-wrapper { display: block; }
+    body.layout-top .sidebar-wrapper { display: none; }
+    body.layout-side .top-nav-wrapper { display: none; }
+    body.layout-side .sidebar-wrapper { display: flex; }
+
+    /* 使桌面端侧边栏固定，可滚动主内容 */
+    .sidebar-fixed { position: sticky; top: 0; height: calc(100dvh); }
+  </style>
+</head>
+
+<body class="min-h-dvh antialiased layout-top">
+  <!-- 顶部工具栏：包含布局切换控件 -->
+  <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-14 items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="E:/code/Q/logo.jpg" alt="公司Logo" class="h-8 w-auto" />
+          <span class="text-base font-semibold tracking-tight text-ink-900">绩效考核系统</span>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <!-- 布局切换：顶部/侧边栏 -->
+          <div class="inline-flex rounded-lg border border-gray-300 bg-white p-0.5 text-sm">
+            <button id="btn-top" class="rounded-md px-3 py-1.5 font-medium text-ink-800 hover:bg-gray-50 data-[active=true]:bg-brand-600 data-[active=true]:text-white" data-active="true">顶部导航</button>
+            <button id="btn-side" class="rounded-md px-3 py-1.5 font-medium text-ink-800 hover:bg-gray-50">侧边栏导航</button>
+          </div>
+          <div class="relative">
+            <input type="search" placeholder="请输入关键词" class="w-64 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-500 focus:border-brand-600 focus:ring-0 ring-focus" />
+            <div class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="2"/><path d="M20 20l-3-3" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="period" class="sr-only">周期</label>
+          <select id="period" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 focus:border-brand-600 focus:ring-0 ring-focus">
+            <option>2025 Q3</option>
+            <option>2025 Q2</option>
+            <option>2025 Q1</option>
+            <option>2024 Q4</option>
+          </select>
+          <button class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="filter-drawer" data-drawer-show="filter-drawer" data-drawer-placement="right" aria-controls="filter-drawer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M6 12h12M10 18h4" stroke-width="2" stroke-linecap="round"/></svg>
+            筛选
+          </button>
+          <button class="hidden sm:inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">
+            新增评审
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 顶部导航版：品牌蓝主导航 -->
+  <div class="top-nav-wrapper">
+    <nav class="bg-brand-600 text-white">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-12 items-center gap-6 overflow-x-auto">
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">首页</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">考核看板</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">评审任务</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">KPI指标</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">员工档案</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">组织架构</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">报表中心</a>
+          <a href="#" class="whitespace-nowrap text-sm font-medium hover:underline">系统设置</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <!-- KPI 卡片 -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div class="card rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-wide text-ink-600">已完成评审</p>
+            <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">+12%</span>
+          </div>
+          <div class="mt-3 flex items-end justify-between">
+            <h3 class="text-2xl font-semibold text-ink-900">76%</h3>
+            <div class="h-8 w-8 rounded-md bg-gradient-to-br from-emerald-400 to-teal-500/80"></div>
+          </div>
+          <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+            <div class="h-full w-3/4 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+          </div>
+        </div>
+        <div class="card rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-wide text-ink-600">平均评分</p>
+            <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">4.2</span>
+          </div>
+          <div class="mt-3 flex items-end justify-between">
+            <h3 class="text-2xl font-semibold text-ink-900">B+</h3>
+            <div class="h-8 w-8 rounded-md bg-gradient-to-br from-amber-400 to-orange-500/80"></div>
+          </div>
+          <div class="mt-3 flex items-center gap-2 text-xs text-ink-600">
+            <span class="inline-flex h-2 w-2 rounded-full bg-brand-600"></span>高分集中于产品与平台
+          </div>
+        </div>
+        <div class="card rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-wide text-ink-600">待评审</p>
+            <span class="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700">-5 人</span>
+          </div>
+          <div class="mt-3 flex items-end justify-between">
+            <h3 class="text-2xl font-semibold text-ink-900">18 人</h3>
+            <div class="h-8 w-8 rounded-md bg-gradient-to-br from-brand-400 to-brand-600/80"></div>
+          </div>
+          <div class="mt-3 grid grid-cols-5 gap-1">
+            <div class="h-1.5 rounded bg-brand-600/90"></div>
+            <div class="h-1.5 rounded bg-brand-600/70"></div>
+            <div class="h-1.5 rounded bg-brand-600/50"></div>
+            <div class="h-1.5 rounded bg-brand-600/40"></div>
+            <div class="h-1.5 rounded bg-brand-600/30"></div>
+          </div>
+        </div>
+        <div class="card rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-wide text-ink-600">异常波动</p>
+            <span class="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700">8 员工</span>
+          </div>
+          <div class="mt-3 flex items-end justify-between">
+            <h3 class="text-2xl font-semibold text-ink-900">12%</h3>
+            <div class="h-8 w-8 rounded-md bg-gradient-to-br from-rose-400 to-red-500/80"></div>
+          </div>
+          <div class="mt-3 text-xs text-ink-600">近两期评分差异 > 1.0</div>
+        </div>
+      </section>
+
+      <!-- 列表与操作 -->
+      <section class="mt-6 sm:mt-8">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-semibold text-ink-900">员工绩效</h3>
+          <div class="flex items-center gap-2">
+            <button class="hidden md:inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 hover:bg-gray-50 ring-focus">批量提醒</button>
+            <button class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">新增评审</button>
+          </div>
+        </div>
+        <div class="mt-3 overflow-hidden rounded-xl border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">员工</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">部门</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">目标达成</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">评分</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">状态</th>
+                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-ink-600">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3"><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-brand-400 to-brand-600 text-white font-semibold">L</span><div><div class="text-sm font-medium text-ink-900">Lee</div><div class="text-xs text-ink-600">高级产品经理</div></div></div></td>
+                <td class="px-4 py-3 text-sm text-ink-800">产品</td>
+                <td class="px-4 py-3 text-sm text-ink-800">92%</td>
+                <td class="px-4 py-3 text-sm font-semibold text-emerald-700">A</td>
+                <td class="px-4 py-3"><span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">已完成</span></td>
+                <td class="px-4 py-3 text-right"><div class="inline-flex gap-2"><button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="detail-drawer" data-drawer-show="detail-drawer" data-drawer-placement="right" aria-controls="detail-drawer">详情</button><button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">编辑</button></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3"><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold">W</span><div><div class="text-sm font-medium text-ink-900">Wang</div><div class="text-xs text-ink-600">资深前端工程师</div></div></div></td>
+                <td class="px-4 py-3 text-sm text-ink-800">平台</td>
+                <td class="px-4 py-3 text-sm text-ink-800">75%</td>
+                <td class="px-4 py-3 text-sm font-semibold text-amber-700">B+</td>
+                <td class="px-4 py-3"><span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">进行中</span></td>
+                <td class="px-4 py-3 text-right"><div class="inline-flex gap-2"><button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="detail-drawer" data-drawer-show="detail-drawer" data-drawer-placement="right" aria-controls="detail-drawer">详情</button><button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">编辑</button></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3"><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-fuchsia-400 to-pink-500 text-white font-semibold">Z</span><div><div class="text-sm font-medium text-ink-900">Zhang</div><div class="text-xs text-ink-600">商务拓展</div></div></div></td>
+                <td class="px-4 py-3 text-sm text-ink-800">销售</td>
+                <td class="px-4 py-3 text-sm text-ink-800">58%</td>
+                <td class="px-4 py-3 text-sm font-semibold text-rose-700">C</td>
+                <td class="px-4 py-3"><span class="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700">缺少自评</span></td>
+                <td class="px-4 py-3 text-right"><div class="inline-flex gap-2"><button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="detail-drawer" data-drawer-show="detail-drawer" data-drawer-placement="right" aria-controls="detail-drawer">详情</button><button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">编辑</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 侧边栏版：左侧导航 + 主内容 -->
+  <div class="sidebar-wrapper">
+    <aside class="hidden md:flex md:w-64 md:flex-col md:border-r md:border-gray-200 md:bg-white sidebar-fixed" aria-label="Sidebar">
+      <div class="p-4 border-b border-gray-200">
+        <div class="flex items-center gap-3">
+          <img src="E:/code/Q/logo.jpg" alt="公司Logo" class="h-8 w-auto" />
+          <div class="text-base font-semibold text-ink-900">绩效考核</div>
+        </div>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-3">
+        <ul class="space-y-1">
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#">首页</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#kpi">考核看板</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#tasks">评审任务</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#indicators">KPI指标</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#files">员工档案</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#org">组织架构</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#report">报表中心</a></li>
+          <li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-800 hover:bg-brand-50 hover:text-brand-700" href="#settings">系统设置</a></li>
+        </ul>
+        <div class="mt-6 rounded-lg bg-brand-50 p-3 text-brand-800">
+          <div class="text-xs font-semibold uppercase tracking-wide">快速操作</div>
+          <div class="mt-2 space-y-2 text-sm">
+            <button class="w-full rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700 ring-focus">新增评审</button>
+            <button class="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-brand-700 hover:bg-brand-50 ring-focus">导出报表</button>
+          </div>
+        </div>
+      </nav>
+      <div class="p-3 border-t border-gray-200 text-xs text-ink-600">© 2025</div>
+    </aside>
+
+    <main class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <!-- 同样的内容模块复用（与顶部版一致） -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div class="card rounded-xl p-4 sm:p-5"><div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-ink-600">已完成评审</p><span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">+12%</span></div><div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-ink-900">76%</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-emerald-400 to-teal-500/80"></div></div><div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-200"><div class="h-full w-3/4 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500"></div></div></div>
+        <div class="card rounded-xl p-4 sm:p-5"><div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-ink-600">平均评分</p><span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">4.2</span></div><div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-ink-900">B+</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-amber-400 to-orange-500/80"></div></div><div class="mt-3 flex items-center gap-2 text-xs text-ink-600"><span class="inline-flex h-2 w-2 rounded-full bg-brand-600"></span>高分集中于产品与平台</div></div>
+        <div class="card rounded-xl p-4 sm:p-5"><div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-ink-600">待评审</p><span class="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700">-5 人</span></div><div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-ink-900">18 人</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-brand-400 to-brand-600/80"></div></div><div class="mt-3 grid grid-cols-5 gap-1"><div class="h-1.5 rounded bg-brand-600/90"></div><div class="h-1.5 rounded bg-brand-600/70"></div><div class="h-1.5 rounded bg-brand-600/50"></div><div class="h-1.5 rounded bg-brand-600/40"></div><div class="h-1.5 rounded bg-brand-600/30"></div></div></div>
+        <div class="card rounded-xl p-4 sm:p-5"><div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-ink-600">异常波动</p><span class="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700">8 员工</span></div><div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-ink-900">12%</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-rose-400 to-red-500/80"></div></div><div class="mt-3 text-xs text-ink-600">近两期评分差异 > 1.0</div></div>
+      </section>
+
+      <section class="mt-6 sm:mt-8">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-semibold text-ink-900">员工绩效</h3>
+          <div class="flex items-center gap-2">
+            <button class="hidden md:inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 hover:bg-gray-50 ring-focus">批量提醒</button>
+            <button class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">新增评审</button>
+          </div>
+        </div>
+        <div class="mt-3 overflow-hidden rounded-xl border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">员工</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">部门</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">目标达成</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">评分</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-600">状态</th>
+                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-ink-600">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              <tr class="hover:bg-gray-50"><td class="px-4 py-3"><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-brand-400 to-brand-600 text-white font-semibold">L</span><div><div class="text-sm font-medium text-ink-900">Lee</div><div class="text-xs text-ink-600">高级产品经理</div></div></div></td><td class="px-4 py-3 text-sm text-ink-800">产品</td><td class="px-4 py-3 text-sm text-ink-800">92%</td><td class="px-4 py-3 text-sm font-semibold text-emerald-700">A</td><td class="px-4 py-3"><span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">已完成</span></td><td class="px-4 py-3 text-right"><div class="inline-flex gap-2"><button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="detail-drawer" data-drawer-show="detail-drawer" data-drawer-placement="right" aria-controls="detail-drawer">详情</button><button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">编辑</button></div></td></tr>
+              <tr class="hover:bg-gray-50"><td class="px-4 py-3"><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold">W</span><div><div class="text-sm font-medium text-ink-900">Wang</div><div class="text-xs text-ink-600">资深前端工程师</div></div></div></td><td class="px-4 py-3 text-sm text-ink-800">平台</td><td class="px-4 py-3 text-sm text-ink-800">75%</td><td class="px-4 py-3 text-sm font-semibold text-amber-700">B+</td><td class="px-4 py-3"><span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">进行中</span></td><td class="px-4 py-3 text-right"><div class="inline-flex gap-2"><button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="detail-drawer" data-drawer-show="detail-drawer" data-drawer-placement="right" aria-controls="detail-drawer">详情</button><button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">编辑</button></div></td></tr>
+              <tr class="hover:bg-gray-50"><td class="px-4 py-3"><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-fuchsia-400 to-pink-500 text-white font-semibold">Z</span><div><div class="text-sm font-medium text-ink-900">Zhang</div><div class="text-xs text-ink-600">商务拓展</div></div></div></td><td class="px-4 py-3 text-sm text-ink-800">销售</td><td class="px-4 py-3 text-sm text-ink-800">58%</td><td class="px-4 py-3 text-sm font-semibold text-rose-700">C</td><td class="px-4 py-3"><span class="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700">缺少自评</span></td><td class="px-4 py-3 text-right"><div class="inline-flex gap-2"><button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-ink-800 hover:bg-gray-50 ring-focus" data-drawer-target="detail-drawer" data-drawer-show="detail-drawer" data-drawer-placement="right" aria-controls="detail-drawer">详情</button><button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700 ring-focus" data-modal-target="edit-modal" data-modal-toggle="edit-modal">编辑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 筛选抽屉（右侧） -->
+  <div id="filter-drawer" class="fixed top-0 right-0 z-50 h-screen w-80 translate-x-full overflow-y-auto border-l border-gray-200 bg-white p-5 transition-transform" tabindex="-1" aria-labelledby="filter-drawer-label">
+    <div class="flex items-start justify-between">
+      <h5 id="filter-drawer-label" class="text-base font-semibold text-ink-900">筛选</h5>
+      <button type="button" data-drawer-hide="filter-drawer" aria-controls="filter-drawer" class="text-ink-500 hover:text-ink-800">
+        <span class="sr-only">关闭</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M6 18L18 6" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="mt-4 space-y-5">
+      <div>
+        <label class="text-xs text-ink-600">部门</label>
+        <select class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 focus:border-brand-600 focus:ring-0 ring-focus">
+          <option>全部</option>
+          <option>产品</option>
+          <option>平台</option>
+          <option>销售</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-ink-600">职位</label>
+        <input class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-500 focus:border-brand-600 focus:ring-0 ring-focus" placeholder="如：前端、后端、PM"/>
+      </div>
+      <div>
+        <label class="text-xs text-ink-600">评分范围</label>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <input class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-500 focus:border-brand-600 focus:ring-0 ring-focus" placeholder="最小，如 B"/>
+          <input class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-500 focus:border-brand-600 focus:ring-0 ring-focus" placeholder="最大，如 A+"/>
+        </div>
+      </div>
+      <div class="pt-2">
+        <button class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 ring-focus">应用筛选</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑弹窗（复用） -->
+  <div id="edit-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/40"></div>
+    <div class="relative w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-5 shadow-subtle">
+      <div class="flex items-start justify-between">
+        <h3 class="text-base font-semibold text-ink-900">新增/编辑评审</h3>
+        <button type="button" class="text-ink-500 hover:text-ink-800" data-modal-hide="edit-modal">
+          <span class="sr-only">关闭</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M6 18L18 6" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-ink-600">员工</label>
+          <input class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-500 focus:border-brand-600 focus:ring-0 ring-focus" placeholder="如：Lee"/>
+        </div>
+        <div>
+          <label class="text-xs text-ink-600">部门</label>
+          <select class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 focus:border-brand-600 focus:ring-0 ring-focus">
+            <option>产品</option>
+            <option>平台</option>
+            <option>销售</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-xs text-ink-600">本期目标</label>
+          <textarea rows="3" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-500 focus:border-brand-600 focus:ring-0 ring-focus" placeholder="输入关键目标，建议 3-5 条"></textarea>
+        </div>
+        <div>
+          <label class="text-xs text-ink-600">评分</label>
+          <select class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 focus:border-brand-600 focus:ring-0 ring-focus">
+            <option>A+</option>
+            <option>A</option>
+            <option>A-</option>
+            <option>B+</option>
+            <option>B</option>
+            <option>B-</option>
+            <option>C</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-ink-600">状态</label>
+          <select class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 focus:border-brand-600 focus:ring-0 ring-focus">
+            <option>进行中</option>
+            <option>已完成</option>
+            <option>待自评</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-5 flex items-center justify-end gap-2">
+        <button class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-ink-800 hover:bg-gray-50" data-modal-hide="edit-modal">取消</button>
+        <button class="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 布局切换与持久化
+    (function(){
+      const body = document.body;
+      const btnTop = document.getElementById('btn-top');
+      const btnSide = document.getElementById('btn-side');
+      const LS_KEY = 'perf_layout_mode';
+      function apply(mode){
+        body.classList.toggle('layout-top', mode === 'top');
+        body.classList.toggle('layout-side', mode === 'side');
+        btnTop?.setAttribute('data-active', mode === 'top');
+        btnSide?.setAttribute('data-active', mode === 'side');
+        localStorage.setItem(LS_KEY, mode);
+      }
+      const saved = localStorage.getItem(LS_KEY);
+      if(saved === 'side'){ apply('side'); }
+      btnTop?.addEventListener('click', ()=>apply('top'));
+      btnSide?.addEventListener('click', ()=>apply('side'));
+    })();
+  </script>
+</body>
+</html>

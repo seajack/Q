@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>绩效考核系统 · Vue + Pinia + Router 原型（无 Tailwind/Flowbite）</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Vue / Router / Pinia -->
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/vue-router@4.3.2/dist/vue-router.global.prod.js"></script>
+  <script src="https://unpkg.com/pinia@2.1.7/dist/pinia.iife.prod.js"></script>
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+  <style>
+    :root{
+      /* 品牌蓝（与 logo 协调，可微调） */
+      --brand-900:#0a4163;
+      --brand-800:#0c537e;
+      --brand-700:#0f689e;
+      --brand-600:#177fc1; /* 主色 */
+      --brand-500:#2598e0;
+      --brand-400:#4faee7;
+
+      --bg:#ffffff; --fg:#111827; --muted:#f6f7f9; --border:#e5e7eb; --ring:rgba(23,127,193,.28);
+    }
+    html,body{height:100%}
+    body{margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans"; background:var(--bg); color:var(--fg)}
+
+    /* 基础 UI */
+    .container{max-width:1200px; margin:0 auto; padding:0 16px}
+    .card{background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 1px 2px rgba(16,24,40,.06)}
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#fff; color:#374151; cursor:pointer}
+    .btn:hover{background:#f8fafc}
+    .btn-primary{background:var(--brand-600); color:#fff; border-color:var(--brand-600)}
+    .btn-primary:hover{background:var(--brand-700); border-color:var(--brand-700)}
+    .input, .select{padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; outline:none}
+    .input:focus, .select:focus{box-shadow:0 0 0 3px var(--ring); border-color:var(--brand-600)}
+
+    /* 顶部导航 */
+    header.topbar{position:sticky; top:0; z-index:40; background:#fff; border-bottom:1px solid var(--border)}
+    .topbar-inner{height:56px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700; color:#111}
+    .brand img{height:32px; width:auto}
+
+    nav.mainnav{background:var(--brand-600); color:#fff}
+    .mainnav-inner{height:48px; display:flex; align-items:center; gap:18px; overflow:auto}
+    .link{color:#fff; text-decoration:none; font-size:14px; white-space:nowrap; opacity:.95}
+    .link.router-link-active{font-weight:700; text-decoration:underline}
+
+    /* 栅格 */
+    .grid{display:grid; gap:16px}
+    .grid-4{grid-template-columns:repeat(4, minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3, minmax(0,1fr))}
+    .grid-12{grid-template-columns:repeat(12, minmax(0,1fr))}
+    @media (max-width:1024px){.grid-4{grid-template-columns:repeat(2,1fr)} .grid-3{grid-template-columns:1fr}}
+    @media (max-width:640px){.grid-4{grid-template-columns:1fr}}
+
+    /* KPI 卡 */
+    .kpi{padding:16px}
+    .kpi-top{display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#6b7280}
+    .kpi-val{margin-top:10px; display:flex; align-items:flex-end; justify-content:space-between}
+    .kpi-val h3{margin:0; font-size:24px}
+    .badge{border-radius:999px; padding:2px 8px; font-size:12px}
+
+    /* 表格 */
+    .table-wrap{overflow:hidden; border:1px solid var(--border); border-radius:12px}
+    table{width:100%; border-collapse:collapse}
+    thead th{position:sticky; top:0; background:#f9fafb; text-align:left; font-size:12px; color:#6b7280; text-transform:uppercase; padding:12px}
+    tbody td{padding:12px; border-top:1px solid var(--border); font-size:14px}
+    tbody tr:hover{background:#f9fafb}
+    tbody tr:nth-child(even){background:#fafafa}
+
+    /* 图表容器 */
+    .chart{height:280px}
+
+    /* 布局间距 */
+    .mt-6{margin-top:24px} .mt-8{margin-top:32px}
+    .row{display:flex; align-items:center; justify-content:space-between; gap:12px}
+
+    /* 工具条 */
+    .toolbar{display:flex; align-items:center; gap:8px}
+  </style>
+</head>
+
+<body>
+<div id="app">
+  <!-- 顶部导航（纯顶部） -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <img src="E:/code/Q/logo.png" alt="Logo" />
+        <span>绩效考核系统</span>
+      </div>
+      <div class="toolbar" style="display:none;" id="desktopSearch">
+        <div style="position:relative">
+          <input v-model.trim="$pinia.state.value.perf.keyword" placeholder="搜索员工、部门、指标…" class="input" style="width:280px"/>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#9ca3af">🔍</span>
+        </div>
+      </div>
+      <div class="toolbar">
+        <select v-model="$pinia.state.value.perf.period" class="select">
+          <option>2025 Q3</option><option>2025 Q2</option><option>2025 Q1</option><option>2024 Q4</option>
+        </select>
+        <button class="btn" @click="$router.push('/tasks')">筛选</button>
+        <button class="btn btn-primary" @click="alert('新增评审（示意）')">新增评审</button>
+      </div>
+    </div>
+    <nav class="mainnav">
+      <div class="container mainnav-inner">
+        <router-link class="link" to="/">首页</router-link>
+        <router-link class="link" to="/dashboard">考核看板</router-link>
+        <router-link class="link" to="/tasks">评审任务</router-link>
+        <router-link class="link" to="/kpi">KPI指标</router-link>
+        <router-link class="link" to="/files">员工档案</router-link>
+        <router-link class="link" to="/org">组织架构</router-link>
+        <router-link class="link" to="/reports">报表中心</router-link>
+        <router-link class="link" to="/settings">系统设置</router-link>
+      </div>
+    </nav>
+  </header>
+
+  <router-view></router-view>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+const { createRouter, createWebHashHistory } = VueRouter;
+const { createPinia, defineStore } = Pinia;
+
+// Pinia store
+const usePerfStore = defineStore('perf', {
+  state: () => ({
+    period: '2025 Q3',
+    keyword: '',
+    rows: [
+      { id:1, name:'Lee', role:'高级产品经理', dept:'产品', target:92, grade:'A',  status:'已完成', color:'emerald' },
+      { id:2, name:'Wang', role:'资深前端工程师', dept:'平台', target:75, grade:'B+', status:'进行中', color:'amber' },
+      { id:3, name:'Zhang', role:'商务拓展', dept:'销售', target:58, grade:'C',  status:'待自评', color:'rose' },
+      { id:4, name:'Li', role:'后端工程师', dept:'平台', target:81, grade:'B+', status:'进行中', color:'amber' },
+      { id:5, name:'Zhao', role:'算法工程师', dept:'产品', target:88, grade:'A-', status:'已完成', color:'emerald' },
+      { id:6, name:'Chen', role:'数据分析师', dept:'平台', target:66, grade:'B',  status:'进行中', color:'amber' },
+      { id:7, name:'Sun', role:'销售经理', dept:'销售', target:72, grade:'B',  status:'进行中', color:'amber' },
+      { id:8, name:'Zhou', role:'产品经理', dept:'产品', target:95, grade:'A',  status:'已完成', color:'emerald' },
+      { id:9, name:'Wu', role:'设计师', dept:'产品', target:79, grade:'B+', status:'进行中', color:'amber' },
+      { id:10, name:'Qian', role:'测试工程师', dept:'平台', target:84, grade:'A-', status:'已完成', color:'emerald' },
+      { id:11, name:'Lin', role:'实施顾问', dept:'销售', target:63, grade:'C',  status:'待自评', color:'rose' }
+    ],
+  }),
+});
+
+// 视图：Dashboard（图表 + KPI + 表格）
+const Dashboard = {
+  name:'Dashboard',
+  setup(){
+    const perf = Pinia.storeToRefs(usePerfStore()());
+    // KPI 示例
+    const kpi = reactive({ doneRate: 76, avgScore: 4.2, avgGrade: 'B+', pending: 18, anomaly: 8, anomalyRate: 12 });
+
+    // 图表 refs
+    const distRef = ref(null), deptRef = ref(null);
+    let distChart, deptChart;
+
+    const depts = computed(()=> Array.from(new Set(perf.rows.value.map(r=>r.dept))));
+
+    // 筛选 + 排序 + 分页
+    const GRADE_ORDER = ['A+','A','A-','B+','B','B-','C'];
+    const sortKey = ref('name');
+    const sortDir = ref('asc');
+    const page = ref(1); const pageSize = ref(10);
+
+    const filtered = computed(()=>{
+      const kw = perf.keyword.value.trim().toLowerCase();
+      let list = perf.rows.value;
+      if (kw) list = list.filter(r=> `${r.name} ${r.dept} ${r.role}`.toLowerCase().includes(kw));
+      return list;
+    });
+
+    const sorted = computed(()=>{
+      return [...filtered.value].sort((a,b)=>{
+        let va=a[sortKey.value], vb=b[sortKey.value];
+        if (sortKey.value==='grade'){ va=GRADE_ORDER.indexOf(a.grade); vb=GRADE_ORDER.indexOf(b.grade); }
+        if (typeof va==='string'){ va=va.toLowerCase(); vb=vb.toLowerCase(); }
+        if (va<vb) return sortDir.value==='asc'?-1:1;
+        if (va>vb) return sortDir.value==='asc'?1:-1;
+        return 0;
+      })
+    });
+
+    const maxPage = computed(()=> Math.max(1, Math.ceil(sorted.value.length / pageSize.value)));
+    const pageRows = computed(()=>{
+      const p = Math.min(Math.max(1,page.value), maxPage.value);
+      const start = (p-1)*pageSize.value;
+      return sorted.value.slice(start, start+pageSize.value);
+    });
+
+    const toggleSort = (k)=>{
+      if (sortKey.value===k) sortDir.value = (sortDir.value==='asc'?'desc':'asc');
+      else { sortKey.value=k; sortDir.value='asc'; }
+    }
+
+    const avatarGrad = (r)=> r.color==='emerald' ? 'linear-gradient(135deg, var(--brand-400), var(--brand-600))' : (r.color==='amber'?'linear-gradient(135deg, #f59e0b, #f97316)':'linear-gradient(135deg, #d946ef, #ec4899)');
+    const gradeColor = (r)=> r.color==='rose' ? '#be123c' : (r.color==='emerald' ? '#047857' : '#b45309');
+    const badgeStyle = (r)=> r.color==='emerald' ? 'background:#ecfdf5;color:#047857' : (r.color==='amber' ? 'background:#fffbeb;color:#b45309' : 'background:#fff1f2;color:#be123c');
+
+    const initCharts = ()=>{
+      const brand = getComputedStyle(document.documentElement).getPropertyValue('--brand-600').trim() || '#177fc1';
+      distChart = echarts.init(distRef.value);
+      distChart.setOption({ grid:{left:40,right:10,top:20,bottom:28}, tooltip:{trigger:'axis'}, xAxis:{type:'category',data:['C','B-','B','B+','A-','A','A+']}, yAxis:{type:'value',splitLine:{lineStyle:{color:'#eee'}}}, series:[{ type:'bar', data:[5,12,22,30,18,9,4], itemStyle:{ color: brand }, barWidth:'55%' }] });
+      deptChart = echarts.init(deptRef.value);
+      deptChart.setOption({ grid:{left:40,right:10,top:20,bottom:28}, tooltip:{}, xAxis:{type:'value',max:100}, yAxis:{type:'category',data:['产品','平台','销售']}, series:[{ type:'bar', data:[82,70,61], itemStyle:{ color:(p)=>[brand,'#4faee7','#0f689e'][p.dataIndex%3] } }] });
+      window.addEventListener('resize', ()=>{ distChart && distChart.resize(); deptChart && deptChart.resize(); });
+    }
+
+    onMounted(initCharts);
+
+    return { perf, kpi, distRef, deptRef, depts, GRADE_ORDER, sortKey, sortDir, page, pageSize, maxPage, pageRows, toggleSort, avatarGrad, gradeColor, badgeStyle };
+  },
+  template:`
+  <main class="container" style="padding:24px 16px">
+    <!-- KPI -->
+    <section class="grid grid-4">
+      <div class="card kpi">
+        <div class="kpi-top"><span>已完成评审</span><span class="badge" style="background:#ecfdf5;color:#047857">+12%</span></div>
+        <div class="kpi-val"><h3>{{kpi.doneRate}}%</h3><div style="height:32px;width:32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#14b8a6)"></div></div>
+        <div style="margin-top:10px;height:6px;border-radius:8px;background:#e5e7eb"><div :style="{height:'6px',width:kpi.doneRate+'%',background:'linear-gradient(90deg,#34d399,#14b8a6)',borderRadius:'8px'}"></div></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><span>平均评分</span><span class="badge" style="background:#fffbeb;color:#b45309">{{kpi.avgScore}}</span></div>
+        <div class="kpi-val"><h3>{{kpi.avgGrade}}</h3><div style="height:32px;width:32px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#f97316)"></div></div>
+        <div style="margin-top:8px;font-size:12px;color:#6b7280"><span style="display:inline-block;height:8px;width:8px;background:var(--brand-600);border-radius:2px;margin-right:8px"></span>高分集中于产品与平台</div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><span>待评审</span><span class="badge" style="background:#e6f4fb;color:var(--brand-700)">-5 人</span></div>
+        <div class="kpi-val"><h3>18 人</h3><div style="height:32px;width:32px;border-radius:8px;background:linear-gradient(135deg,var(--brand-400),var(--brand-600))"></div></div>
+        <div style="margin-top:10px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px">
+          <div style="height:6px;border-radius:6px;background:var(--brand-600);opacity:.9"></div>
+          <div style="height:6px;border-radius:6px;background:var(--brand-600);opacity:.7"></div>
+          <div style="height:6px;border-radius:6px;background:var(--brand-600);opacity:.5"></div>
+          <div style="height:6px;border-radius:6px;background:var(--brand-600);opacity:.4"></div>
+          <div style="height:6px;border-radius:6px;background:var(--brand-600);opacity:.3"></div>
+        </div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><span>异常波动</span><span class="badge" style="background:#ffe4e6;color:#be123c">{{kpi.anomaly}} 员工</span></div>
+        <div class="kpi-val"><h3>{{kpi.anomalyRate}}%</h3><div style="height:32px;width:32px;border-radius:8px;background:linear-gradient(135deg,#fb7185,#ef4444)"></div></div>
+        <div style="margin-top:8px;font-size:12px;color:#6b7280">近两期评分差异 > 1.0</div>
+      </div>
+    </section>
+
+    <!-- 图表 -->
+    <section class="grid grid-3 mt-6">
+      <div class="card" style="padding:16px; grid-column: span 2">
+        <div class="row"><h3 style="margin:0;font-size:16px">评分分布</h3><button class="btn" onclick="alert('导出（示意）')">导出</button></div>
+        <div ref="distRef" class="chart"></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="row"><h3 style="margin:0;font-size:16px">部门完成度</h3><span style="font-size:12px;color:#6b7280">目标 100%</span></div>
+        <div ref="deptRef" class="chart"></div>
+      </div>
+    </section>
+
+    <!-- 表格 -->
+    <section class="mt-8">
+      <div class="row"><h3 style="margin:0;font-size:16px">员工绩效</h3><div class="toolbar"><span style="font-size:12px;color:#6b7280">每页</span><select v-model.number="pageSize" class="select"><option :value="5">5</option><option :value="10">10</option><option :value="20">20</option></select><span style="font-size:12px;color:#6b7280">条</span></div></div>
+      <div class="table-wrap mt-6">
+        <table>
+          <thead>
+            <tr>
+              <th><button class="btn" onclick="return false" @click="toggleSort('name')">员工 ▲▼</button></th>
+              <th><button class="btn" onclick="return false" @click="toggleSort('dept')">部门 ▲▼</button></th>
+              <th><button class="btn" onclick="return false" @click="toggleSort('target')">目标达成 ▲▼</button></th>
+              <th><button class="btn" onclick="return false" @click="toggleSort('grade')">评分 ▲▼</button></th>
+              <th>状态</th>
+              <th style="text-align:right">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(r,i) in pageRows" :key="r.id">
+              <td>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span :style="{height:'32px',width:'32px',display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:'8px',background:avatarGrad(r),color:'#fff',fontWeight:'700'}">{{ r.name.charAt(0) }}</span>
+                  <div>
+                    <div style="font-weight:600">{{ r.name }}</div>
+                    <div style="font-size:12px;color:#6b7280">{{ r.role }}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-size:14px">{{ r.dept }}</td>
+              <td style="font-size:14px">{{ r.target }}%</td>
+              <td :style="{color:gradeColor(r),fontWeight:'600'}">{{ r.grade }}</td>
+              <td><span class="badge" :style="badgeStyle(r)">{{ r.status }}</span></td>
+              <td style="text-align:right">
+                <div class="toolbar"><button class="btn" @click="alert('详情：'+r.name)">详情</button><button class="btn btn-primary" @click="alert('编辑：'+r.name)">编辑</button></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:12px;font-size:12px;color:#374151">
+        <div>共 {{ sorted.length }} 人 · 第 {{ page }} / {{ maxPage }} 页</div>
+        <div class="toolbar"><button class="btn" @click="page=Math.max(1,page-1)">上一页</button><button class="btn" @click="page=Math.min(maxPage,page+1)">下一页</button></div>
+      </div>
+    </section>
+  </main>
+  `
+};
+
+// 其他路由占位
+const Placeholder = (name)=>({
+  name,
+  template:`<main class="container" style="padding:24px 16px"><div class="card" style="padding:20px"><h3 style="margin:0 0 8px 0">${name}</h3><p style="margin:0;color:#6b7280">此页面为占位，后续接入真实功能。</p></div></main>`
+});
+
+// 路由
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes:[
+    { path:'/', redirect:'/dashboard' },
+    { path:'/dashboard', component: Dashboard },
+    { path:'/tasks', component: Placeholder('评审任务') },
+    { path:'/kpi', component: Placeholder('KPI 指标') },
+    { path:'/files', component: Placeholder('员工档案') },
+    { path:'/org', component: Placeholder('组织架构') },
+    { path:'/reports', component: Placeholder('报表中心') },
+    { path:'/settings', component: Placeholder('系统设置') },
+  ]
+});
+
+// 启动
+const app = createApp({});
+const pinia = createPinia();
+app.use(pinia); app.use(router);
+// 注册 store 以便模板直接访问 $pinia.state.value.perf
+const perfStore = usePerfStore();
+app.mount('#app');
+</script>
+</body>
+</html>

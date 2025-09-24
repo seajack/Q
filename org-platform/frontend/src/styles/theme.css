@@ -1,0 +1,46 @@
+:root{
+  --bg: #0b1220;
+  --card-bg: #ffffff;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --brand: #22c55e;
+  --brand-600: #22c55e;
+  --brand-500: #34d399;
+  --brand-400: #86efac;
+  --border: #e5e7eb;
+}
+html, body{ background: var(--bg); color: var(--text); }
+/* 通用布局工具 */
+.row{ display:flex; align-items:center; justify-content:space-between; }
+.toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.card{ background: var(--card-bg); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.container{ padding:24px 16px; }
+
+/* Element Plus 主题微调，统一白卡片效果 */
+:root{
+  --el-border-color: var(--border);
+}
+
+/* el-card 视觉与自定义 card 保持一致 */
+:root :is(.el-card){
+  border-radius: 12px !important;
+  border: 1px solid var(--border) !important;
+}
+.el-card__header{ padding: 12px 16px !important; }
+.el-card__body{ padding: 0 !important; }
+
+/* 表格容器统一内边距 */
+.table-wrap{ padding: 12px 16px; }
+
+/* 顶栏 primary 按钮配色（与品牌统一） */
+.el-button--primary{
+  --el-button-bg-color: var(--brand-600) !important;
+  --el-button-border-color: var(--brand-600) !important;
+}
+.el-button--primary:hover{
+  filter: brightness(0.95);
+}
+
+/* 分页与输入控件的间距统一 */
+.el-pagination{ --el-pagination-bg-color: #fff; }
+.el-input, .el-select{ min-width: 140px; }

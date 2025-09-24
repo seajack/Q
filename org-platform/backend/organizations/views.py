@@ -6,11 +6,12 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from .models import Department, Position, Employee, OrganizationStructure
+from .models import Department, Position, Employee, OrganizationStructure, SystemConfig, Dictionary, PositionTemplate, WorkflowRule
 from .serializers import (
     DepartmentSerializer, DepartmentTreeSerializer,
     PositionSerializer, EmployeeSerializer, EmployeeTreeSerializer,
-    OrganizationStructureSerializer, OrganizationStatsSerializer
+    OrganizationStructureSerializer, OrganizationStatsSerializer,
+    SystemConfigSerializer, DictionarySerializer, PositionTemplateSerializer, WorkflowRuleSerializer
 )
 
 
@@ -394,3 +395,243 @@ def performance_cycle_stats(request, cycle_id):
     }
     
     return Response(stats)
+
+
+# 配置管理视图
+@extend_schema_view(
+    list=extend_schema(summary='获取系统配置列表', tags=['配置管理']),
+    create=extend_schema(summary='创建系统配置', tags=['配置管理']),
+    retrieve=extend_schema(summary='获取系统配置详情', tags=['配置管理']),
+    update=extend_schema(summary='更新系统配置', tags=['配置管理']),
+    destroy=extend_schema(summary='删除系统配置', tags=['配置管理']),
+)
+class SystemConfigViewSet(viewsets.ModelViewSet):
+    """系统配置管理"""
+    queryset = SystemConfig.objects.all()
+    serializer_class = SystemConfigSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['category', 'is_active', 'is_required']
+    search_fields = ['key', 'description']
+    ordering_fields = ['category', 'key', 'created_at']
+    ordering = ['category', 'key']
+    
+    @extend_schema(
+        summary='按分类获取配置',
+        description='根据配置分类获取配置列表',
+        tags=['配置管理']
+    )
+    @action(detail=False, methods=['get'])
+    def by_category(self, request):
+        """按分类获取配置"""
+        category = request.query_params.get('category')
+        if not category:
+            return Response({'error': '缺少category参数'}, status=400)
+        
+        configs = self.queryset.filter(category=category, is_active=True)
+        serializer = self.get_serializer(configs, many=True)
+        return Response(serializer.data)
+    
+    @extend_schema(
+        summary='批量更新配置',
+        description='批量更新多个配置项',
+        tags=['配置管理']
+    )
+    @action(detail=False, methods=['post'])
+    def bulk_update(self, request):
+        """批量更新配置"""
+        configs_data = request.data.get('configs', [])
+        updated_count = 0
+        
+        for config_data in configs_data:
+            try:
+                config = SystemConfig.objects.get(key=config_data['key'])
+                config.value = config_data['value']
+                config.save()
+                updated_count += 1
+            except SystemConfig.DoesNotExist:
+                continue
+        
+        return Response({
+            'message': f'成功更新 {updated_count} 个配置项',
+            'updated_count': updated_count
+        })
+    
+    @extend_schema(
+        summary='导出配置数据',
+        description='导出所有配置数据为JSON格式',
+        tags=['配置管理']
+    )
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """导出配置数据"""
+        configs = self.queryset.filter(is_active=True)
+        export_data = []
+        
+        for config in configs:
+            export_data.append({
+                'key': config.key,
+                'value': config.value,
+                'category': config.category,
+                'description': config.description,
+                'data_type': config.data_type,
+            })
+        
+        return Response(export_data)
+    
+    @extend_schema(
+        summary='导入配置数据',
+        description='从JSON数据导入配置项',
+        tags=['配置管理']
+    )
+    @action(detail=False, methods=['post'])
+    def import_configs(self, request):
+        """导入配置数据"""
+        configs_data = request.data.get('configs', [])
+        imported_count = 0
+        
+        for config_data in configs_data:
+            config, created = SystemConfig.objects.update_or_create(
+                key=config_data['key'],
+                defaults={
+                    'value': config_data['value'],
+                    'category': config_data.get('category', 'organization'),
+                    'description': config_data.get('description', ''),
+                    'data_type': config_data.get('data_type', 'string'),
+                }
+            )
+            if created:
+                imported_count += 1
+        
+        return Response({
+            'message': f'成功导入 {imported_count} 个配置项',
+            'imported_count': imported_count
+        })
+
+
+@extend_schema_view(
+    list=extend_schema(summary='获取数据字典列表', tags=['配置管理']),
+    create=extend_schema(summary='创建数据字典', tags=['配置管理']),
+    retrieve=extend_schema(summary='获取数据字典详情', tags=['配置管理']),
+    update=extend_schema(summary='更新数据字典', tags=['配置管理']),
+    destroy=extend_schema(summary='删除数据字典', tags=['配置管理']),
+)
+class DictionaryViewSet(viewsets.ModelViewSet):
+    """数据字典管理"""
+    queryset = Dictionary.objects.all()
+    serializer_class = DictionarySerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['category', 'is_active', 'parent']
+    search_fields = ['name', 'code', 'description']
+    ordering_fields = ['category', 'sort_order', 'code']
+    ordering = ['category', 'sort_order', 'code']
+    
+    @extend_schema(
+        summary='按分类获取字典数据',
+        description='根据字典分类获取字典列表',
+        tags=['配置管理']
+    )
+    @action(detail=False, methods=['get'])
+    def by_category(self, request):
+        """按分类获取字典数据"""
+        category = request.query_params.get('category')
+        if not category:
+            return Response({'error': '缺少category参数'}, status=400)
+        
+        dictionaries = self.queryset.filter(category=category, is_active=True)
+        serializer = self.get_serializer(dictionaries, many=True)
+        return Response(serializer.data)
+    
+    @extend_schema(
+        summary='获取字典树形结构',
+        description='获取指定分类的字典树形结构',
+        tags=['配置管理']
+    )
+    @action(detail=False, methods=['get'])
+    def tree(self, request):
+        """获取字典树形结构"""
+        category = request.query_params.get('category')
+        if not category:
+            return Response({'error': '缺少category参数'}, status=400)
+        
+        # 获取根级字典
+        root_dicts = self.queryset.filter(
+            category=category, 
+            parent__isnull=True, 
+            is_active=True
+        ).order_by('sort_order')
+        
+        def build_tree(dict_obj):
+            children = dict_obj.children.filter(is_active=True).order_by('sort_order')
+            return {
+                'id': dict_obj.id,
+                'code': dict_obj.code,
+                'name': dict_obj.name,
+                'value': dict_obj.value,
+                'description': dict_obj.description,
+                'children': [build_tree(child) for child in children]
+            }
+        
+        tree_data = [build_tree(dict_obj) for dict_obj in root_dicts]
+        return Response(tree_data)
+
+
+@extend_schema_view(
+    list=extend_schema(summary='获取职位模板列表', tags=['配置管理']),
+    create=extend_schema(summary='创建职位模板', tags=['配置管理']),
+    retrieve=extend_schema(summary='获取职位模板详情', tags=['配置管理']),
+    update=extend_schema(summary='更新职位模板', tags=['配置管理']),
+    destroy=extend_schema(summary='删除职位模板', tags=['配置管理']),
+)
+class PositionTemplateViewSet(viewsets.ModelViewSet):
+    """职位模板管理"""
+    queryset = PositionTemplate.objects.all()
+    serializer_class = PositionTemplateSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['management_level', 'level', 'is_active']
+    search_fields = ['name', 'description']
+    ordering_fields = ['management_level', 'level', 'name']
+    ordering = ['-level', 'name']
+    
+    @extend_schema(
+        summary='基于模板创建职位',
+        description='使用职位模板快速创建职位',
+        tags=['配置管理']
+    )
+    @action(detail=True, methods=['post'])
+    def create_position(self, request, pk=None):
+        """基于模板创建职位"""
+        template = self.get_object()
+        position_data = request.data
+        
+        # 创建职位
+        position = Position.objects.create(
+            name=position_data.get('name', template.name),
+            code=position_data.get('code', ''),
+            department_id=position_data.get('department'),
+            management_level=template.management_level,
+            level=template.level,
+            description=position_data.get('description', template.description),
+            requirements=position_data.get('requirements', template.default_requirements),
+            responsibilities=position_data.get('responsibilities', template.default_responsibilities),
+        )
+        
+        serializer = PositionSerializer(position)
+        return Response(serializer.data, status=201)
+
+
+@extend_schema_view(
+    list=extend_schema(summary='获取工作流规则列表', tags=['配置管理']),
+    create=extend_schema(summary='创建工作流规则', tags=['配置管理']),
+    retrieve=extend_schema(summary='获取工作流规则详情', tags=['配置管理']),
+    update=extend_schema(summary='更新工作流规则', tags=['配置管理']),
+    destroy=extend_schema(summary='删除工作流规则', tags=['配置管理']),
+)
+class WorkflowRuleViewSet(viewsets.ModelViewSet):
+    """工作流规则管理"""
+    queryset = WorkflowRule.objects.all()
+    serializer_class = WorkflowRuleSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['rule_type', 'is_active']
+    search_fields = ['name']
+    ordering_fields = ['priority', 'name', 'created_at']
+    ordering = ['-priority', 'name']

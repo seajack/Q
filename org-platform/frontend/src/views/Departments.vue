@@ -1,43 +1,40 @@
 <template>
-  <div class="departments">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>部门管理</span>
-          <el-button type="primary" @click="showCreateDialog">
-            <el-icon><Plus /></el-icon>
-            新建部门
-          </el-button>
-        </div>
-      </template>
-
-      <!-- 部门树形表格 -->
-      <el-table
-        :data="departmentTree"
-        row-key="id"
-        :tree-props="{ children: 'children' }"
-        v-loading="loading"
-      >
-        <el-table-column prop="name" label="部门名称" min-width="200" />
-        <el-table-column prop="code" label="部门编码" width="120" />
-        <el-table-column prop="level" label="层级" width="80" />
-        <el-table-column prop="manager_name" label="负责人" width="100" />
-        <el-table-column prop="employee_count" label="员工数" width="80" />
-        <el-table-column prop="is_active" label="状态" width="80">
-          <template #default="{ row }">
-            <el-tag :type="row.is_active ? 'success' : 'danger'">
-              {{ row.is_active ? '活跃' : '停用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="editDepartment(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="deleteDepartment(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+  <div class="container">
+    <!-- 顶部工具条：标题 + 新建按钮 -->
+    <div class="row" style="margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">部门管理</h3>
+      <div class="toolbar">
+        <el-button type="primary" @click="showCreateDialog">
+          <el-icon><Plus /></el-icon>
+          新建部门
+        </el-button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <!-- 部门树形表格 -->
+        <el-table
+          :data="departmentTree"
+          row-key="id"
+          :tree-props="{ children: 'children' }"
+          v-loading="loading"
+          border
+          stripe
+        >
+          <el-table-column prop="name" label="部门名称" min-width="200" />
+          <el-table-column prop="code" label="部门编码" width="120" />
+          <el-table-column prop="level" label="层级" width="80" />
+          <el-table-column prop="manager_name" label="负责人" width="100" />
+          <el-table-column prop="employee_count" label="员工数" width="80" />
+          <el-table-column label="操作" width="180" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" @click="editDepartment(row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="deleteDepartment(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
 
     <!-- 创建/编辑对话框 -->
     <el-dialog
@@ -241,13 +238,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.departments {
-  padding: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.table-wrap { padding: 16px; }
 </style>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>组织架构 · 部门管理 · v1 亮色风格</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Flowbite -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js"></script>
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#eef7fd',
+              100: '#d7ecfa',
+              200: '#abd8f4',
+              300: '#7ec3ee',
+              400: '#4faee7',
+              500: '#2598e0',
+              600: '#177fc1',
+              700: '#0f689e',
+              800: '#0c537e',
+              900: '#0a4163',
+            },
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root { --border:#e5e7eb; --ring: rgba(23,127,193,.28); }
+    html, body { height: 100%; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans" !important; background:#ffffff; }
+    .card { background: #fff; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(16,24,40,.06); border-radius: 12px; }
+    .ring-focus:focus { box-shadow: 0 0 0 3px var(--ring) !important; outline: none !important; }
+  </style>
+</head>
+
+<body>
+<div id="app" class="min-h-screen bg-white">
+  <!-- 顶部导航（与 org_platform_vue_1 统一） -->
+  <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-14 items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="E:/code/Q/logo.jpg" alt="Logo" class="h-8 w-auto" />
+          <span class="text-base font-semibold text-gray-900">组织架构平台</span>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <div class="relative">
+            <input v-model="q" type="search" placeholder="搜索部门、负责人…" class="w-72 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 focus:border-brand-600 focus:ring-0 ring-focus" />
+            <div class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="2"/><path d="M20 20l-3-3" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="hidden sm:inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 ring-focus" @click="openCreate()">
+            新增部门
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="bg-brand-600 text-white">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-12 items-center gap-6 overflow-x-auto text-sm">
+          <a class="hover:underline whitespace-nowrap" href="#">首页</a>
+          <a class="hover:underline whitespace-nowrap font-semibold underline decoration-2" href="#">部门管理</a>
+          <a class="hover:underline whitespace-nowrap" href="#">岗位职级</a>
+          <a class="hover:underline whitespace-nowrap" href="#">人员目录</a>
+          <a class="hover:underline whitespace-nowrap" href="#">组织关系</a>
+          <a class="hover:underline whitespace-nowrap" href="#">报表中心</a>
+          <a class="hover:underline whitespace-nowrap" href="#">系统设置</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <!-- 工具条 -->
+    <section class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h3 class="m-0 text-[16px] font-semibold text-gray-900">部门管理</h3>
+      <div class="flex flex-wrap items-center gap-2">
+        <select v-model="parent" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-brand-600 focus:ring-0">
+          <option value="">上级部门（全部）</option>
+          <option v-for="d in parents" :key="d" :value="d">{{ d }}</option>
+        </select>
+        <select v-model="active" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-brand-600 focus:ring-0">
+          <option value="">状态（全部）</option>
+          <option :value="true">启用</option>
+          <option :value="false">停用</option>
+        </select>
+        <button class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50" @click="reload">刷新</button>
+        <button class="rounded-lg bg-brand-600 px-3 py-2 text-sm text-white hover:bg-brand-700" @click="openCreate">新建部门</button>
+      </div>
+    </section>
+
+    <!-- 列表卡片 -->
+    <section class="card p-4 sm:p-5">
+      <div class="overflow-hidden rounded-xl border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">名称</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">编码</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">上级部门</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">员工数</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">状态</th>
+              <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr v-for="(row, i) in rows" :key="row.id" :class="['hover:bg-gray-50', i % 2 === 1 ? 'bg-gray-50' : '']">
+              <td class="px-4 py-3 text-sm text-gray-900">{{ row.name }}</td>
+              <td class="px-4 py-3 text-sm text-gray-800">{{ row.code }}</td>
+              <td class="px-4 py-3 text-sm text-gray-800">{{ row.parent_name || '-' }}</td>
+              <td class="px-4 py-3 text-sm text-gray-800">{{ row.employee_count }}</td>
+              <td class="px-4 py-3">
+                <span :class="['rounded-full px-2 py-0.5 text-xs', row.is_active?'bg-emerald-50 text-emerald-700': 'bg-rose-50 text-rose-700']">{{ row.is_active? '启用' : '停用' }}</span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="inline-flex gap-2">
+                  <button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50" @click="edit(row)">编辑</button>
+                  <button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50" @click="view(row)">详情</button>
+                  <button class="rounded-lg bg-rose-600 px-2 py-1 text-xs text-white hover:bg-rose-700" @click="remove(row)">删除</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 分页 -->
+      <div class="mt-4 flex items-center justify-between text-xs text-gray-700">
+        <div>共 {{ total }} 条 · 第 {{ page }} / {{ maxPage }} 页</div>
+        <div class="inline-flex overflow-hidden rounded-lg border border-gray-300">
+          <button class="px-3 py-1.5 hover:bg-gray-50" @click="prev">上一页</button>
+          <button class="border-l border-gray-300 px-3 py-1.5 hover:bg-gray-50" @click="next">下一页</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+
+createApp({
+  setup(){
+    const q = ref('');
+    const parent = ref('');
+    const active = ref('');
+
+    const rows = ref([
+      { id:1, name:'集团总部', code:'HQ', parent_name:'-', employee_count:220, is_active:true },
+      { id:2, name:'产品事业群', code:'PG', parent_name:'集团总部', employee_count:480, is_active:true },
+      { id:3, name:'销售与运营', code:'SO', parent_name:'集团总部', employee_count:580, is_active:true },
+      { id:4, name:'综合管理部', code:'GA', parent_name:'集团总部', employee_count:40, is_active:true },
+      { id:5, name:'财务部', code:'FA', parent_name:'集团总部', employee_count:55, is_active:false },
+    ]);
+
+    const page = ref(1)
+    const size = ref(10)
+    const total = computed(()=> rows.value.length)
+    const maxPage = computed(()=> Math.max(1, Math.ceil(total.value/size.value)))
+
+    const reload = ()=>{}
+    const openCreate = ()=> alert('打开新建部门弹窗（示意）')
+    const edit = (row)=> alert('编辑：'+row.name)
+    const view = (row)=> alert('详情：'+row.name)
+    const remove = (row)=> confirm('确认删除 '+row.name+' ?')
+
+    const prev = ()=> page.value = Math.max(1, page.value-1)
+    const next = ()=> page.value = Math.min(maxPage.value, page.value+1)
+
+    const parents = computed(()=> Array.from(new Set(rows.value.map(r=>r.parent_name).filter(Boolean))))
+
+    return { q, parent, active, parents, rows, page, size, total, maxPage, reload, openCreate, edit, view, remove, prev, next }
+  }
+}).mount('#app')
+</script>
+</body>
+</html>

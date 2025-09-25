@@ -9,6 +9,14 @@ class EvaluationCycleSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCycle
         exclude = ['created_by']  # 排除created_by字段，将在视图中自动设置
+    
+    def validate(self, data):
+        """验证数据"""
+        # 检查开始日期和结束日期
+        if 'start_date' in data and 'end_date' in data:
+            if data['start_date'] > data['end_date']:
+                raise serializers.ValidationError("开始日期不能晚于结束日期")
+        return data
 
 
 class EvaluationIndicatorSerializer(serializers.ModelSerializer):

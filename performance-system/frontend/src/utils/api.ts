@@ -95,13 +95,13 @@ export const taskApi = {
   getByCode: (code: string) => api.get(`/tasks/by-code/${code}/`),
 }
 
-// 考核评分API
-export const scoreApi = {
-  list: (params?: any) => api.get<ApiResponse<EvaluationScore[]>>('/scores/', { params }),
-  create: (data: Partial<EvaluationScore>) => api.post<EvaluationScore>('/scores/', data),
-  update: (id: number, data: Partial<EvaluationScore>) => api.put<EvaluationScore>(`/scores/${id}/`, data),
-  submitTaskScores: (taskId: number, scores: Array<{indicator_id: number, score: number, comment?: string}>) => 
-    api.post(`/scores/submit_task_scores/`, { task_id: taskId, scores }),
+// 手动分配API（Manual Assignments）
+export const manualAssignmentApi = {
+  list: (params?: any) => api.get<ApiResponse<any[]>>('/manual-assignments/', { params }),
+  create: (data: any) => api.post<any>('/manual-assignments/', data),
+  get: (id: number) => api.get<any>(`/manual-assignments/${id}/`),
+  update: (id: number, data: any) => api.put<any>(`/manual-assignments/${id}/`, data),
+  delete: (id: number) => api.delete(`/manual-assignments/${id}/`),
 }
 
 // 考核结果API

@@ -108,13 +108,23 @@ const save = async ()=>{
     // 基础校验
     if (!form.value.name) return ElMessage.error('请填写名称')
     if (!form.value.start_date || !form.value.end_date) return ElMessage.error('请选择开始/结束日期')
+    
+    // 格式化日期为字符串
+    const formatDate = (date: any) => {
+      if (date instanceof Date) {
+        return date.toISOString().split('T')[0]
+      }
+      return date
+    }
+    
     const payload = { 
       name: form.value.name,
       description: form.value.description || '',
-      start_date: form.value.start_date,
-      end_date: form.value.end_date,
+      start_date: formatDate(form.value.start_date),
+      end_date: formatDate(form.value.end_date),
       status: form.value.status || 'draft'
     }
+    
     if (dialogMode.value === 'create') {
       await store.createCycle(payload as any)
       ElMessage.success('创建成功')
@@ -124,9 +134,20 @@ const save = async ()=>{
     }
     dialogVisible.value = false
     reload()
-  } catch (e) {
-    console.error(e)
-    ElMessage.error('保存失败，请重试')
+  } catch (e: any) {
+    console.error('保存失败:', e)
+    // 显示更详细的错误信息
+    if (e.response?.data?.detail) {
+      ElMessage.error(`保存失败: ${e.response.data.detail}`)
+    } else if (e.response?.data?.non_field_errors) {
+      ElMessage.error(`保存失败: ${e.response.data.non_field_errors.join(', ')}`)
+    } else if (e.response?.data) {
+      // 处理字段验证错误
+      const errors = Object.values(e.response.data).flat()
+      ElMessage.error(`保存失败: ${errors.join(', ')}`)
+    } else {
+      ElMessage.error('保存失败，请重试')
+    }
   }
 }
 

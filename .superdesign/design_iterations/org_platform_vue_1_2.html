@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>组织架构系统 · org-platform · Vue 原型 v1.2（沿用 v1 亮色风格）</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Flowbite -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js"></script>
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#eef7fd',
+              100: '#d7ecfa',
+              200: '#abd8f4',
+              300: '#7ec3ee',
+              400: '#4faee7',
+              500: '#2598e0',
+              600: '#177fc1',
+              700: '#0f689e',
+              800: '#0c537e',
+              900: '#0a4163',
+            },
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root { --border:#e5e7eb; --ring: rgba(23,127,193,.28); }
+    html, body { height: 100%; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans" !important; background:#ffffff; }
+    .card { background: #fff; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+    .ring-focus:focus { box-shadow: 0 0 0 3px var(--ring) !important; outline: none !important; }
+  </style>
+</head>
+
+<body>
+<div id="app" class="min-h-screen bg-white">
+  <!-- 顶部导航（沿用 v1 亮色风格） -->
+  <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-14 items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="E:/code/Q/logo.jpg" alt="Logo" class="h-8 w-auto" />
+          <span class="text-base font-semibold text-gray-900">组织架构平台</span>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <div class="relative">
+            <input v-model="keyword" type="search" placeholder="搜索人员、部门、岗位…" class="w-72 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 focus:border-brand-600 focus:ring-0 ring-focus" />
+            <div class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="2"/><path d="M20 20l-3-3" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50 ring-focus" data-drawer-target="filter" data-drawer-show="filter" data-drawer-placement="right">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M6 12h12M10 18h4" stroke-width="2" stroke-linecap="round"/></svg>
+            筛选
+          </button>
+          <button class="hidden sm:inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 ring-focus" @click="openCreateDept()">
+            新增部门
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="bg-brand-600 text-white">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-12 items-center gap-6 overflow-x-auto text-sm">
+          <a class="hover:underline whitespace-nowrap" href="#">首页</a>
+          <a class="hover:underline whitespace-nowrap" href="#">组织总览</a>
+          <a class="hover:underline whitespace-nowrap" href="#">部门管理</a>
+          <a class="hover:underline whitespace-nowrap" href="#">岗位职级</a>
+          <a class="hover:underline whitespace-nowrap" href="#">人员目录</a>
+          <a class="hover:underline whitespace-nowrap" href="#">编制管理</a>
+          <a class="hover:underline whitespace-nowrap" href="#">组织关系</a>
+          <a class="hover:underline whitespace-nowrap" href="#">报表中心</a>
+          <a class="hover:underline whitespace-nowrap" href="#">系统设置</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <!-- KPI 卡片（沿用 v1 的布局与亮色卡片） -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div class="card rounded-xl p-4 sm:p-5">
+        <div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-gray-600">部门数</p><span class="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700">+1 本月</span></div>
+        <div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-gray-900">18</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-brand-400 to-brand-600"></div></div>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-5">
+        <div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-gray-600">人员数</p><span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">+12 本月</span></div>
+        <div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-gray-900">1280</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-emerald-400 to-teal-500"></div></div>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-5">
+        <div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-gray-600">编制使用率</p><span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">目标≤ 95%</span></div>
+        <div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-gray-900">87%</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-amber-400 to-orange-500"></div></div>
+        <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-200"><div class="h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600" style="width: 87%"></div></div>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-5">
+        <div class="flex items-center justify-between"><p class="text-xs uppercase tracking-wide text-gray-600">本月变更</p><span class="rounded-full bg-fuchsia-50 px-2 py-0.5 text-xs text-fuchsia-700">入/转/离</span></div>
+        <div class="mt-3 flex items-end justify-between"><h3 class="text-2xl font-semibold text-gray-900">42</h3><div class="h-8 w-8 rounded-md bg-gradient-to-br from-fuchsia-400 to-pink-500"></div></div>
+      </div>
+    </section>
+
+    <!-- 图表区（ECharts） -->
+    <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div class="card rounded-xl p-4 sm:p-5 lg:col-span-2">
+        <div class="flex items-center justify-between"><h3 class="text-base font-semibold text-gray-900">部门规模分布</h3><button class="text-xs text-gray-600 hover:text-gray-800" @click="exportChart('deptDist')">导出</button></div>
+        <div ref="deptDistRef" class="mt-3 h-72 w-full"></div>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-5">
+        <div class="flex items-center justify-between"><h3 class="text-base font-semibold text-gray-900">人员变化趋势</h3><span class="text-xs text-gray-600">近 12 月</span></div>
+        <div ref="trendRef" class="mt-3 h-72 w-full"></div>
+      </div>
+    </section>
+
+    <!-- 组织树 + 人员表（沿用 v1 的亮色样式） -->
+    <section class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+      <div class="card rounded-xl p-4 sm:p-5 lg:col-span-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-semibold text-gray-900">组织树</h3>
+          <div class="text-xs text-gray-600">点击节点查看成员</div>
+        </div>
+        <ul class="mt-3 space-y-1 text-sm">
+          <org-node v-for="node in orgTree" :key="node.id" :node="node" @select="selectDept" />
+        </ul>
+      </div>
+
+      <div class="lg:col-span-8">
+        <div class="card rounded-xl p-4 sm:p-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="text-base font-semibold text-gray-900">{{ currentDept ? currentDept.name + ' · 成员' : '全部成员' }}</div>
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-gray-600">每页</span>
+              <select v-model.number="pageSize" class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm focus:border-brand-600 focus:ring-0">
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+              </select>
+              <span class="text-gray-600">条</span>
+            </div>
+          </div>
+          <div class="mt-3 overflow-hidden rounded-xl border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                    <button @click="toggleSort('name')" class="group inline-flex items-center gap-1">姓名
+                      <svg class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-700" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg>
+                    </button>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                    <button @click="toggleSort('dept')" class="group inline-flex items-center gap-1">部门
+                      <svg class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-700" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg>
+                    </button>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                    <button @click="toggleSort('title')" class="group inline-flex items-center gap-1">岗位
+                      <svg class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-700" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg>
+                    </button>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                    <button @click="toggleSort('level')" class="group inline-flex items-center gap-1">职级
+                      <svg class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-700" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5-5 5 5H5z"/><path d="M15 12l-5 5-5-5h10z"/></svg>
+                    </button>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">状态</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <tr v-for="(row, i) in pagedRows" :key="row.id" :class="['hover:bg-gray-50', i % 2 === 1 ? 'bg-gray-50' : '']">
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-3">
+                      <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-brand-400 to-brand-600 text-white font-semibold">{{ row.name.charAt(0) }}</span>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">{{ row.name }}</div>
+                        <div class="text-xs text-gray-600">{{ row.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-800">{{ row.dept }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-800">{{ row.title }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-800">{{ row.level }}</td>
+                  <td class="px-4 py-3">
+                    <span :class="['rounded-full px-2 py-0.5 text-xs', row.status==='在职'?'bg-emerald-50 text-emerald-700': 'bg-amber-50 text-amber-700']">{{ row.status }}</span>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div class="inline-flex gap-2">
+                      <button class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50" @click="viewProfile(row)">详情</button>
+                      <button class="rounded-lg bg-brand-600 px-2 py-1 text-xs text-white hover:bg-brand-700" @click="editMember(row)">编辑</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-xs text-gray-700">
+            <div>共 {{ filteredRows.length }} 人 · 第 {{ page }} / {{ maxPage }} 页</div>
+            <div class="inline-flex overflow-hidden rounded-lg border border-gray-300">
+              <button class="px-3 py-1.5 hover:bg-gray-50" @click="page = Math.max(1, page-1)">上一页</button>
+              <button class="border-l border-gray-300 px-3 py-1.5 hover:bg-gray-50" @click="page = Math.min(maxPage, page+1)">下一页</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 筛选抽屉（沿用 v1） -->
+  <div id="filter" class="fixed top-0 right-0 z-50 h-screen w-80 translate-x-full overflow-y-auto border-l border-gray-200 bg-white p-5 transition-transform" tabindex="-1" aria-labelledby="filter-label">
+    <div class="flex items-start justify-between"><h5 id="filter-label" class="text-base font-semibold text-gray-900">筛选</h5>
+      <button type="button" data-drawer-hide="filter" aria-controls="filter" class="text-gray-500 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M6 18L18 6" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="mt-4 space-y-4 text-sm">
+      <div>
+        <label class="text-xs text-gray-600">部门</label>
+        <select v-model="filter.dept" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-brand-600 focus:ring-0">
+          <option value="">全部</option>
+          <option v-for="d in depts" :key="d" :value="d">{{ d }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-600">状态</label>
+        <select v-model="filter.status" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-brand-600 focus:ring-0">
+          <option value="">全部</option>
+          <option>在职</option>
+          <option>试用</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-600">岗位关键词</label>
+        <input v-model="filter.title" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 focus:border-brand-600 focus:ring-0" placeholder="如：前端、产品、销售" />
+      </div>
+      <button class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700" @click="applyFilter">应用筛选</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, defineComponent } = Vue;
+
+const OrgNode = defineComponent({
+  name: 'OrgNode',
+  props: { node: { type: Object, required: true } },
+  emits: ['select'],
+  setup(props, { emit }) {
+    const open = ref(true);
+    const toggle = () => open.value = !open.value;
+    const select = () => emit('select', props.node);
+    return { open, toggle, select };
+  },
+  template: `
+    <li>
+      <div class="flex items-center gap-2">
+        <button @click="toggle" class="inline-flex h-6 w-6 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+          <svg v-if="open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 15l6-6 6 6" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button @click="select" class="flex-1 text-left rounded px-2 py-1 hover:bg-brand-50 hover:text-brand-700">{{ node.name }} <span class="text-xs text-gray-500">({{ node.count }})</span></button>
+      </div>
+      <ul v-show="open" class="ml-6 mt-1 space-y-1">
+        <org-node v-for="child in node.children" :key="child.id" :node="child" @select="$emit('select', $event)" />
+      </ul>
+    </li>
+  `
+});
+
+createApp({
+  components: { OrgNode },
+  setup() {
+    const keyword = ref('');
+    const stats = reactive({ deptCount: 18, employeeCount: 1280, headcountUsage: 87, changes: 42 });
+
+    // 组织树数据（示例）
+    const orgTree = ref([
+      { id: 1, name: '集团总部', count: 220, children: [
+        { id: 11, name: '综合管理部', count: 40, children: [] },
+        { id: 12, name: '财务部', count: 55, children: [] },
+        { id: 13, name: '人力资源部', count: 35, children: [] },
+      ]},
+      { id: 2, name: '产品事业群', count: 480, children: [
+        { id: 21, name: '产品部', count: 160, children: [] },
+        { id: 22, name: '研发平台部', count: 220, children: [
+          { id: 221, name: '前端', count: 60, children: [] },
+          { id: 222, name: '后端', count: 100, children: [] },
+          { id: 223, name: '测试', count: 60, children: [] },
+        ]},
+        { id: 23, name: '设计体验部', count: 100, children: [] }
+      ]},
+      { id: 3, name: '销售与运营', count: 580, children: [
+        { id: 31, name: '大区销售一部', count: 180, children: [] },
+        { id: 32, name: '大区销售二部', count: 200, children: [] },
+        { id: 33, name: '运营支持部', count: 200, children: [] }
+      ]}
+    ]);
+
+    const currentDept = ref(null);
+    const selectDept = (node) => { currentDept.value = node; page.value = 1; };
+
+    // 人员列表（示例）
+    const allRows = ref([
+      { id:1, name:'Lee', email:'lee@org.cn', dept:'产品部', title:'高级产品经理', level:'P7', status:'在职' },
+      { id:2, name:'Wang', email:'wang@org.cn', dept:'前端', title:'资深前端工程师', level:'P6', status:'在职' },
+      { id:3, name:'Zhang', email:'zhang@org.cn', dept:'后端', title:'后端工程师', level:'P5', status:'在职' },
+      { id:4, name:'Li', email:'li@org.cn', dept:'测试', title:'测试工程师', level:'P5', status:'在职' },
+      { id:5, name:'Zhao', email:'zhao@org.cn', dept:'产品部', title:'产品经理', level:'P6', status:'在职' },
+      { id:6, name:'Chen', email:'chen@org.cn', dept:'运营支持部', title:'运营经理', level:'M2', status:'在职' },
+      { id:7, name:'Sun', email:'sun@org.cn', dept:'大区销售一部', title:'销售经理', level:'M1', status:'在职' },
+      { id:8, name:'Zhou', email:'zhou@org.cn', dept:'财务部', title:'会计', level:'P4', status:'在职' },
+      { id:9, name:'Wu', email:'wu@org.cn', dept:'前端', title:'前端工程师', level:'P5', status:'试用' },
+      { id:10, name:'Qian', email:'qian@org.cn', dept:'后端', title:'资深后端工程师', level:'P6', status:'在职' },
+      { id:11, name:'Lin', email:'lin@org.cn', dept:'综合管理部', title:'行政', level:'P3', status:'在职' },
+    ]);
+
+    // 筛选
+    const depts = computed(() => Array.from(new Set(allRows.value.map(r=>r.dept))));
+    const filter = reactive({ dept: '', status: '', title: '' });
+    const applyFilter = () => { page.value = 1; };
+
+    // 排序 & 分页
+    const sortKey = ref('name');
+    const sortDir = ref('asc');
+    const page = ref(1);
+    const pageSize = ref(10);
+
+    const toggleSort = (key) => {
+      if (sortKey.value === key) sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+      else { sortKey.value = key; sortDir.value = 'asc'; }
+    };
+
+    const filteredRows = computed(() => {
+      let rows = allRows.value;
+      if (keyword.value.trim()) {
+        const k = keyword.value.trim().toLowerCase();
+        rows = rows.filter(r => r.name.toLowerCase().includes(k) || r.dept.toLowerCase().includes(k) || r.title.toLowerCase().includes(k));
+      }
+      if (currentDept.value) {
+        rows = rows.filter(r => r.dept.includes(currentDept.value.name));
+      }
+      if (filter.dept) rows = rows.filter(r => r.dept === filter.dept);
+      if (filter.status) rows = rows.filter(r => r.status === filter.status);
+      if (filter.title) rows = rows.filter(r => r.title.includes(filter.title));
+      // 排序
+      rows = [...rows].sort((a,b)=>{
+        let va=a[sortKey.value], vb=b[sortKey.value];
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+        if (va < vb) return sortDir.value==='asc' ? -1 : 1;
+        if (va > vb) return sortDir.value==='asc' ? 1 : -1;
+        return 0;
+      });
+      return rows;
+    });
+
+    const maxPage = computed(() => Math.max(1, Math.ceil(filteredRows.value.length / pageSize.value)));
+    const pagedRows = computed(() => {
+      const p = Math.min(Math.max(1, page.value), maxPage.value);
+      const start = (p - 1) * pageSize.value;
+      return filteredRows.value.slice(start, start + pageSize.value);
+    });
+
+    // 交互（示意）
+    const viewProfile = (row) => alert('查看：' + row.name);
+    const editMember = (row) => alert('编辑：' + row.name);
+
+    // 图表
+    const deptDistRef = ref(null);
+    const trendRef = ref(null);
+    let deptChart, trendChart;
+    const exportChart = (which) => {
+      const c = which==='deptDist' ? deptChart : trendChart;
+      if (!c) return;
+      const url = c.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#fff' });
+      const a = document.createElement('a'); a.href = url; a.download = which + '.png'; a.click();
+    };
+
+    const initCharts = () => {
+      const brand = '#177fc1';
+      deptChart = echarts.init(deptDistRef.value);
+      deptChart.setOption({
+        grid:{left:40,right:10,top:20,bottom:28},
+        tooltip:{},
+        xAxis:{type:'category',data:['0-20','21-50','51-100','101-200','200+']},
+        yAxis:{type:'value',splitLine:{lineStyle:{color:'#eee'}}},
+        series:[{type:'bar',data:[6,8,3,1,0],barWidth:'55%',itemStyle:{color:brand}}]
+      });
+
+      trendChart = echarts.init(trendRef.value);
+      trendChart.setOption({
+        grid:{left:40,right:10,top:20,bottom:28},
+        tooltip:{trigger:'axis'},
+        xAxis:{type:'category',data:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']},
+        yAxis:{type:'value',splitLine:{lineStyle:{color:'#eee'}}},
+        series:[{type:'line',smooth:true,data:[1180,1188,1195,1202,1196,1208,1215,1222,1230,1240,1248,1255],lineStyle:{color:brand,width:2},areaStyle:{color:'rgba(23,127,193,0.15)'}}]
+      });
+    };
+
+    onMounted(() => {
+      initCharts();
+      window.addEventListener('resize', () => { deptChart && deptChart.resize(); trendChart && trendChart.resize(); });
+    });
+
+    return {
+      keyword, stats, orgTree, currentDept, selectDept,
+      allRows, depts, filter, applyFilter,
+      sortKey, sortDir, page, pageSize, toggleSort,
+      filteredRows, pagedRows, maxPage,
+      viewProfile, editMember,
+      deptDistRef, trendRef, exportChart
+    };
+  }
+}).component('org-node', OrgNode).mount('#app');
+</script>
+</body>
+</html>

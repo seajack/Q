@@ -91,8 +91,12 @@
         <el-form-item label="启用">
           <el-switch v-model="form.is_active" />
         </el-form-item>
-        <el-form-item label="关系权重(JSON)">
-          <el-input v-model="form.relation_weights_text" type="textarea" :rows="4" placeholder='例如 {"superior":0.5,"peer":0.3,"subordinate":0.2}' />
+        <el-form-item label="关系权重">
+          <RelationWeightConfig 
+            :relation-types="form.relation_types" 
+            :weights="form.relation_weights" 
+            @update:weights="onWeightsChange"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -109,6 +113,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ruleApi } from '@/utils/api'
+import RelationWeightConfig from '@/components/RelationWeightConfig.vue'
 
 const loading = ref(false)
 const rows = ref<any[]>([])
@@ -154,12 +159,19 @@ const form = ref<any>({
   evaluation_scope: 'department',
   relation_types: ['superior','peer'],
   is_active: true,
-  relation_weights_text: '{"superior":0.5,"peer":0.3,"subordinate":0.2}'
+  relation_weights: { superior: 0.5, peer: 0.3, subordinate: 0.2 }
 })
 
 const openCreate = () => { 
   mode.value='create'; 
-  form.value={ name:'', description:'', evaluation_scope:'department', relation_types:['superior','peer'], is_active:true, relation_weights_text:'{"superior":0.5,"peer":0.3,"subordinate":0.2}' };
+  form.value={ 
+    name:'', 
+    description:'', 
+    evaluation_scope:'department', 
+    relation_types:['superior','peer'], 
+    is_active:true, 
+    relation_weights: { superior: 0.5, peer: 0.3, subordinate: 0.2 }
+  };
   drawer.value=true 
 }
 const view = (row:any) => { console.log('view', row) }
@@ -172,21 +184,26 @@ const edit = (row:any) => {
     evaluation_scope: row.evaluation_scope || 'department',
     relation_types: Array.isArray(row.relation_types) ? row.relation_types : [],
     is_active: !!row.is_active,
-    relation_weights_text: JSON.stringify(row.relation_weights || {}, null, 2)
+    relation_weights: row.relation_weights || {}
   };
   drawer.value=true 
 }
 const save = async () => {
   try {
     if (!form.value.name) return ElMessage.error('请填写规则名称')
-    let relation_weights:any = {}
-    try { relation_weights = form.value.relation_weights_text ? JSON.parse(form.value.relation_weights_text) : {} } catch { return ElMessage.error('关系权重 JSON 格式不正确') }
+    
+    // 验证权重总和
+    const totalWeight = Object.values(form.value.relation_weights || {}).reduce((sum: number, weight: number) => sum + (weight || 0), 0)
+    if (Math.abs(totalWeight - 1) > 0.01) {
+      return ElMessage.warning('关系权重总和应为1.0，当前为' + totalWeight.toFixed(2))
+    }
+    
     const payload:any = {
       name: form.value.name,
       description: form.value.description || '',
       evaluation_scope: form.value.evaluation_scope,
       relation_types: form.value.relation_types,
-      relation_weights,
+      relation_weights: form.value.relation_weights || {},
       is_active: !!form.value.is_active,
     }
     if (mode.value==='create') { await ruleApi.create(payload); ElMessage.success('新增规则成功') }
@@ -197,6 +214,11 @@ const save = async () => {
     console.error(e)
     ElMessage.error('保存失败，请重试')
   }
+}
+
+// 权重变化处理
+const onWeightsChange = (weights: Record<string, number>) => {
+  form.value.relation_weights = weights
 }
 
 const relationText = (t:string) => ({superior:'上级评下级', peer:'同级互评', subordinate:'下级评上级', self:'自评', cross_superior:'跨部门上级', cross_peer:'跨部门同级', custom:'自定义关系'} as any)[t] || t

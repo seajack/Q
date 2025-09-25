@@ -1,39 +1,53 @@
 <template>
-  <div class="employees">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>员工管理</span>
-          <el-button type="primary" @click="openCreateDialog">
-            <el-icon><Plus /></el-icon>
-            新建员工
-          </el-button>
-        </div>
-      </template>
-      
-      <el-table :data="employees" v-loading="loading">
-        <el-table-column prop="name" label="姓名" />
-        <el-table-column prop="employee_id" label="员工号" />
-        <el-table-column prop="department_name" label="部门" />
-        <el-table-column prop="position_name" label="职位" />
-        <el-table-column prop="supervisor_name" label="直接上级" />
-        <el-table-column prop="phone" label="电话" />
-        <el-table-column prop="email" label="邮箱" />
-        <el-table-column prop="status" label="状态">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作">
-          <template #default="{ row }">
-            <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+  <div class="container">
+    <!-- 顶部工具条：标题 + 新建按钮 -->
+    <div class="row" style="margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">员工管理</h3>
+      <div class="toolbar">
+        <el-button type="primary" @click="openCreateDialog">
+          <el-icon><Plus /></el-icon>
+          新建员工
+        </el-button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <el-table :data="employees" v-loading="loading" border stripe>
+          <el-table-column prop="employee_id" label="员工号" width="120" />
+          <el-table-column label="姓名" min-width="240">
+            <template #default="{ row }">
+              <div class="name-cell">
+                <div class="avatar" :class="getAvatarClass(row.name)">
+                  {{ (row.name || '').charAt(0).toUpperCase() }}
+                </div>
+                <div class="name-meta">
+                  <div class="name-text">{{ row.name }}</div>
+                  <div class="email-text">{{ row.email || '暂无邮箱' }}</div>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="department_name" label="部门" min-width="160" />
+          <el-table-column prop="position_name" label="职位" min-width="160" />
+          <el-table-column prop="supervisor_name" label="直属上级" min-width="160" />
+          <el-table-column prop="phone" label="电话" min-width="140" />
+          <el-table-column label="状态" width="110" align="center">
+            <template #default="{ row }">
+              <el-tag :type="getStatusType(row.status)">
+                {{ getStatusText(row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180" fixed="right" align="center">
+            <template #default="{ row }">
+              <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
 
     <!-- 新建/编辑员工对话框 -->
     <el-dialog
@@ -60,7 +74,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="性别" prop="gender">
@@ -81,7 +95,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="手机号" prop="phone">
@@ -94,7 +108,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="所属部门" prop="department">
@@ -110,9 +124,9 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="职位" prop="position">
-              <el-select 
-                v-model="form.position" 
-                placeholder="请选择职位" 
+              <el-select
+                v-model="form.position"
+                placeholder="请选择职位"
                 style="width: 100%"
               >
                 <el-option
@@ -125,7 +139,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="直接上级">
@@ -158,7 +172,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="员工状态">
@@ -172,15 +186,15 @@
           </el-col>
           <el-col :span="12" v-if="!isEdit">
             <el-form-item label="用户名">
-              <el-input 
-                v-model="form.username" 
+              <el-input
+                v-model="form.username"
                 placeholder="默认为员工号"
                 clearable
               />
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-form-item label="地址">
           <el-input
             v-model="form.address"
@@ -190,7 +204,7 @@
           />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
@@ -217,6 +231,14 @@ const departments = computed(() => organizationStore.departments)
 const positions = computed(() => organizationStore.positions)
 const loading = computed(() => organizationStore.loading)
 
+const palette = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']
+
+const getAvatarClass = (name: string = '') => {
+  const initial = name.trim()
+  const code = initial ? initial.toUpperCase().charCodeAt(0) : 65
+  return palette[code % palette.length]
+}
+
 // 对话框相关
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -233,14 +255,14 @@ const form = reactive<EmployeeForm>({
   name: '',
   employee_id: '',
   gender: 'M',
-  birth_date: null,
+  birth_date: undefined,
   phone: '',
   email: '',
   address: '',
   department: undefined,
   position: undefined,
   supervisor: undefined,
-  hire_date: null,
+  hire_date: undefined,
   status: 'active',
   username: ''
 })
@@ -277,25 +299,15 @@ const rules: FormRules = {
 
 // 计算属性
 const filteredPositions = computed(() => {
-  // 移除部门过滤，返回所有激活的职位
   return positions.value.filter(pos => pos.is_active)
 })
 
 const availableSupervisors = computed(() => {
-  // 返回所有激活状态的员工（除了当前编辑的员工）
-  // 不再限制必须在同一部门
-  const activeEmployees = employees.value.filter(emp => 
-    emp.id !== form.id && 
+  const activeEmployees = employees.value.filter(emp =>
+    emp.id !== form.id &&
     emp.status === 'active'
   )
-  
-  console.log('可选上级:', {
-    totalEmployees: employees.value.length,
-    activeEmployees: activeEmployees.length,
-    currentFormId: form.id,
-    currentDepartment: form.department
-  })
-  
+
   return activeEmployees
 })
 
@@ -325,14 +337,14 @@ const resetForm = () => {
   form.name = ''
   form.employee_id = ''
   form.gender = 'M'
-  form.birth_date = null
+  form.birth_date = undefined
   form.phone = ''
   form.email = ''
   form.address = ''
   form.department = undefined
   form.position = undefined
   form.supervisor = undefined
-  form.hire_date = null
+  form.hire_date = undefined
   form.status = 'active'
   form.username = ''
   formRef.value?.clearValidate()
@@ -366,30 +378,26 @@ const openEditDialog = (row: Employee) => {
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
-  
+
   try {
     await formRef.value.validate()
     submitting.value = true
-    
+
     const formatDate = (date: any): string | null => {
       if (!date) return null
-      
-      // 如果已经是正确格式的字符串，直接返回
+
       if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
         return date
       }
-      
-      // 如果是 Date 对象，转换为 YYYY-MM-DD 格式
+
       if (date instanceof Date && !isNaN(date.getTime())) {
         return date.toISOString().split('T')[0]
       }
-      
-      // 其他情况返回 null
-      console.warn('无法格式化日期:', date)
+
       return null
     }
-    
-    const submitData = {
+
+    const submitData: Record<string, any> = {
       id: form.id,
       name: form.name,
       employee_id: form.employee_id,
@@ -404,22 +412,11 @@ const handleSubmit = async () => {
       hire_date: formatDate(form.hire_date),
       status: form.status
     }
-    
-    // 只在新建时或者用户名不为空时才发送username字段
+
     if (!isEdit.value || (form.username && form.username.trim())) {
       submitData.username = form.username
     }
-    
-    console.log('原始表单数据:', {
-      birth_date: form.birth_date,
-      hire_date: form.hire_date,
-      department: form.department,
-      position: form.position,
-      name: form.name,
-      employee_id: form.employee_id
-    })
-    console.log('提交数据:', submitData)
-    
+
     if (isEdit.value) {
       await organizationStore.updateEmployee(form.id!, submitData)
       ElMessage.success('更新员工成功')
@@ -427,7 +424,7 @@ const handleSubmit = async () => {
       await organizationStore.createEmployee(submitData)
       ElMessage.success('创建员工成功')
     }
-    
+
     dialogVisible.value = false
     resetForm()
   } catch (error) {
@@ -447,10 +444,10 @@ const handleDelete = async (row: Employee) => {
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning',
+        type: 'warning'
       }
     )
-    
+
     await organizationStore.deleteEmployee(row.id)
     ElMessage.success('删除员工成功')
   } catch (error) {
@@ -464,10 +461,8 @@ const handleDelete = async (row: Employee) => {
 // 监听部门变化，重置上级选择
 watch(() => form.department, (newDept, oldDept) => {
   if (newDept !== oldDept) {
-    // 部门变化时，只重置上级选择（不再重置职位）
     form.supervisor = undefined
-    
-    // 清除上级字段的验证错误
+
     if (formRef.value) {
       formRef.value.clearValidate(['supervisor'])
     }
@@ -484,13 +479,66 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.employees {
-  padding: 20px;
+.table-wrap {
+  padding: 16px;
 }
 
-.card-header {
+.name-cell {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.avatar.c1 {
+  background: linear-gradient(135deg, #177fc1, #4faee7);
+}
+
+.avatar.c2 {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+}
+
+.avatar.c3 {
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+}
+
+.avatar.c4 {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+.avatar.c5 {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+.avatar.c6 {
+  background: linear-gradient(135deg, #64748b, #0ea5e9);
+}
+
+.name-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name-text {
+  font-weight: 600;
+  color: #111827;
+}
+
+.email-text {
+  font-size: 12px;
+  color: #6b7280;
 }
 </style>

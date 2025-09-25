@@ -120,11 +120,44 @@
         </el-form-item>
         
         <el-form-item label="触发条件">
-          <el-input v-model="triggerConditionsText" type="textarea" placeholder="请输入JSON格式的触发条件" />
+          <el-tabs v-model="activeTab" type="border-card">
+            <el-tab-pane label="可视化配置" name="visual">
+              <WorkflowConfigBuilder
+                v-model:trigger-conditions="visualTriggerConditions"
+                v-model:actions="visualActions"
+              />
+            </el-tab-pane>
+            <el-tab-pane label="JSON配置" name="json">
+              <el-input v-model="triggerConditionsText" type="textarea" placeholder="请输入JSON格式的触发条件" />
+            </el-tab-pane>
+          </el-tabs>
         </el-form-item>
         
         <el-form-item label="动作配置">
-          <el-input v-model="actionConfigText" type="textarea" placeholder="请输入JSON格式的动作配置" />
+          <el-tabs v-model="actionTab" type="border-card">
+            <el-tab-pane label="可视化配置" name="visual">
+              <div class="action-config-section">
+                <div v-if="visualActions.length === 0" class="empty-actions">
+                  <el-empty description="暂无动作配置，请先配置触发条件" />
+                </div>
+                <div v-else class="actions-preview">
+                  <div
+                    v-for="(action, index) in visualActions"
+                    :key="index"
+                    class="action-preview-item"
+                  >
+                    <el-tag :type="getActionTypeColor(action.type)" size="small">
+                      {{ getActionTypeName(action.type) }}
+                    </el-tag>
+                    <span class="action-preview-text">{{ formatActionText(action) }}</span>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane label="JSON配置" name="json">
+              <el-input v-model="actionConfigText" type="textarea" placeholder="请输入JSON格式的动作配置" />
+            </el-tab-pane>
+          </el-tabs>
         </el-form-item>
       </el-form>
       
@@ -137,9 +170,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { workflowApi } from '@/utils/api'
+import WorkflowConfigBuilder from '@/components/WorkflowConfigBuilder.vue'
 
 const rules = ref([])
 const loading = ref(false)
@@ -164,6 +198,12 @@ const ruleForm = reactive({
 
 const triggerConditionsText = ref('')
 const actionConfigText = ref('')
+
+// 可视化配置相关
+const activeTab = ref('visual')
+const actionTab = ref('visual')
+const visualTriggerConditions = ref([])
+const visualActions = ref([])
 
 const ruleRules = {
   name: [{ required: true, message: '请输入规则名称', trigger: 'blur' }],
@@ -234,6 +274,23 @@ const editRule = (rule: any) => {
   Object.assign(ruleForm, rule)
   triggerConditionsText.value = JSON.stringify(rule.trigger_conditions, null, 2)
   actionConfigText.value = JSON.stringify(rule.action_config, null, 2)
+  
+  // 尝试解析可视化配置
+  try {
+    if (rule.trigger_conditions && typeof rule.trigger_conditions === 'object') {
+      visualTriggerConditions.value = Array.isArray(rule.trigger_conditions) 
+        ? rule.trigger_conditions 
+        : [rule.trigger_conditions]
+    }
+    if (rule.action_config && typeof rule.action_config === 'object') {
+      visualActions.value = Array.isArray(rule.action_config) 
+        ? rule.action_config 
+        : [rule.action_config]
+    }
+  } catch (e) {
+    console.warn('解析可视化配置失败，使用JSON配置', e)
+  }
+  
   showAddDialog.value = true
 }
 
@@ -257,12 +314,25 @@ const deleteRule = async (rule: any) => {
 
 const saveRule = async () => {
   try {
-    // 解析JSON配置
-    if (triggerConditionsText.value) {
-      ruleForm.trigger_conditions = JSON.parse(triggerConditionsText.value)
+    // 根据当前选择的标签页决定使用哪种配置方式
+    if (activeTab.value === 'visual') {
+      // 使用可视化配置
+      ruleForm.trigger_conditions = visualTriggerConditions.value
+    } else {
+      // 使用JSON配置
+      if (triggerConditionsText.value) {
+        ruleForm.trigger_conditions = JSON.parse(triggerConditionsText.value)
+      }
     }
-    if (actionConfigText.value) {
-      ruleForm.action_config = JSON.parse(actionConfigText.value)
+    
+    if (actionTab.value === 'visual') {
+      // 使用可视化配置
+      ruleForm.action_config = visualActions.value
+    } else {
+      // 使用JSON配置
+      if (actionConfigText.value) {
+        ruleForm.action_config = JSON.parse(actionConfigText.value)
+      }
     }
     
     if (isEdit.value) {
@@ -274,7 +344,49 @@ const saveRule = async () => {
     showAddDialog.value = false
     loadRules()
   } catch (error) {
-    ElMessage.error('保存失败，请检查JSON格式')
+    ElMessage.error('保存失败，请检查配置格式')
+  }
+}
+
+// 获取动作类型名称
+const getActionTypeName = (type: string) => {
+  const names = {
+    notification: '发送通知',
+    approval: '创建审批',
+    sync: '数据同步',
+    permission: '权限变更',
+    auto_execute: '自动执行'
+  }
+  return names[type] || type
+}
+
+// 获取动作类型颜色
+const getActionTypeColor = (type: string) => {
+  const colors = {
+    notification: 'success',
+    approval: 'primary',
+    sync: 'info',
+    permission: 'warning',
+    auto_execute: 'danger'
+  }
+  return colors[type] || 'default'
+}
+
+// 格式化动作文本
+const formatActionText = (action: any) => {
+  switch (action.type) {
+    case 'notification':
+      return `发送${action.notificationType}通知给: ${action.recipients?.join(', ') || '未设置'}`
+    case 'approval':
+      return `创建审批流程: ${action.approvalFlow?.join(' → ') || '未设置'}`
+    case 'sync':
+      return `同步到${action.syncTarget}: ${action.syncFields?.join(', ') || '未设置'}`
+    case 'permission':
+      return `${action.permissionAction}权限: ${action.permissionScope || '未设置'}`
+    case 'auto_execute':
+      return `自动执行: ${action.executeType || '未设置'}`
+    default:
+      return '未知动作'
   }
 }
 
@@ -297,5 +409,35 @@ onMounted(() => {
 
 .filter-row {
   margin-bottom: 20px;
+}
+
+.action-config-section {
+  min-height: 200px;
+}
+
+.empty-actions {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.actions-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.action-preview-text {
+  color: #606266;
+  font-size: 14px;
 }
 </style>

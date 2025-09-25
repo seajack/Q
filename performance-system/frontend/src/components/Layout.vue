@@ -90,19 +90,23 @@
             </template>
           </el-menu-item>
 
-          <!-- 系统设置 -->
+          <!-- 系统管理 -->
           <el-sub-menu index="system" class="modern-sidebar-submenu">
             <template #title>
               <el-icon class="menu-icon"><Tools /></el-icon>
-              <span class="menu-text">系统设置</span>
+              <span class="menu-text">系统管理</span>
             </template>
-            <el-menu-item index="/settings" class="modern-sidebar-subitem">
-              <el-icon class="submenu-icon"><Setting /></el-icon>
-              <template #title>基础设置</template>
+            <el-menu-item index="/integration" class="modern-sidebar-subitem">
+              <el-icon class="submenu-icon"><Connection /></el-icon>
+              <template #title>集成管理</template>
             </el-menu-item>
             <el-menu-item index="/permissions" class="modern-sidebar-subitem">
               <el-icon class="submenu-icon"><Lock /></el-icon>
               <template #title>权限管理</template>
+            </el-menu-item>
+            <el-menu-item index="/settings" class="modern-sidebar-subitem">
+              <el-icon class="submenu-icon"><Setting /></el-icon>
+              <template #title>基础设置</template>
             </el-menu-item>
           </el-sub-menu>
         </el-menu>

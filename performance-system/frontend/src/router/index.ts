@@ -76,6 +76,12 @@ const routes = [
     meta: { title: '系统设置', layout: 'topnav' }
   },
   {
+    path: '/integration',
+    name: 'IntegrationManagement',
+    component: () => import('@/views/IntegrationManagement.vue'),
+    meta: { title: '集成管理', layout: 'topnav' }
+  },
+  {
     path: '/permissions',
     name: 'Permissions',
     component: () => import('@/views/PermissionsNew.vue'),

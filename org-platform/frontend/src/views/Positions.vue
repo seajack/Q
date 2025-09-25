@@ -14,22 +14,49 @@
     <div class="card">
       <div class="table-wrap">
         <el-table :data="positions" v-loading="loading" border stripe>
-          <el-table-column prop="name" label="职位名称" width="200" />
-          <el-table-column prop="code" label="职位编码" width="150" />
-          <el-table-column prop="management_level_display" label="管理层级" width="120" />
-          <el-table-column prop="level_display" label="职位级别" width="150" />
-          <el-table-column prop="employee_count" label="员工数" width="100" />
-          <el-table-column prop="is_active" label="状态" width="100">
+          <el-table-column label="职位" min-width="240">
             <template #default="{ row }">
-              <el-tag :type="row.is_active ? 'success' : 'danger'">
+              <div class="pos-name">
+                <span class="pos-avatar" :class="getAvatarClass(row.name)">{{ (row.name || '').charAt(0).toUpperCase() }}</span>
+                <div class="pos-meta">
+                  <span class="pos-title">{{ row.name }}</span>
+                  <span class="pos-code">{{ row.code }}</span>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="管理层级" width="140" align="center">
+            <template #default="{ row }">
+              <el-tag effect="plain" class="level-pill" :type="getManagementType(row.management_level)">
+                {{ getManagementLabel(row.management_level) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="职位级别" width="160" align="center">
+            <template #default="{ row }">
+              <span class="level-chip">{{ row.level_display || '未设置' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="department_name" label="所属部门" min-width="160">
+            <template #default="{ row }">
+              <span class="dept-name-text">{{ row.department_name || '未分配' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="employee_count" label="员工数" width="100" align="center" />
+          <el-table-column label="状态" width="110" align="center">
+            <template #default="{ row }">
+              <el-tag effect="plain" :type="row.is_active ? 'success' : 'danger'" class="status-pill">
                 {{ row.is_active ? '活跃' : '停用' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="160" fixed="right">
+          <el-table-column label="操作" width="200" fixed="right" align="center">
             <template #default="{ row }">
-              <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+              <div class="action-buttons">
+                <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
+                <el-button size="small" type="primary" link @click="openCloneDialog(row)">复制</el-button>
+                <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -214,6 +241,19 @@ const openEditDialog = (row: Position) => {
   dialogVisible.value = true
 }
 
+const openCloneDialog = (row: Position) => {
+  isEdit.value = false
+  Object.assign(form, {
+    ...row,
+    id: undefined,
+    name: `${row.name}（副本）`,
+    code: generateCloneCode(row.code),
+    department: row.department,
+    is_active: true
+  })
+  dialogVisible.value = true
+}
+
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
@@ -269,6 +309,34 @@ onMounted(async () => {
     organizationStore.fetchDepartments()
   ])
 })
+
+const generateCloneCode = (original?: string) => {
+  const base = (original || 'NEW').toUpperCase().replace(/[^A-Z0-9_]/g, '_')
+  const withSuffix = `${base}_COPY`
+  return withSuffix.replace(/__+/g, '_').replace(/_COPY_?COPY/g, '_COPY')
+}
+
+const managementTagMap: Record<string, { type: 'danger' | 'warning' | 'primary'; label: string }> = {
+  senior: { type: 'danger', label: '高层' },
+  middle: { type: 'warning', label: '中层' },
+  junior: { type: 'primary', label: '基层' }
+}
+
+const getManagementType = (level?: string) => {
+  return (managementTagMap[level ?? 'junior'] || managementTagMap.junior).type
+}
+
+const getManagementLabel = (level?: string) => {
+  return (managementTagMap[level ?? 'junior'] || managementTagMap.junior).label
+}
+
+const avatarPalette = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']
+
+const getAvatarClass = (name: string = '') => {
+  const trimmed = name.trim()
+  const code = trimmed ? trimmed.toUpperCase().charCodeAt(0) : 65
+  return avatarPalette[code % avatarPalette.length]
+}
 </script>
 
 <style scoped>

@@ -21,15 +21,34 @@
           border
           stripe
         >
-          <el-table-column prop="name" label="部门名称" min-width="200" />
-          <el-table-column prop="code" label="部门编码" width="120" />
-          <el-table-column prop="level" label="层级" width="80" />
-          <el-table-column prop="manager_name" label="负责人" width="100" />
-          <el-table-column prop="employee_count" label="员工数" width="80" />
-          <el-table-column label="操作" width="180" fixed="right">
+          <el-table-column label="部门名称" min-width="220">
             <template #default="{ row }">
-              <el-button size="small" @click="editDepartment(row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="deleteDepartment(row)">删除</el-button>
+              <div class="dept-name">
+                <span class="dept-dot" :class="{ inactive: row.is_active === false }"></span>
+                <div class="dept-meta">
+                  <span class="dept-title">{{ row.name }}</span>
+                  <span class="dept-code">{{ row.code }}</span>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="level" label="层级" width="80" align="center" />
+          <el-table-column prop="manager_name" label="负责人" width="120" />
+          <el-table-column prop="employee_count" label="员工数" width="100" align="center" />
+          <el-table-column label="状态" width="120" align="center">
+            <template #default="{ row }">
+              <el-tag effect="plain" :type="row.is_active === false ? 'danger' : 'success'" class="status-tag">
+                {{ row.is_active === false ? '停用' : '启用' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200" fixed="right" align="center">
+            <template #default="{ row }">
+              <div class="action-buttons">
+                <el-button size="small" @click="editDepartment(row)">编辑</el-button>
+                <el-button size="small" type="primary" link @click="createSubDepartment(row)">新增子部门</el-button>
+                <el-button size="small" type="danger" @click="deleteDepartment(row)">删除</el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -149,6 +168,15 @@ const showCreateDialog = async () => {
   dialogVisible.value = true
 }
 
+const createSubDepartment = async (parentDepartment: Department) => {
+  isEdit.value = false
+  currentDepartmentId.value = null
+  resetForm()
+  formData.parent = parentDepartment.id
+  await loadEmployees()
+  dialogVisible.value = true
+}
+
 const editDepartment = async (department: Department) => {
   isEdit.value = true
   currentDepartmentId.value = department.id
@@ -238,5 +266,56 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.table-wrap { padding: 16px; }
+.table-wrap {
+  padding: 16px;
+}
+
+.dept-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dept-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
+}
+
+.dept-dot.inactive {
+  background: #f97316;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.18);
+}
+
+.dept-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dept-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.dept-code {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.status-tag {
+  border-radius: 9999px;
+  border: none;
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
 </style>

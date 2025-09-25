@@ -60,6 +60,66 @@ const routes: RouteRecordRaw[] = [
         name: 'WorkflowRules',
         component: () => import('@/views/WorkflowRules.vue'),
         meta: { title: '工作流规则' }
+      },
+      {
+        path: 'integration-management',
+        name: 'IntegrationManagement',
+        component: () => import('@/views/IntegrationManagement.vue'),
+        meta: { title: '集成管理' }
+      },
+      {
+        path: 'integration-dashboard',
+        name: 'IntegrationDashboard',
+        component: () => import('@/views/IntegrationDashboard.vue'),
+        meta: { title: '集成仪表板' }
+      },
+      {
+        path: 'integration-systems',
+        name: 'IntegrationSystems',
+        component: () => import('@/views/IntegrationSystems.vue'),
+        meta: { title: '集成系统' }
+      },
+      {
+        path: 'api-gateways',
+        name: 'APIGateways',
+        component: () => import('@/views/APIGateways.vue'),
+        meta: { title: 'API网关' }
+      },
+      {
+        path: 'data-sync-rules',
+        name: 'DataSyncRules',
+        component: () => import('@/views/DataSyncRules.vue'),
+        meta: { title: '数据同步规则' }
+      },
+      {
+        path: 'permission-management',
+        name: 'PermissionManagement',
+        component: () => import('@/views/PermissionManagement.vue'),
+        meta: { title: '权限管理' }
+      },
+      {
+        path: 'permissions',
+        name: 'Permissions',
+        component: () => import('@/views/Permissions.vue'),
+        meta: { title: '权限管理' }
+      },
+      {
+        path: 'roles',
+        name: 'Roles',
+        component: () => import('@/views/Roles.vue'),
+        meta: { title: '角色管理' }
+      },
+      {
+        path: 'data-permissions',
+        name: 'DataPermissions',
+        component: () => import('@/views/DataPermissions.vue'),
+        meta: { title: '数据权限' }
+      },
+      {
+        path: 'permission-dashboard',
+        name: 'PermissionDashboard',
+        component: () => import('@/views/PermissionDashboard.vue'),
+        meta: { title: '权限仪表板' }
       }
     ]
   }

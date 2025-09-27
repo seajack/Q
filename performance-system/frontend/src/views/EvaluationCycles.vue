@@ -4,14 +4,23 @@
       <template #header>
         <div class="card-header">
           <span>考核周期管理</span>
-          <el-button type="primary" @click="showCreateDialog">
-            <el-icon><Plus /></el-icon>
-            新建考核周期
-          </el-button>
+          <div style="display: flex; gap: 8px;">
+            <el-button type="info" @click="debugData">调试数据</el-button>
+            <el-button type="primary" @click="showCreateDialog">
+              <el-icon><Plus /></el-icon>
+              新建考核周期
+            </el-button>
+          </div>
         </div>
       </template>
 
       <el-table :data="cycles" v-loading="loading">
+        <template #empty>
+          <div style="text-align: center; padding: 20px;">
+            <p>暂无考核周期数据</p>
+            <p>请先创建考核周期</p>
+          </div>
+        </template>
         <el-table-column prop="name" label="周期名称" />
         <el-table-column prop="start_date" label="开始日期" />
         <el-table-column prop="end_date" label="结束日期" />
@@ -22,11 +31,14 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="editCycle(row)">编辑</el-button>
-            <el-button size="small" type="success" @click="generateTasks(row)">生成任务</el-button>
-            <el-button size="small" type="danger" @click="deleteCycle(row)">删除</el-button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <el-button size="small" @click="editCycle(row)" style="display: inline-block !important;">编辑</el-button>
+              <el-button size="small" type="success" @click="generateTasks(row)" style="display: inline-block !important;">生成任务</el-button>
+              <el-button size="small" type="info" @click="viewTasks(row)" style="display: inline-block !important;">查看任务</el-button>
+              <el-button size="small" type="danger" @click="deleteCycle(row)" style="display: inline-block !important;">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -229,6 +241,28 @@ const generateTasks = async (cycle: EvaluationCycle) => {
   }
 }
 
+const viewTasks = (cycle: EvaluationCycle) => {
+  // 跳转到评审任务页面，并筛选该周期的任务
+  window.open(`/tasks?cycle=${cycle.id}`, '_blank')
+}
+
+const debugData = () => {
+  console.log('=== 调试数据 ===')
+  console.log('cycles.value:', cycles.value)
+  console.log('cycles.length:', cycles.value.length)
+  console.log('loading.value:', loading.value)
+  console.log('evaluationStore:', evaluationStore)
+  
+  ElMessageBox.alert(
+    `数据调试信息：\n` +
+    `考核周期数量: ${cycles.value.length}\n` +
+    `加载状态: ${loading.value}\n` +
+    `数据: ${JSON.stringify(cycles.value, null, 2)}`,
+    '调试信息',
+    { type: 'info' }
+  )
+}
+
 const deleteCycle = async (cycle: EvaluationCycle) => {
   try {
     await ElMessageBox.confirm(
@@ -261,7 +295,10 @@ const loadRules = async () => {
 
 const loadData = async () => {
   try {
+    console.log('开始加载考核周期数据...')
     await evaluationStore.fetchCycles()
+    console.log('考核周期数据加载完成:', cycles.value)
+    console.log('数据长度:', cycles.value.length)
   } catch (error) {
     console.error('加载考核周期失败:', error)
     ElMessage.error('加载数据失败')
@@ -269,7 +306,9 @@ const loadData = async () => {
 }
 
 onMounted(() => {
+  console.log('考核周期页面加载中...')
   loadData()
+  console.log('考核周期数据:', cycles.value)
 })
 </script>
 

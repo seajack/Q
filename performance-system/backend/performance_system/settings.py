@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# 组织架构平台URL
+ORG_PLATFORM_URL = 'http://127.0.0.1:8000'
+
 
 # Application definition
 

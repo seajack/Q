@@ -116,6 +116,9 @@ class EvaluationCycle(models.Model):
     # 考核规则关联
     evaluation_rule = models.ForeignKey('EvaluationRule', verbose_name='考核规则', on_delete=models.SET_NULL, null=True, blank=True)
     
+    # 考核指标关联
+    evaluation_indicators = models.ManyToManyField('EvaluationIndicator', verbose_name='考核指标', blank=True)
+    
     created_by = models.ForeignKey(User, verbose_name='创建者', on_delete=models.CASCADE)
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
@@ -202,7 +205,7 @@ class EvaluationTask(models.Model):
     evaluator = models.ForeignKey(Employee, verbose_name='考核人', on_delete=models.CASCADE, related_name='evaluation_tasks')
     evaluatee = models.ForeignKey(Employee, verbose_name='被考核人', on_delete=models.CASCADE, related_name='being_evaluated')
     relation_type = models.CharField('考核关系', max_length=20, choices=RELATION_CHOICES)
-    evaluation_code = models.CharField('考核码', max_length=16, unique=True)
+    evaluation_code = models.CharField('考核码', max_length=16, null=True, blank=True)
     weight = models.DecimalField('考核权重', max_digits=5, decimal_places=2, default=Decimal('1.00'))
     status = models.CharField('状态', max_length=20, choices=STATUS_CHOICES, default='pending')
     assigned_at = models.DateTimeField('分配时间', auto_now_add=True)
@@ -232,11 +235,31 @@ class EvaluationTask(models.Model):
                 return code
 
 
+class PositionWeight(models.Model):
+    """职级权重配置"""
+    position_id = models.IntegerField('职位ID', help_text='对应组织架构系统中的职位ID')
+    position_name = models.CharField('职位名称', max_length=100, help_text='职位名称，用于显示')
+    position_level = models.IntegerField('职位级别', default=0, help_text='职位级别，数字越大级别越高')
+    weight = models.DecimalField('权重', max_digits=5, decimal_places=2, default=1.00, help_text='该职级的评分权重')
+    is_active = models.BooleanField('是否启用', default=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '职级权重'
+        verbose_name_plural = '职级权重'
+        unique_together = ['position_id']
+
+    def __str__(self):
+        return f"{self.position_name}: {self.weight}"
+
+
 class EvaluationScore(models.Model):
     """考核评分模型"""
     task = models.ForeignKey(EvaluationTask, verbose_name='考核任务', on_delete=models.CASCADE)
     indicator = models.ForeignKey(EvaluationIndicator, verbose_name='考核指标', on_delete=models.CASCADE)
     score = models.IntegerField('评分', validators=[MinValueValidator(0), MaxValueValidator(100)])
+    weighted_score = models.DecimalField('加权评分', max_digits=5, decimal_places=2, null=True, blank=True, help_text='根据评价人职级权重计算的加权评分')
     comment = models.TextField('评价意见', blank=True)
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)

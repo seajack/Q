@@ -38,12 +38,12 @@ html, body {
   height: 100%;
   background-color: var(--bg-secondary);
   color: var(--text-primary);
+  overflow: hidden;
 }
 
 /* 全局样式优化 */
 .el-card {
   border-radius: 16px;
-  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
   background: var(--bg-primary);
   transition: all 0.3s ease;

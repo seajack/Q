@@ -119,9 +119,36 @@ const submitEvaluation = async () => {
       return
     }
     
-    await scoreApi.submitTaskScores(task.value.id, scores)
+    await scoreApi.submitTaskScores({
+      task_id: task.value.id,
+      scores: scores
+    })
     ElMessage.success('评分提交成功')
-    router.push('/dashboard')
+    
+    // 检查是否还有其他未完成的任务
+    const evaluationCode = sessionStorage.getItem('evaluationCode')
+    if (evaluationCode) {
+      try {
+        const response = await taskApi.getEvaluatorTasks(evaluationCode)
+        const allTasks = response.data.tasks || []
+        const pendingTasks = allTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress')
+        
+        if (pendingTasks.length > 0) {
+          // 还有未完成的任务，返回任务列表页面
+          router.push('/evaluation')
+        } else {
+          // 所有任务都已完成，跳转到仪表板
+          router.push('/dashboard')
+        }
+      } catch (error) {
+        console.error('检查任务状态失败:', error)
+        // 出错时默认返回任务列表页面
+        router.push('/evaluation')
+      }
+    } else {
+      // 没有考核码，跳转到仪表板
+      router.push('/dashboard')
+    }
   } catch (error) {
     console.error('提交评分失败:', error)
     ElMessage.error('提交失败，请重试')
@@ -131,17 +158,17 @@ const submitEvaluation = async () => {
 }
 
 onMounted(async () => {
-  const evaluationCode = props.code || route.params.code as string
+  const taskId = route.params.id as string
   
-  if (!evaluationCode) {
-    ElMessage.error('缺少考核码参数')
+  if (!taskId) {
+    ElMessage.error('缺少任务ID参数')
     router.push('/dashboard')
     return
   }
   
   try {
     loading.value = true
-    const response = await taskApi.getByCode(evaluationCode)
+    const response = await taskApi.getByTaskId(parseInt(taskId))
     
     task.value = response.data.task
     indicators.value = response.data.indicators

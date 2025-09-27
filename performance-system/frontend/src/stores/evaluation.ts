@@ -32,6 +32,7 @@ export const useEvaluationStore = defineStore('evaluation', () => {
   const results = ref<EvaluationResult[]>([])
   const stats = ref<EvaluationStats | null>(null)
   const loading = ref(false)
+  const total = ref(0)
 
   // 组织架构数据
   const orgEmployees = ref<OrgEmployee[]>([])
@@ -209,6 +210,7 @@ export const useEvaluationStore = defineStore('evaluation', () => {
       loading.value = true
       const response = await taskApi.list(params)
       tasks.value = response.data.results
+      total.value = response.data.count || 0
     } catch (error) {
       console.error('获取考核任务失败:', error)
       throw error
@@ -351,6 +353,7 @@ export const useEvaluationStore = defineStore('evaluation', () => {
     results,
     stats,
     loading,
+    total,
     orgEmployees,
     orgDepartments,
     orgDepartmentTree,

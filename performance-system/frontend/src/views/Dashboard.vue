@@ -176,25 +176,25 @@
             <h3>系统通知</h3>
           </template>
           <div class="notifications-list">
-            <div class="notification-item">
+            <div v-if="stats?.recent_activities?.length === 0" class="empty-notifications">
               <el-icon class="notification-icon"><Bell /></el-icon>
               <div class="notification-content">
-                <p>新的考核周期已创建</p>
-                <span class="notification-time">2小时前</span>
+                <p>暂无系统通知</p>
+                <span class="notification-time">系统运行正常</span>
               </div>
             </div>
-            <div class="notification-item">
-              <el-icon class="notification-icon"><Document /></el-icon>
+            <div 
+              v-for="activity in (stats?.recent_activities || []).slice(0, 3)" 
+              :key="activity.id"
+              class="notification-item"
+            >
+              <el-icon class="notification-icon">
+                <Bell v-if="activity.type === 'task_completed'" />
+                <Document v-else />
+              </el-icon>
               <div class="notification-content">
-                <p>有3个考核任务待处理</p>
-                <span class="notification-time">4小时前</span>
-              </div>
-            </div>
-            <div class="notification-item">
-              <el-icon class="notification-icon"><TrendCharts /></el-icon>
-              <div class="notification-content">
-                <p>考核结果已生成</p>
-                <span class="notification-time">1天前</span>
+                <p>{{ activity.message }}</p>
+                <span class="notification-time">{{ activity.time }}</span>
               </div>
             </div>
           </div>
@@ -209,29 +209,30 @@
           <template #header>
             <div class="card-header">
               <h3>最近活动</h3>
-              <el-button type="text" size="small">查看全部</el-button>
+              <el-button type="text" size="small" @click="goToTasks">查看全部</el-button>
             </div>
           </template>
           <div class="activity-list">
-            <div class="activity-item">
-              <el-icon class="activity-icon"><User /></el-icon>
+            <div v-if="stats?.recent_activities?.length === 0" class="empty-activities">
+              <el-icon class="activity-icon"><TrendCharts /></el-icon>
               <div class="activity-content">
-                <p>张三完成了2024年第一季度考核</p>
-                <span class="activity-time">10分钟前</span>
+                <p>暂无最近活动</p>
+                <span class="activity-time">系统运行正常</span>
               </div>
             </div>
-            <div class="activity-item">
-              <el-icon class="activity-icon"><Calendar /></el-icon>
+            <div 
+              v-for="activity in (stats?.recent_activities || []).slice(0, 5)" 
+              :key="activity.id"
+              class="activity-item"
+            >
+              <el-icon class="activity-icon">
+                <User v-if="activity.type === 'task_completed'" />
+                <Calendar v-else-if="activity.type === 'cycle_created'" />
+                <Document v-else />
+              </el-icon>
               <div class="activity-content">
-                <p>创建了新的考核周期"2024年第二季度"</p>
-                <span class="activity-time">1小时前</span>
-              </div>
-            </div>
-            <div class="activity-item">
-              <el-icon class="activity-icon"><Document /></el-icon>
-              <div class="activity-content">
-                <p>李四提交了考核任务评分</p>
-                <span class="activity-time">2小时前</span>
+                <p>{{ activity.message }}</p>
+                <span class="activity-time">{{ activity.time }}</span>
               </div>
             </div>
           </div>
@@ -309,8 +310,19 @@ const loadData = async () => {
     
     stats.value = statsResponse.data
     cycles.value = cyclesResponse.data.results || []
+    
+    console.log('统计数据:', stats.value)
+    console.log('考核周期:', cycles.value)
   } catch (error) {
     console.error('加载数据失败:', error)
+    // 设置默认值
+    stats.value = {
+      active_cycles: 0,
+      total_tasks: 0,
+      completed_tasks: 0,
+      completion_rate: 0
+    }
+    cycles.value = []
   } finally {
     loading.value = false
   }

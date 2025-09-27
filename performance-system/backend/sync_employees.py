@@ -30,15 +30,31 @@ def sync_employees():
                         'position_id': emp_data.get('position', 1),
                         'position_name': emp_data.get('position_name', '未知职位'),
                         'position_level': emp_data.get('position_level', 1),
-                        'supervisor_id': emp_data.get('supervisor', None),
+                        'supervisor_id': emp_data.get('supervisor'),
                         'email': emp_data.get('email', ''),
                         'phone': emp_data.get('phone', ''),
                         'status': emp_data.get('status', 'active'),
                         'is_active': True
                     }
                 )
-                if created:
-                    print(f'创建员工: {employee.name}')
+                
+                # 更新现有员工的信息
+                if not created:
+                    employee.name = emp_data['name']
+                    employee.department_id = emp_data.get('department', 1)
+                    employee.department_name = emp_data.get('department_name', '未知部门')
+                    employee.position_id = emp_data.get('position', 1)
+                    employee.position_name = emp_data.get('position_name', '未知职位')
+                    employee.position_level = emp_data.get('position_level', 1)
+                    employee.supervisor_id = emp_data.get('supervisor')
+                    employee.email = emp_data.get('email', '')
+                    employee.phone = emp_data.get('phone', '')
+                    employee.status = emp_data.get('status', 'active')
+                    employee.is_active = True
+                    employee.save()
+                    print(f'更新员工: {employee.name} (上级ID: {employee.supervisor_id})')
+                else:
+                    print(f'创建员工: {employee.name} (上级ID: {employee.supervisor_id})')
             
             print(f'同步完成，当前员工总数: {Employee.objects.count()}')
         else:

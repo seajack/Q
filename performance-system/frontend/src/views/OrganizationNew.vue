@@ -29,8 +29,23 @@
             :props="{ label:'name', children:'children' }"
             :default-expanded-keys="expandedKeys"
             highlight-current
-            @node-click="onDeptClick"
-          />
+            @node-click="onNodeClick"
+          >
+            <template #default="{ node, data }">
+              <div class="tree-node" :class="{ 'employee-node': data.type === 'employee' }">
+                <div class="tree-node-main">
+                  <span class="tree-node-name">{{ data.name }}</span>
+                  <span v-if="data.type === 'department'" class="tree-node-count">{{ data.employee_count || 0 }} 人</span>
+                  <span v-else-if="data.type === 'employee'" class="employee-info">
+                    <span class="position-info">{{ data.position_name || '未分配' }}<span v-if="data.position_level" class="position-level"> L{{ data.position_level }}</span></span>
+                  </span>
+                </div>
+                <p v-if="data.type === 'department' && data.children?.length" class="tree-node-meta">
+                  子部门 {{ data.children.filter(child => child.type === 'department').length }}
+                </p>
+              </div>
+            </template>
+          </el-tree>
         </div>
       </div>
 
@@ -44,18 +59,14 @@
                   <span :style="avatar(row)">{{ (row.name||'?')[0] }}</span>
                   <div>
                     <div style="font-weight:600">{{ row.name }}</div>
-                    <div style="font-size:12px;color:#6b7280">{{ row.position_name || '-' }}</div>
+                    <div style="font-size:12px;color:#6b7280">
+                      {{ row.position_name || '-' }}<span v-if="row.position_level" style="color:#0ea5e9;font-weight:600;background:#e0f2fe;padding:1px 4px;border-radius:4px;margin-left:4px">L{{ row.position_level }}</span>
+                    </div>
                   </div>
                 </div>
               </template>
             </el-table-column>
             <el-table-column prop="department_name" label="部门" min-width="180" />
-            <el-table-column prop="position_level" label="级别" width="100" />
-            <el-table-column prop="status" label="状态" width="120">
-              <template #default="{ row }">
-                <el-tag :type="statusType(row.status)">{{ statusText(row.status) }}</el-tag>
-              </template>
-            </el-table-column>
             <el-table-column prop="email" label="邮箱" min-width="220" />
             <el-table-column prop="phone" label="电话" width="160" />
           </el-table>
@@ -94,11 +105,53 @@ const currentDept = ref<any>(null)
 
 const loadTree = async () => {
   try {
-    const res = await orgPlatformApi.departments.tree()
-    const data:any = res.data || []
-    deptTree.value = data
-    expandedKeys.value = (data || []).map((n:any)=> n.id)
-  } catch(e) { console.error(e) }
+    console.log('正在加载组织架构树...')
+    const res = await orgPlatformApi.departments.fullTree()
+    console.log('API响应:', res)
+    
+    // 处理不同的数据格式
+    let data: any[] = []
+    if (Array.isArray(res.data)) {
+      data = res.data
+    } else if (res.data && Array.isArray(res.data.results)) {
+      data = res.data.results
+    } else if (res.data && Array.isArray(res.data.data)) {
+      data = res.data.data
+    }
+    
+    console.log('解析后的数据:', data)
+    console.log('数据类型:', typeof data, '是否为数组:', Array.isArray(data))
+    
+    if (data && data.length > 0) {
+      deptTree.value = data
+      expandedKeys.value = data.map((n: any) => n.id)
+      console.log('组织架构树加载完成，节点数:', data.length)
+    } else {
+      console.warn('没有获取到组织架构数据')
+      deptTree.value = []
+      expandedKeys.value = []
+    }
+  } catch(e) { 
+    console.error('加载组织架构树失败:', e)
+    // 如果fullTree失败，尝试使用普通的tree API
+    try {
+      console.log('尝试使用普通tree API...')
+      const res = await orgPlatformApi.departments.tree()
+      let data: any[] = []
+      if (Array.isArray(res.data)) {
+        data = res.data
+      } else if (res.data && Array.isArray(res.data.results)) {
+        data = res.data.results
+      }
+      deptTree.value = data
+      expandedKeys.value = data.map((n: any) => n.id)
+      console.log('使用普通tree API成功，节点数:', data.length)
+    } catch(e2) {
+      console.error('普通tree API也失败:', e2)
+      deptTree.value = []
+      expandedKeys.value = []
+    }
+  }
 }
 
 const loadList = async () => {
@@ -118,7 +171,13 @@ const loadList = async () => {
 }
 
 const reload = () => { page.value = 1; loadList() }
-const onDeptClick = (node:any) => { currentDept.value = node; reload() }
+const onNodeClick = (node:any) => { 
+  // 只有部门节点才能被选择
+  if (node?.type === 'department') {
+    currentDept.value = node; 
+    reload() 
+  }
+}
 const onPageChange = (p:number) => { page.value = p; loadList() }
 
 const expandAll = () => { expandedKeys.value = collectIds(deptTree.value) }
@@ -131,3 +190,137 @@ const avatar = (r:any)=> ({ height:'28px', width:'28px', display:'inline-flex', 
 
 onMounted(async () => { await loadTree(); await loadList(); })
 </script>
+
+<style scoped>
+/* 确保树容器有足够宽度 */
+.tree-wrap {
+  min-width: 300px;
+  width: 100%;
+}
+
+/* 确保树节点有足够空间 */
+:deep(.el-tree) {
+  width: 100%;
+}
+
+:deep(.el-tree-node__content) {
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+}
+
+:deep(.el-tree-node__expand-icon) {
+  margin-right: 8px;
+}
+.tree-node {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tree-node:hover {
+  background-color: var(--el-color-primary-light-9);
+}
+
+.tree-node-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tree-node-name {
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  flex: 1;
+  min-width: 0;
+  max-width: calc(100% - 80px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.tree-node-count {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  background-color: var(--el-color-primary-light-8);
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 40px;
+  text-align: center;
+}
+
+.tree-node-meta {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin: 0;
+  line-height: 1.2;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 员工节点样式 */
+.employee-node {
+  background-color: #f0f9ff;
+  border-left: 3px solid #0ea5e9;
+  margin-left: 8px;
+  border-radius: 6px;
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.employee-node:hover {
+  background-color: #e0f2fe;
+}
+
+.employee-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 12px;
+  flex-shrink: 0;
+  min-width: 140px;
+  max-width: 140px;
+  width: 140px;
+}
+
+.position-info {
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+  flex: 1;
+  min-width: 0;
+}
+
+.position-level {
+  color: #0ea5e9;
+  font-weight: 600;
+  background-color: #e0f2fe;
+  padding: 1px 4px;
+  border-radius: 4px;
+  margin-left: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 30px;
+}
+</style>

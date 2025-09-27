@@ -2,21 +2,27 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg, Sum, F
+from django.utils import timezone
+from datetime import datetime, timedelta
 from .models import (
     EvaluationCycle, EvaluationIndicator, EvaluationTask,
-    EvaluationScore, EvaluationResult, Employee, EvaluationRule, ManualEvaluationAssignment
+    EvaluationScore, EvaluationResult, Employee, EvaluationRule, ManualEvaluationAssignment,
+    PositionWeight
 )
 from .serializers import (
     EvaluationCycleSerializer, EvaluationIndicatorSerializer,
     EvaluationTaskSerializer, EvaluationScoreSerializer,
     EvaluationResultSerializer, EvaluationStatsSerializer, EmployeeSerializer,
-    EvaluationRuleSerializer, ManualEvaluationAssignmentSerializer
+    EvaluationRuleSerializer, ManualEvaluationAssignmentSerializer,
+    PositionWeightSerializer
 )
 import requests
 from django.conf import settings
 from django.http import HttpResponse
 import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
 
 
 class EvaluationCycleViewSet(viewsets.ModelViewSet):
@@ -43,7 +49,23 @@ class EvaluationCycleViewSet(viewsets.ModelViewSet):
             creator.is_superuser = True
             creator.is_staff = True
             creator.save()
-        serializer.save(created_by=creator)
+        
+        # 保存考核周期
+        cycle = serializer.save(created_by=creator)
+        
+        # 处理考核指标关联
+        if 'evaluation_indicators' in serializer.validated_data:
+            indicators = serializer.validated_data.pop('evaluation_indicators')
+            cycle.evaluation_indicators.set(indicators)
+    
+    def perform_update(self, serializer):
+        """更新考核周期时处理考核指标关联"""
+        cycle = serializer.save()
+        
+        # 处理考核指标关联
+        if 'evaluation_indicators' in serializer.validated_data:
+            indicators = serializer.validated_data.pop('evaluation_indicators')
+            cycle.evaluation_indicators.set(indicators)
     
     @action(detail=True, methods=['post'])
     def generate_tasks(self, request, pk=None):
@@ -120,6 +142,16 @@ class ManualEvaluationAssignmentViewSet(viewsets.ModelViewSet):
             
         return queryset
     
+    def create(self, request, *args, **kwargs):
+        """创建手动分配"""
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception as e:
+            print(f"创建手动分配错误: {str(e)}")
+            return Response({
+                'error': f'创建失败: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
     def perform_create(self, serializer):
         """创建手动分配时自动设置创建者"""
         from django.contrib.auth.models import User
@@ -133,7 +165,71 @@ class ManualEvaluationAssignmentViewSet(viewsets.ModelViewSet):
             creator.is_superuser = True
             creator.is_staff = True
             creator.save()
+        
         serializer.save(created_by=creator)
+    
+    @action(detail=False, methods=['post'], url_path='generate-tasks')
+    def generate_tasks(self, request):
+        """根据手动分配生成考核任务"""
+        try:
+            cycle_id = request.data.get('cycle_id')
+            if not cycle_id:
+                return Response({'error': '请指定考核周期'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 获取该周期的所有手动分配
+            assignments = ManualEvaluationAssignment.objects.filter(cycle_id=cycle_id)
+            if not assignments.exists():
+                return Response({'error': '该周期没有手动分配'}, status=status.HTTP_404_NOT_FOUND)
+            
+            created_tasks = []
+            for assignment in assignments:
+                # 检查是否已经存在相同的任务
+                existing_task = EvaluationTask.objects.filter(
+                    cycle=assignment.cycle,
+                    evaluator=assignment.evaluator,
+                    evaluatee=assignment.evaluatee,
+                    relation_type=assignment.relation_type
+                ).first()
+                
+                if existing_task:
+                    continue  # 跳过已存在的任务
+                
+                # 生成考核码
+                evaluation_code = self._generate_evaluation_code()
+                
+                # 创建考核任务
+                task = EvaluationTask.objects.create(
+                    cycle=assignment.cycle,
+                    evaluator=assignment.evaluator,
+                    evaluatee=assignment.evaluatee,
+                    relation_type=assignment.relation_type,
+                    weight=assignment.weight,
+                    evaluation_code=evaluation_code,
+                    status='pending'
+                )
+                created_tasks.append(task)
+            
+            return Response({
+                'message': f'成功生成 {len(created_tasks)} 个考核任务',
+                'tasks_count': len(created_tasks)
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'生成任务失败: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @staticmethod
+    def _generate_evaluation_code():
+        """生成16位唯一考核码"""
+        import string
+        import random
+        
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=16))
+            if not EvaluationTask.objects.filter(evaluation_code=code).exists():
+                return code
 
 
 class EvaluationTaskViewSet(viewsets.ModelViewSet):
@@ -164,7 +260,13 @@ class EvaluationTaskViewSet(viewsets.ModelViewSet):
     def get_by_code(self, request, evaluation_code=None):
         """根据考核码获取任务和相关信息"""
         try:
-            task = EvaluationTask.objects.get(evaluation_code=evaluation_code)
+            # 获取该考核码对应的所有任务
+            tasks = EvaluationTask.objects.filter(evaluation_code=evaluation_code)
+            if not tasks.exists():
+                return Response({'error': '未找到对应的考核任务'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # 返回第一个任务（通常同一个考核码对应同一个考核人的多个任务）
+            task = tasks.first()
             indicators = EvaluationIndicator.objects.filter(is_active=True)
             
             # 检查是否已经有评分记录
@@ -187,6 +289,80 @@ class EvaluationTaskViewSet(viewsets.ModelViewSet):
                 'error': '考核任务不存在'
             }, status=status.HTTP_404_NOT_FOUND)
     
+    @action(detail=False, methods=['get'], url_path='by-task-id/(?P<task_id>[^/.]+)')
+    def get_by_task_id(self, request, task_id=None):
+        """根据任务ID获取任务和相关信息"""
+        try:
+            task = EvaluationTask.objects.get(id=task_id)
+            indicators = EvaluationIndicator.objects.filter(is_active=True)
+            
+            # 检查是否已经有评分记录
+            existing_scores = EvaluationScore.objects.filter(task=task)
+            scores_data = {score.indicator_id: score for score in existing_scores}
+            
+            response_data = {
+                'task': EvaluationTaskSerializer(task).data,
+                'indicators': EvaluationIndicatorSerializer(indicators, many=True).data,
+                'existing_scores': {str(k): {
+                    'score': v.score,
+                    'comment': v.comment
+                } for k, v in scores_data.items()}
+            }
+            
+            return Response(response_data)
+            
+        except EvaluationTask.DoesNotExist:
+            return Response({
+                'error': '考核任务不存在'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['get'], url_path='evaluator-tasks/(?P<evaluation_code>[^/.]+)')
+    def get_evaluator_tasks(self, request, evaluation_code=None):
+        """根据考核码获取考核人的所有待评价任务"""
+        try:
+            # 查找使用该考核码的所有任务
+            tasks = EvaluationTask.objects.filter(evaluation_code=evaluation_code)
+            
+            if not tasks.exists():
+                return Response({
+                    'error': '考核码不存在或没有对应的考核任务'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # 获取考核人信息
+            evaluator = tasks.first().evaluator
+            indicators = EvaluationIndicator.objects.filter(is_active=True)
+            
+            # 获取所有任务的评分记录
+            task_ids = tasks.values_list('id', flat=True)
+            existing_scores = EvaluationScore.objects.filter(task_id__in=task_ids)
+            scores_data = {}
+            for score in existing_scores:
+                if score.task_id not in scores_data:
+                    scores_data[score.task_id] = {}
+                scores_data[score.task_id][score.indicator_id] = {
+                    'score': score.score,
+                    'comment': score.comment
+                }
+            
+            response_data = {
+                'evaluator': {
+                    'id': evaluator.id,
+                    'name': evaluator.name,
+                    'position': evaluator.position_name,
+                    'department': evaluator.department_name
+                },
+                'tasks': EvaluationTaskSerializer(tasks, many=True).data,
+                'indicators': EvaluationIndicatorSerializer(indicators, many=True).data,
+                'existing_scores': scores_data
+            }
+            
+            return Response(response_data)
+            
+        except Exception as e:
+            return Response({
+                'error': f'获取考核任务失败: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     @action(detail=True, methods=['get'])
     def evaluation_form(self, request, pk=None):
         """获取考核表单"""
@@ -199,6 +375,87 @@ class EvaluationTaskViewSet(viewsets.ModelViewSet):
         }
         
         return Response(form_data)
+    
+    @action(detail=False, methods=['get'], url_path='export-evaluator-codes')
+    def export_evaluator_codes(self, request):
+        """导出考核人考核码Excel文件"""
+        try:
+            # 获取考核周期ID
+            cycle_id = request.query_params.get('cycle_id')
+            if not cycle_id:
+                return Response({'error': '请指定考核周期'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 获取该周期的所有任务
+            tasks = EvaluationTask.objects.filter(cycle_id=cycle_id).select_related('evaluator')
+            
+            if not tasks.exists():
+                return Response({'error': '该周期没有考核任务'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # 按考核人分组，每个考核人只取一个考核码
+            evaluator_data = {}
+            for task in tasks:
+                evaluator = task.evaluator
+                if evaluator.id not in evaluator_data:
+                    evaluator_data[evaluator.id] = {
+                        'name': evaluator.name,
+                        'position': evaluator.position_name,
+                        'department': evaluator.department_name,
+                        'evaluation_code': task.evaluation_code
+                    }
+            
+            # 创建Excel文件
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "考核码分发表"
+            
+            # 设置标题
+            ws['A1'] = '考核码分发表'
+            ws['A1'].font = Font(size=20, bold=True)
+            ws['A1'].alignment = Alignment(horizontal='center')
+            ws.merge_cells('A1:E1')
+            
+            # 设置表头
+            headers = ['序号', '考核人', '职位', '部门', '考核码']
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=3, column=col, value=header)
+                cell.font = Font(size=14, bold=True)
+                cell.alignment = Alignment(horizontal='center')
+                cell.fill = PatternFill(start_color='CCCCCC', end_color='CCCCCC', fill_type='solid')
+            
+            # 填充数据
+            row = 4
+            for idx, (evaluator_id, data) in enumerate(evaluator_data.items(), 1):
+                ws.cell(row=row, column=1, value=idx).font = Font(size=12)
+                ws.cell(row=row, column=2, value=data['name']).font = Font(size=12)
+                ws.cell(row=row, column=3, value=data['position']).font = Font(size=12)
+                ws.cell(row=row, column=4, value=data['department']).font = Font(size=12)
+                ws.cell(row=row, column=5, value=data['evaluation_code']).font = Font(size=12, bold=True)
+                row += 1
+            
+            # 设置列宽
+            ws.column_dimensions['A'].width = 8
+            ws.column_dimensions['B'].width = 15
+            ws.column_dimensions['C'].width = 20
+            ws.column_dimensions['D'].width = 20
+            ws.column_dimensions['E'].width = 20
+            
+            # 设置行高
+            for row_num in range(1, row):
+                ws.row_dimensions[row_num].height = 25
+            
+            # 创建HTTP响应
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="考核码分发表_{cycle_id}.xlsx"'
+            
+            wb.save(response)
+            return response
+            
+        except Exception as e:
+            return Response({
+                'error': f'导出失败: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class EvaluationScoreViewSet(viewsets.ModelViewSet):
@@ -226,16 +483,32 @@ class EvaluationScoreViewSet(viewsets.ModelViewSet):
         try:
             task = EvaluationTask.objects.get(id=task_id)
             
+            # 获取评价人的职级权重
+            evaluator_weight = 1.0
+            try:
+                weight_config = PositionWeight.objects.filter(
+                    position_id=task.evaluator.position_id,
+                    is_active=True
+                ).first()
+                if weight_config:
+                    evaluator_weight = float(weight_config.weight)
+            except:
+                pass
+            
             # 清除原有评分
             EvaluationScore.objects.filter(task=task).delete()
             
             # 创建新评分
             created_scores = []
             for score_data in scores_data:
+                # 计算加权评分
+                weighted_score = float(score_data['score']) * evaluator_weight
+                
                 score = EvaluationScore.objects.create(
                     task=task,
                     indicator_id=score_data['indicator_id'],
                     score=score_data['score'],
+                    weighted_score=weighted_score,
                     comment=score_data.get('comment', '')
                 )
                 created_scores.append(score)
@@ -248,7 +521,8 @@ class EvaluationScoreViewSet(viewsets.ModelViewSet):
             
             return Response({
                 'message': '评分提交成功',
-                'scores_count': len(created_scores)
+                'scores_count': len(created_scores),
+                'evaluator_weight': evaluator_weight
             })
             
         except EvaluationTask.DoesNotExist:
@@ -627,3 +901,454 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'同步员工数据失败: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PositionWeightViewSet(viewsets.ModelViewSet):
+    """职级权重管理"""
+    queryset = PositionWeight.objects.all().order_by('-created_at')
+    serializer_class = PositionWeightSerializer
+    filterset_fields = ['is_active']
+    search_fields = ['position__name']
+    
+    @action(detail=False, methods=['post'], url_path='bulk-update')
+    def bulk_update_weights(self, request):
+        """批量更新职级权重"""
+        try:
+            weight_data = request.data.get('weights', [])
+            if not weight_data:
+                return Response({'error': '请提供权重数据'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            updated_count = 0
+            for item in weight_data:
+                position_id = item.get('position_id')
+                position_name = item.get('position_name', '')
+                position_level = item.get('position_level', 0)
+                weight = item.get('weight')
+                is_active = item.get('is_active', True)
+                
+                if not position_id or not weight:
+                    continue
+                
+                weight_obj, created = PositionWeight.objects.get_or_create(
+                    position_id=position_id,
+                    defaults={
+                        'position_name': position_name,
+                        'position_level': position_level,
+                        'weight': weight, 
+                        'is_active': is_active
+                    }
+                )
+                
+                if not created:
+                    weight_obj.position_name = position_name
+                    weight_obj.position_level = position_level
+                    weight_obj.weight = weight
+                    weight_obj.is_active = is_active
+                    weight_obj.save()
+                    updated_count += 1
+                else:
+                    updated_count += 1
+            
+            return Response({
+                'message': f'成功更新 {updated_count} 个职级权重',
+                'updated_count': updated_count
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'批量更新失败: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['get'], url_path='default-weights')
+    def get_default_weights(self, request):
+        """获取默认权重配置建议"""
+        try:
+            # 通过API获取组织架构系统中的职位信息
+            import requests
+            from django.conf import settings
+            
+            positions = []
+            try:
+                # 从组织架构系统获取职位列表
+                url = f"{settings.ORG_PLATFORM_URL}/api/positions/"
+                print(f"正在请求职位数据: {url}")
+                response = requests.get(url, timeout=10)
+                print(f"API响应状态: {response.status_code}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    positions = data.get('results', [])
+                    print(f"获取到 {len(positions)} 个职位")
+                else:
+                    print(f"API请求失败: {response.status_code}")
+                    positions = []
+            except Exception as e:
+                print(f"API请求异常: {str(e)}")
+                positions = []
+            
+            # 如果没有从API获取到数据，使用模拟数据
+            if not positions:
+                print("使用模拟职位数据")
+                positions = [
+                    {'id': 1, 'name': '董事长', 'level': 13},
+                    {'id': 2, 'name': '总经理', 'level': 12},
+                    {'id': 3, 'name': '副总经理', 'level': 11},
+                    {'id': 4, 'name': '部门经理', 'level': 9},
+                    {'id': 5, 'name': '部门副经理', 'level': 8},
+                    {'id': 6, 'name': '主管', 'level': 4},
+                    {'id': 7, 'name': '专员', 'level': 2},
+                    {'id': 8, 'name': '助理', 'level': 1},
+                ]
+            
+            default_weights = []
+            
+            for position in positions:
+                # 根据职位级别设置默认权重
+                level = position.get('level', 0)
+                if level >= 13:  # 高层正职
+                    weight = 1.8
+                elif level >= 11:  # 高层副职
+                    weight = 1.6
+                elif level >= 9:  # 中层正职
+                    weight = 1.2
+                elif level >= 8:  # 中层副职
+                    weight = 1.1
+                elif level >= 4:  # 基层正职
+                    weight = 1.0
+                else:  # 普通员工
+                    weight = 0.9
+                
+                # 检查是否已有权重配置
+                current_weight = None
+                try:
+                    existing_weight = PositionWeight.objects.filter(
+                        position_id=position.get('id')
+                    ).first()
+                    if existing_weight:
+                        current_weight = float(existing_weight.weight)
+                except:
+                    pass
+                
+                default_weights.append({
+                    'position_id': position.get('id'),
+                    'position_name': position.get('name'),
+                    'position_level': level,
+                    'suggested_weight': weight,
+                    'current_weight': current_weight
+                })
+            
+            print(f"返回 {len(default_weights)} 个默认权重配置")
+            return Response({
+                'default_weights': default_weights
+            })
+            
+        except Exception as e:
+            print(f"获取默认权重异常: {str(e)}")
+            return Response({
+                'error': f'获取默认权重失败: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def stats_overview(request):
+    """获取系统概览统计数据"""
+    try:
+        # 基础统计
+        total_cycles = EvaluationCycle.objects.count()
+        active_cycles = EvaluationCycle.objects.filter(status='active').count()
+        completed_cycles = EvaluationCycle.objects.filter(status='completed').count()
+        
+        # 任务统计
+        total_tasks = EvaluationTask.objects.count()
+        completed_tasks = EvaluationTask.objects.filter(status='completed').count()
+        pending_tasks = EvaluationTask.objects.filter(status='pending').count()
+        
+        # 计算完成率
+        completion_rate = 0
+        if total_tasks > 0:
+            completion_rate = round((completed_tasks / total_tasks) * 100, 1)
+        
+        # 评分统计
+        avg_score = 0
+        avg_grade = 'B'
+        score_distribution = {'A+': 0, 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C': 0}
+        
+        if completed_tasks > 0:
+            # 计算平均加权评分
+            score_stats = EvaluationScore.objects.filter(
+                task__status='completed'
+            ).aggregate(
+                avg_weighted_score=Avg('weighted_score'),
+                avg_score=Avg('score')
+            )
+            avg_score = round(score_stats['avg_score'] or 0, 1)
+            
+            # 根据平均分计算等级
+            if avg_score >= 90:
+                avg_grade = 'A+'
+            elif avg_score >= 85:
+                avg_grade = 'A'
+            elif avg_score >= 80:
+                avg_grade = 'A-'
+            elif avg_score >= 75:
+                avg_grade = 'B+'
+            elif avg_score >= 70:
+                avg_grade = 'B'
+            elif avg_score >= 65:
+                avg_grade = 'B-'
+            else:
+                avg_grade = 'C'
+            
+            # 计算评分分布
+            tasks_with_scores = EvaluationTask.objects.filter(
+                status='completed',
+                evaluationscore__isnull=False
+            ).distinct()
+            
+            for task in tasks_with_scores:
+                task_avg_score = task.evaluationscore_set.aggregate(avg=Avg('score'))['avg'] or 0
+                if task_avg_score >= 90:
+                    score_distribution['A+'] += 1
+                elif task_avg_score >= 85:
+                    score_distribution['A'] += 1
+                elif task_avg_score >= 80:
+                    score_distribution['A-'] += 1
+                elif task_avg_score >= 75:
+                    score_distribution['B+'] += 1
+                elif task_avg_score >= 70:
+                    score_distribution['B'] += 1
+                elif task_avg_score >= 65:
+                    score_distribution['B-'] += 1
+                else:
+                    score_distribution['C'] += 1
+        
+        # 部门绩效统计
+        dept_performance = []
+        dept_stats = {}
+        
+        # 按部门统计任务和评分
+        for task in EvaluationTask.objects.filter(status='completed'):
+            dept = task.evaluatee.department_name or '未分配'
+            if dept not in dept_stats:
+                dept_stats[dept] = {
+                    'total_tasks': 0,
+                    'completed_tasks': 0,
+                    'total_score': 0,
+                    'avg_score': 0
+                }
+            
+            dept_stats[dept]['total_tasks'] += 1
+            dept_stats[dept]['completed_tasks'] += 1
+            
+            # 计算部门平均分
+            task_scores = task.evaluationscore_set.aggregate(avg=Avg('score'))['avg'] or 0
+            dept_stats[dept]['total_score'] += task_scores
+        
+        # 计算各部门平均分
+        for dept, stats in dept_stats.items():
+            if stats['completed_tasks'] > 0:
+                stats['avg_score'] = round(stats['total_score'] / stats['completed_tasks'], 1)
+                dept_performance.append({
+                    'department': dept,
+                    'total_tasks': stats['total_tasks'],
+                    'completed_tasks': stats['completed_tasks'],
+                    'completion_rate': round((stats['completed_tasks'] / stats['total_tasks']) * 100, 1),
+                    'avg_score': stats['avg_score']
+                })
+        
+        # 异常检测（评分波动较大的员工）
+        anomaly_count = 0
+        anomaly_rate = 0
+        if completed_tasks > 0:
+            # 计算评分标准差，识别异常
+            scores = list(EvaluationScore.objects.filter(
+                task__status='completed'
+            ).values_list('score', flat=True))
+            
+            if len(scores) > 1:
+                import statistics
+                mean_score = statistics.mean(scores)
+                std_score = statistics.stdev(scores)
+                
+                # 识别超出2个标准差的异常评分
+                for score in scores:
+                    if abs(score - mean_score) > 2 * std_score:
+                        anomaly_count += 1
+                
+                anomaly_rate = round((anomaly_count / len(scores)) * 100, 1)
+        
+        # 最近活动
+        recent_activities = []
+        recent_tasks = EvaluationTask.objects.filter(
+            status='completed'
+        ).order_by('-completed_at')[:5]
+        
+        for task in recent_tasks:
+            if task.completed_at:
+                time_diff = timezone.now() - task.completed_at
+                if time_diff.days > 0:
+                    time_text = f"{time_diff.days}天前"
+                elif time_diff.seconds > 3600:
+                    time_text = f"{time_diff.seconds // 3600}小时前"
+                else:
+                    time_text = f"{time_diff.seconds // 60}分钟前"
+                
+                recent_activities.append({
+                    'id': task.id,
+                    'type': 'task_completed',
+                    'message': f"{task.evaluator.name}完成了对{task.evaluatee.name}的考核",
+                    'time': time_text,
+                    'timestamp': task.completed_at.isoformat()
+                })
+        
+        # 考核周期进度
+        cycle_progress = []
+        for cycle in EvaluationCycle.objects.filter(status__in=['active', 'completed'])[:5]:
+            cycle_tasks = EvaluationTask.objects.filter(cycle=cycle)
+            cycle_completed = cycle_tasks.filter(status='completed').count()
+            cycle_total = cycle_tasks.count()
+            progress = 0
+            if cycle_total > 0:
+                progress = round((cycle_completed / cycle_total) * 100)
+            
+            cycle_progress.append({
+                'id': cycle.id,
+                'name': cycle.name,
+                'status': cycle.status,
+                'progress': progress,
+                'start_date': cycle.start_date.isoformat() if cycle.start_date else None,
+                'end_date': cycle.end_date.isoformat() if cycle.end_date else None
+            })
+        
+        # 绩效趋势（最近7天的完成情况）
+        performance_trend = []
+        for i in range(7):
+            date = timezone.now().date() - timedelta(days=i)
+            daily_completed = EvaluationTask.objects.filter(
+                status='completed',
+                completed_at__date=date
+            ).count()
+            performance_trend.append({
+                'date': date.isoformat(),
+                'completed': daily_completed
+            })
+        performance_trend.reverse()  # 按时间正序排列
+        
+        return Response({
+            'total_cycles': total_cycles,
+            'active_cycles': active_cycles,
+            'completed_cycles': completed_cycles,
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'pending_tasks': pending_tasks,
+            'completion_rate': completion_rate,
+            'avg_score': avg_score,
+            'avg_grade': avg_grade,
+            'score_distribution': score_distribution,
+            'dept_performance': dept_performance,
+            'anomaly_count': anomaly_count,
+            'anomaly_rate': anomaly_rate,
+            'recent_activities': recent_activities,
+            'cycle_progress': cycle_progress,
+            'performance_trend': performance_trend
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': f'获取统计数据失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def stats_cycle(request, cycle_id):
+    """获取特定考核周期的统计数据"""
+    try:
+        cycle = EvaluationCycle.objects.get(id=cycle_id)
+        tasks = EvaluationTask.objects.filter(cycle=cycle)
+        
+        # 基础统计
+        total_tasks = tasks.count()
+        completed_tasks = tasks.filter(status='completed').count()
+        pending_tasks = tasks.filter(status='pending').count()
+        
+        # 完成率
+        completion_rate = 0
+        if total_tasks > 0:
+            completion_rate = round((completed_tasks / total_tasks) * 100, 1)
+        
+        # 评分统计
+        scores = EvaluationScore.objects.filter(task__cycle=cycle)
+        avg_score = 0
+        avg_grade = 'B'
+        
+        if scores.exists():
+            score_stats = scores.aggregate(
+                avg_weighted_score=Avg('weighted_score'),
+                avg_score=Avg('score')
+            )
+            avg_score = round(score_stats['avg_score'] or 0, 1)
+            
+            # 等级计算
+            if avg_score >= 90:
+                avg_grade = 'A+'
+            elif avg_score >= 85:
+                avg_grade = 'A'
+            elif avg_score >= 80:
+                avg_grade = 'A-'
+            elif avg_score >= 75:
+                avg_grade = 'B+'
+            elif avg_score >= 70:
+                avg_grade = 'B'
+            elif avg_score >= 65:
+                avg_grade = 'B-'
+            else:
+                avg_grade = 'C'
+        
+        # 部门统计
+        dept_stats = {}
+        for task in tasks.filter(status='completed'):
+            dept = task.evaluatee.department or '未分配'
+            if dept not in dept_stats:
+                dept_stats[dept] = {'total': 0, 'completed': 0}
+            dept_stats[dept]['total'] += 1
+            if task.status == 'completed':
+                dept_stats[dept]['completed'] += 1
+        
+        # 计算部门完成度
+        dept_completion = []
+        for dept, stats in dept_stats.items():
+            completion = 0
+            if stats['total'] > 0:
+                completion = round((stats['completed'] / stats['total']) * 100, 1)
+            dept_completion.append({
+                'department': dept,
+                'total': stats['total'],
+                'completed': stats['completed'],
+                'completion_rate': completion
+            })
+        
+        return Response({
+            'cycle': {
+                'id': cycle.id,
+                'name': cycle.name,
+                'status': cycle.status,
+                'start_date': cycle.start_date.isoformat() if cycle.start_date else None,
+                'end_date': cycle.end_date.isoformat() if cycle.end_date else None
+            },
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'pending_tasks': pending_tasks,
+            'completion_rate': completion_rate,
+            'avg_score': avg_score,
+            'avg_grade': avg_grade,
+            'dept_completion': dept_completion
+        })
+        
+    except EvaluationCycle.DoesNotExist:
+        return Response({
+            'error': '考核周期不存在'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': f'获取周期统计失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

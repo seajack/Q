@@ -891,7 +891,7 @@ onUnmounted(() => {
 }
 
 .content-wrapper {
-  padding: var(--spacing-6);
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-6) 0;
   min-height: 100%;
 }
 
@@ -961,7 +961,7 @@ onUnmounted(() => {
   }
   
   .content-wrapper {
-    padding: var(--spacing-4);
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-4) 0;
   }
 }
 

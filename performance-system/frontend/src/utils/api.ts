@@ -93,6 +93,10 @@ export const taskApi = {
   delete: (id: number) => api.delete(`/tasks/${id}/`),
   generateForCycle: (cycleId: number) => api.post(`/tasks/generate-for-cycle/`, { cycle_id: cycleId }),
   getByCode: (code: string) => api.get(`/tasks/by-code/${code}/`),
+  getByTaskId: (taskId: number) => api.get(`/tasks/by-task-id/${taskId}/`),
+  getEvaluatorTasks: (code: string) => api.get(`/tasks/evaluator-tasks/${code}/`),
+  submitScore: (data: any) => api.post('/scores/', data),
+  exportEvaluatorCodes: (cycleId: number) => api.get(`/tasks/export-evaluator-codes/?cycle_id=${cycleId}`, { responseType: 'blob' }),
 }
 
 // 手动分配API（Manual Assignments）
@@ -102,6 +106,28 @@ export const manualAssignmentApi = {
   get: (id: number) => api.get<any>(`/manual-assignments/${id}/`),
   update: (id: number, data: any) => api.put<any>(`/manual-assignments/${id}/`, data),
   delete: (id: number) => api.delete(`/manual-assignments/${id}/`),
+  generateTasks: (data: any) => api.post('/manual-assignments/generate-tasks/', data),
+}
+
+// 考核评分API
+export const scoreApi = {
+  list: (params?: any) => api.get<ApiResponse<any[]>>('/scores/', { params }),
+  create: (data: any) => api.post<any>('/scores/', data),
+  get: (id: number) => api.get<any>(`/scores/${id}/`),
+  update: (id: number, data: any) => api.put<any>(`/scores/${id}/`, data),
+  delete: (id: number) => api.delete(`/scores/${id}/`),
+  submitTaskScores: (data: any) => api.post('/scores/submit_task_scores/', data),
+}
+
+// 职级权重API
+export const positionWeightApi = {
+  list: (params?: any) => api.get<ApiResponse<any[]>>('/position-weights/', { params }),
+  create: (data: any) => api.post<any>('/position-weights/', data),
+  get: (id: number) => api.get<any>(`/position-weights/${id}/`),
+  update: (id: number, data: any) => api.put<any>(`/position-weights/${id}/`, data),
+  delete: (id: number) => api.delete(`/position-weights/${id}/`),
+  getDefaultWeights: () => api.get('/position-weights/default-weights/'),
+  bulkUpdate: (data: any) => api.post('/position-weights/bulk-update/', data),
 }
 
 // 考核结果API
@@ -134,6 +160,7 @@ export const orgPlatformApi = {
   departments: {
     list: (params?: any) => orgApi.get<ApiResponse<OrgDepartment[]>>('/departments/', { params }),
     tree: () => orgApi.get<OrgDepartment[]>('/departments/tree/'),
+    fullTree: () => orgApi.get<OrgDepartment[]>('/departments/full_tree/'),
     get: (id: number) => orgApi.get<OrgDepartment>(`/departments/${id}/`),
   },
 }

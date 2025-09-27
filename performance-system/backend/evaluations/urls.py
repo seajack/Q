@@ -11,9 +11,10 @@ router.register(r'tasks', views.EvaluationTaskViewSet)
 router.register(r'scores', views.EvaluationScoreViewSet)
 router.register(r'results', views.EvaluationResultViewSet)
 router.register(r'employees', views.EmployeeViewSet)
+router.register(r'position-weights', views.PositionWeightViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('stats/overview/', views.overview_stats, name='overview_stats'),
-    path('stats/cycle/<int:cycle_id>/', views.cycle_stats, name='cycle_stats'),
+    path('stats/overview/', views.stats_overview, name='stats_overview'),
+    path('stats/cycle/<int:cycle_id>/', views.stats_cycle, name='stats_cycle'),
 ]

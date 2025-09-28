@@ -16,6 +16,9 @@
         </div>
       </div>
 
+    <!-- 截止日期提醒 -->
+    <DeadlineReminder />
+
     <!-- KPI 指标卡片 -->
     <section class="kpi-section">
       <div class="kpi-grid">
@@ -119,6 +122,29 @@
           <div ref="trendRef" class="chart-container"></div>
         </div>
 
+        <!-- 员工能力雷达图 -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>员工能力雷达图</h3>
+            <div class="chart-actions">
+              <el-select 
+                v-model="selectedEmployee" 
+                size="small" 
+                style="width:160px" 
+                @change="updateRadarChart"
+              >
+                <el-option 
+                  v-for="emp in employees" 
+                  :key="emp.id" 
+                  :label="emp.name" 
+                  :value="emp.id" 
+                />
+              </el-select>
+            </div>
+          </div>
+          <div ref="radarRef" class="chart-container"></div>
+        </div>
+
         <!-- 考核周期进度 -->
         <div class="chart-card">
           <div class="chart-header">
@@ -204,8 +230,10 @@
 <script setup lang="ts">
 import * as echarts from 'echarts'
 import { ref, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { statsApi, cycleApi, taskApi } from '@/utils/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import DeadlineReminder from '@/components/DeadlineReminder.vue'
 
 // 品牌色
 const brand600 = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-600').trim() || '#177fc1'
@@ -227,11 +255,21 @@ const distributionRef = ref<HTMLDivElement | null>(null)
 const deptPerformanceRef = ref<HTMLDivElement | null>(null)
 const trendRef = ref<HTMLDivElement | null>(null)
 const cycleProgressRef = ref<HTMLDivElement | null>(null)
+const radarRef = ref<HTMLDivElement | null>(null)
 
 let distributionChart: echarts.ECharts | null = null
 let deptPerformanceChart: echarts.ECharts | null = null
 let trendChart: echarts.ECharts | null = null
 let cycleProgressChart: echarts.ECharts | null = null
+let radarChart: echarts.ECharts | null = null
+
+// 新增状态
+const router = useRouter()
+const timeRange = ref('30')
+const customDateRange = ref([])
+const drilldownTarget = ref('')
+const selectedEmployee = ref(null)
+const employees = ref([])
 
 // 计算属性
 const completionTrend = computed(() => {
@@ -412,13 +450,26 @@ const loadData = async () => {
     await Promise.all([
       loadCycles(),
       loadKpi(),
-      loadPerformanceRanking()
+      loadPerformanceRanking(),
+      loadEmployees()
     ])
     await loadAllCharts()
   } catch (error) {
     console.error('加载数据失败:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const loadEmployees = async () => {
+  try {
+    const res = await statsApi.listEmployees()
+    employees.value = res.data.results || []
+    if (employees.value.length > 0) {
+      selectedEmployee.value = employees.value[0].id
+    }
+  } catch (error) {
+    console.error('加载员工列表失败:', error)
   }
 }
 
@@ -776,6 +827,63 @@ const loadCycleProgressChart = async () => {
   }
 }
 
+const updateRadarChart = async () => {
+  if (!radarChart || !selectedEmployee.value) return
+
+  try {
+    // 获取员工能力数据
+    const res = await statsApi.getEmployeeSkills(selectedEmployee.value)
+    const skills = res.data.skills || []
+    
+    const indicator = skills.map(skill => ({
+      name: skill.name,
+      max: 100
+    }))
+    
+    const data = [{
+      value: skills.map(skill => skill.score),
+      name: '能力评估'
+    }]
+    
+    radarChart.setOption({
+      tooltip: {
+        trigger: 'item'
+      },
+      radar: {
+        indicator: indicator,
+        splitArea: {
+          areaStyle: {
+            color: ['rgba(5, 150, 105, 0.1)']
+          }
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(5, 150, 105, 0.5)'
+          }
+        }
+      },
+      series: [{
+        type: 'radar',
+        data: data,
+        areaStyle: {
+          color: 'rgba(5, 150, 105, 0.3)'
+        },
+        lineStyle: {
+          width: 2,
+          color: brand600()
+        },
+        symbolSize: 6,
+        label: {
+          show: true,
+          formatter: '{c}'
+        }
+      }]
+    })
+  } catch (error) {
+    console.error('渲染雷达图失败:', error)
+  }
+}
+
 // 初始化图表
 const initCharts = () => {
   if (distributionRef.value) {
@@ -790,6 +898,9 @@ const initCharts = () => {
   if (cycleProgressRef.value) {
     cycleProgressChart = echarts.init(cycleProgressRef.value)
   }
+  if (radarRef.value) {
+    radarChart = echarts.init(radarRef.value)
+  }
   
   // 监听窗口大小变化
   window.addEventListener('resize', () => {
@@ -797,6 +908,7 @@ const initCharts = () => {
     deptPerformanceChart?.resize()
     trendChart?.resize()
     cycleProgressChart?.resize()
+    radarChart?.resize()
   })
 }
 

@@ -26,6 +26,14 @@
             <option>2025 Q3</option><option>2025 Q2</option><option>2025 Q1</option><option>2024 Q4</option>
           </select>
           <RouterLink class="btn" to="/tasks">筛选</RouterLink>
+          <!-- 通知中心 -->
+          <NotificationCenter />
+          <!-- 引导式操作流程 -->
+          <GuidedWorkflow ref="guidedWorkflowRef" />
+          <button class="btn btn-secondary" @click="startGuidedTour" title="开始引导">
+            <span>🎯</span>
+            引导
+          </button>
           <button class="btn btn-primary" @click="onCreate">新增评审</button>
         </div>
       </div>
@@ -56,9 +64,19 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import NotificationCenter from '@/components/NotificationCenter.vue'
+import GuidedWorkflow from '@/components/GuidedWorkflow.vue'
 const period = ref('2025 Q3')
 const keyword = ref('')
+const guidedWorkflowRef = ref()
 const onCreate = () => alert('打开新增评审弹窗（示意）')
+
+// 手动触发引导
+const startGuidedTour = () => {
+  if (guidedWorkflowRef.value) {
+    guidedWorkflowRef.value.startGuidedTour()
+  }
+}
 const brand600 = computed(()=> getComputedStyle(document.documentElement).getPropertyValue('--brand-600').trim() || '#177fc1')
 const brand400 = computed(()=> getComputedStyle(document.documentElement).getPropertyValue('--brand-400').trim() || '#59b6ea')
 const brand700 = computed(()=> getComputedStyle(document.documentElement).getPropertyValue('--brand-700').trim() || '#115f96')

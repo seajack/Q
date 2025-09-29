@@ -47,10 +47,10 @@ const iconGradient = computed(() => {
 .modern-page-header {
   background: white;
   border-radius: 1rem;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #50fb44;
 }
 
 .header-content {
@@ -58,7 +58,7 @@ const iconGradient = computed(() => {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
 .header-left {
@@ -79,7 +79,7 @@ const iconGradient = computed(() => {
 }
 
 .header-title {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 0.25rem;
@@ -87,7 +87,7 @@ const iconGradient = computed(() => {
 
 .header-subtitle {
   color: #475569;
-  font-size: 1rem;
+  font-size: 0.8rem;
 }
 
 .header-actions {
@@ -103,7 +103,7 @@ const iconGradient = computed(() => {
   }
   
   .header-title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
 }
 </style>

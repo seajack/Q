@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绩效考核系统 - 数据可视化预览</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --text: #1a202c;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --primary: #177fc1;
+    }
+
+    .dark-theme {
+      --bg: #0f172a;
+      --text: #e2e8f0;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --primary: #59b6ea;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .dashboard-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .theme-switch {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .chart-container {
+      height: 300px;
+      width: 100%;
+    }
+
+    .time-range {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .drilldown-message {
+      padding: 10px;
+      background: var(--card-bg);
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">绩效考核数据可视化</h1>
+      <div class="theme-switch" id="themeToggle">
+        🌙 切换深色模式
+      </div>
+    </div>
+
+    <div class="time-range">
+      <select id="timeRangeSelect" class="el-select">
+        <option value="7">最近7天</option>
+        <option value="30" selected>最近30天</option>
+        <option value="90">最近90天</option>
+        <option value="custom">自定义范围</option>
+      </select>
+      <div id="customRange" style="display:none;">
+        <input type="date" id="startDate">
+        <span>至</span>
+        <input type="date" id="endDate">
+        <button id="applyRange">应用</button>
+      </div>
+    </div>
+
+    <div id="drilldownMessage" class="drilldown-message">
+      您正在查看 <strong id="drilldownTarget"></strong> 的详细数据
+      <button id="backButton">返回</button>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>部门绩效对比</h3>
+        </div>
+        <div id="deptChart" class="chart-container"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>评分分布</h3>
+        </div>
+        <div id="distributionChart" class="chart-container"></div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>员工能力雷达图</h3>
+          <select id="employeeSelect">
+            <option value="1">张三</option>
+            <option value="2">李四</option>
+            <option value="3">王五</option>
+          </select>
+        </div>
+        <div id="radarChart" class="chart-container"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>绩效趋势</h3>
+        </div>
+        <div id="trendChart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 主题切换
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      themeToggle.textContent = document.body.classList.contains('dark-theme') 
+        ? '☀️ 切换浅色模式' 
+        : '🌙 切换深色模式';
+      renderCharts();
+    });
+
+    // 时间范围选择
+    const timeRangeSelect = document.getElementById('timeRangeSelect');
+    timeRangeSelect.addEventListener('change', (e) => {
+      if (e.target.value === 'custom') {
+        document.getElementById('customRange').style.display = 'flex';
+      } else {
+        document.getElementById('customRange').style.display = 'none';
+        renderCharts();
+      }
+    });
+
+    // 钻取功能
+    let currentDrilldown = null;
+    
+    function handleChartClick(params) {
+      if (params.componentType === 'series') {
+        currentDrilldown = params.name;
+        document.getElementById('drilldownTarget').textContent = params.name;
+        document.getElementById('drilldownMessage').style.display = 'block';
+        renderDrilldownCharts(params.name);
+      }
+    }
+
+    document.getElementById('backButton').addEventListener('click', () => {
+      currentDrilldown = null;
+      document.getElementById('drilldownMessage').style.display = 'none';
+      renderCharts();
+    });
+
+    // 渲染图表
+    function renderCharts() {
+      // 部门绩效对比图
+      const deptChart = echarts.init(document.getElementById('deptChart'));
+      deptChart.setOption({
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['研发部', '市场部', '销售部', '人力资源', '财务部'],
+          axisLabel: { color: document.body.classList.contains('dark-theme') ? '#e2e8f0' : '#666' }
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: { color: document.body.classList.contains('dark-theme') ? '#e2e8f0' : '#666' }
+        },
+        series: [{
+          data: [82, 78, 95, 88, 76],
+          type: 'bar',
+          itemStyle: {
+            color: document.body.classList.contains('dark-theme') ? '#59b6ea' : '#177fc1'
+          }
+        }]
+      });
+      deptChart.on('click', handleChartClick);
+
+      // 评分分布图
+      const distributionChart = echarts.init(document.getElementById('distributionChart'));
+      distributionChart.setOption({
+        tooltip: {
+          trigger: 'item'
+        },
+        series: [{
+          name: '评分分布',
+          type: 'pie',
+          radius: '70%',
+          data: [
+            { value: 15, name: 'A (90-100)' },
+            { value: 25, name: 'B (80-89)' },
+            { value: 40, name: 'C (70-79)' },
+            { value: 20, name: 'D (60-69)' }
+          ],
+          itemStyle: {
+            color: function(params) {
+              const colorList = document.body.classList.contains('dark-theme') 
+                ? ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444']
+                : ['#059669', '#0284c7', '#d97706', '#dc2626'];
+              return colorList[params.dataIndex];
+            }
+          }
+        }]
+      });
+      distributionChart.on('click', handleChartClick);
+
+      // 雷达图
+      updateRadarChart();
+
+      // 趋势图
+      const trendChart = echarts.init(document.getElementById('trendChart'));
+      trendChart.setOption({
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+          axisLabel: { color: document.body.classList.contains('dark-theme') ? '#e2e8f0' : '#666' }
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: { color: document.body.classList.contains('dark-theme') ? '#e2e8f0' : '#666' }
+        },
+        series: [{
+          data: [75, 78, 82, 85, 83, 87],
+          type: 'line',
+          smooth: true,
+          lineStyle: {
+            color: document.body.classList.contains('dark-theme') ? '#59b6ea' : '#177fc1',
+            width: 3
+          },
+          areaStyle: {
+            color: document.body.classList.contains('dark-theme') 
+              ? 'rgba(89, 182, 234, 0.3)' 
+              : 'rgba(23, 127, 193, 0.3)'
+          }
+        }]
+      });
+    }
+
+    // 更新雷达图
+    function updateRadarChart() {
+      const radarChart = echarts.init(document.getElementById('radarChart'));
+      radarChart.setOption({
+        tooltip: {
+          trigger: 'item'
+        },
+        radar: {
+          indicator: [
+            { name: '专业技能', max: 100 },
+            { name: '团队协作', max: 100 },
+            { name: '创新能力', max: 100 },
+            { name: '沟通能力', max: 100 },
+            { name: '执行力', max: 100 },
+            { name: '学习能力', max: 100 }
+          ],
+          axisName: {
+            color: document.body.classList.contains('dark-theme') ? '#e2e8f0' : '#666'
+          }
+        },
+        series: [{
+          type: 'radar',
+          data: [
+            {
+              value: [90, 85, 80, 88, 92, 78],
+              name: '张三'
+            }
+          ],
+          areaStyle: {
+            color: document.body.classList.contains('dark-theme') 
+              ? 'rgba(89, 182, 234, 0.4)' 
+              : 'rgba(23, 127, 193, 0.4)'
+          }
+        }]
+      });
+    }
+
+    // 员工选择变化
+    document.getElementById('employeeSelect').addEventListener('change', (e) => {
+      const employeeId = e.target.value;
+      // 这里可以根据选择的员工ID加载不同的数据
+      updateRadarChart();
+    });
+
+    // 初始渲染
+    renderCharts();
+  </script>
+</body>
+</html>

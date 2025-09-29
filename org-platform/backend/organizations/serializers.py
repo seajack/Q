@@ -155,6 +155,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     user_info = UserSerializer(source='user', read_only=True)
     department_name = serializers.CharField(source='department.name', read_only=True)
     position_name = serializers.CharField(source='position.name', read_only=True)
+    position_level = serializers.IntegerField(source='position.level', read_only=True)
     position_level_display = serializers.CharField(source='get_position_level_display_name', read_only=True)
     supervisor_name = serializers.CharField(source='supervisor.name', read_only=True)
     subordinate_count = serializers.SerializerMethodField()
@@ -167,7 +168,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'user', 'user_info', 'employee_id', 'name', 'gender', 
                  'birth_date', 'phone', 'email', 'address', 'department', 
-                 'department_name', 'position', 'position_name', 'position_level_display',
+                 'department_name', 'position', 'position_name', 'position_level', 'position_level_display',
                  'supervisor', 'supervisor_name', 'subordinate_count', 'hire_date', 
                  'status', 'avatar', 'username', 'password', 'created_at', 'updated_at']
         extra_kwargs = {

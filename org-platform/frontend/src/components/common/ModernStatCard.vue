@@ -35,9 +35,9 @@ withDefaults(defineProps<Props>(), {
 .modern-stat-card {
   background: white;
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #85b7f8;
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -54,15 +54,16 @@ withDefaults(defineProps<Props>(), {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+  height: 0px;
+  /* border: 0.5px solid #7cc1e1; */
+  /* background: linear-gradient(90deg, #0ea5e9, #0284c7); */
 }
 
 .stat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .stat-title {
@@ -90,9 +91,9 @@ withDefaults(defineProps<Props>(), {
 .stat-icon.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
 .stat-value {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #2a240f;
   margin-bottom: 0.5rem;
 }
 

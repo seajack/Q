@@ -4,7 +4,7 @@ import type { RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    component: () => import('@/layouts/TopNavLayout.vue'),
+    component: () => import('@/layouts/SidebarLayout.vue'),
     children: [
       { path: '', redirect: '/dashboard' },
       {
@@ -30,6 +30,24 @@ const routes: RouteRecordRaw[] = [
         name: 'Employees',
         component: () => import('@/views/Employees.vue'),
         meta: { title: '员工管理' }
+      },
+      {
+        path: 'employees/:id/edit',
+        name: 'EmployeeEdit',
+        component: () => import('@/views/EmployeeEdit.vue'),
+        meta: { title: '编辑员工' }
+      },
+      {
+        path: 'employee-onboarding',
+        name: 'EmployeeOnboarding',
+        component: () => import('@/views/EmployeeOnboarding.vue'),
+        meta: { title: '入职管理' }
+      },
+      {
+        path: 'employee-offboarding',
+        name: 'EmployeeOffboarding',
+        component: () => import('@/views/EmployeeOffboarding.vue'),
+        meta: { title: '离职管理' }
       },
       {
         path: 'organization-tree',

@@ -149,12 +149,12 @@ const toggleExpanded = () => {
 .node-icon {
   width: 2.5rem;
   height: 2.5rem;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: #f3f4f6;
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #6b7280;
   font-size: 1.125rem;
 }
 
@@ -184,7 +184,7 @@ const toggleExpanded = () => {
 }
 
 .node-count {
-  color: #059669;
+  color: #6b7280;
   font-weight: 500;
 }
 
@@ -197,13 +197,13 @@ const toggleExpanded = () => {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  background: #6b7280;
+  box-shadow: none;
 }
 
 .status-dot.inactive {
-  background: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  background: #9ca3af;
+  box-shadow: none;
 }
 
 .node-actions {

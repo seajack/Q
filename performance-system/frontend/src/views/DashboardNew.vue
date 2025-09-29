@@ -1,20 +1,162 @@
 <template>
-  <div class="dashboard-container">
-    <!-- 顶部操作条 -->
-    <div class="dashboard-header">
-      <div class="header-left">
-        <h2 class="dashboard-title">考核看板</h2>
-        <p class="dashboard-subtitle">绩效考核数据洞察与分析</p>
-      </div>
-      <div class="header-actions">
-        <el-select v-model="selectedCycle" placeholder="选择考核周期" style="width:200px" @change="onCycleChange">
-          <el-option v-for="cycle in cycles" :key="cycle.id" :label="cycle.name" :value="cycle.id" />
-        </el-select>
-        <el-input v-model="keyword" placeholder="搜索员工、部门…" style="width:240px" clearable @keyup.enter="onSearch" />
-        <el-button type="primary" @click="onCreate">新增评审</el-button>
-        <el-button @click="refreshData">刷新</el-button>
+  <div class="app-layout">
+    <!-- 侧边菜单 -->
+    <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-svg">
+            <img src="/logo.svg" alt="企业Logo" class="logo">
+          </div>
+          <span class="logo-text" v-show="!isCollapsed">绩效考核</span>
+        </div>
+        <div class="collapse-btn" @click="toggleSidebar">
+          <i :class="isCollapsed ? 'el-icon-s-unfold' : 'el-icon-s-fold'"></i>
         </div>
       </div>
+      
+      <div class="menu-container">
+        <el-menu
+          :default-active="activeMenu"
+          :collapse="isCollapsed"
+          :collapse-transition="false"
+          class="sidebar-menu"
+          background-color="#001529"
+          text-color="#b7c0cd"
+          active-text-color="#ffffff"
+          @select="handleMenuSelect"
+        >
+          <el-menu-item index="dashboard">
+            <i class="el-icon-s-home"></i>
+            <span slot="title">首页概览</span>
+          </el-menu-item>
+          
+          <el-submenu index="org">
+            <template slot="title">
+              <i class="el-icon-office-building"></i>
+              <span>组织管理</span>
+            </template>
+            <el-menu-item index="org-structure">组织架构</el-menu-item>
+            <el-menu-item index="org-department">部门管理</el-menu-item>
+            <el-menu-item index="org-position">岗位管理</el-menu-item>
+          </el-submenu>
+          
+          <el-submenu index="employee">
+            <template slot="title">
+              <i class="el-icon-user"></i>
+              <span>人员管理</span>
+            </template>
+            <el-menu-item index="employee-list">员工列表</el-menu-item>
+            <el-menu-item index="employee-onboarding">入职管理</el-menu-item>
+            <el-menu-item index="employee-offboarding">离职管理</el-menu-item>
+          </el-submenu>
+          
+          <el-submenu index="performance">
+            <template slot="title">
+              <i class="el-icon-s-data"></i>
+              <span>绩效管理</span>
+            </template>
+            <el-menu-item index="performance-cycle">考核周期</el-menu-item>
+            <el-menu-item index="performance-review">绩效评审</el-menu-item>
+            <el-menu-item index="performance-dashboard">绩效看板</el-menu-item>
+          </el-submenu>
+          
+          <el-submenu index="talent">
+            <template slot="title">
+              <i class="el-icon-medal"></i>
+              <span>人才发展</span>
+            </template>
+            <el-menu-item index="talent-plan">发展计划</el-menu-item>
+            <el-menu-item index="talent-training">培训管理</el-menu-item>
+            <el-menu-item index="talent-promotion">晋升管理</el-menu-item>
+          </el-submenu>
+          
+          <el-submenu index="system">
+            <template slot="title">
+              <i class="el-icon-setting"></i>
+              <span>系统设置</span>
+            </template>
+            <el-menu-item index="system-user">用户管理</el-menu-item>
+            <el-menu-item index="system-role">角色权限</el-menu-item>
+            <el-menu-item index="system-log">操作日志</el-menu-item>
+          </el-submenu>
+        </el-menu>
+      </div>
+      
+      <div class="sidebar-footer" v-show="!isCollapsed">
+        <div class="environment-tag">
+          <el-tag size="mini" type="success">生产环境</el-tag>
+        </div>
+        <div class="version-info">v2.5.0</div>
+      </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content" :class="{ 'content-expanded': isCollapsed }">
+      <!-- 顶部导航栏 -->
+      <div class="top-navbar">
+        <div class="navbar-left">
+          <div class="breadcrumb">
+            <el-breadcrumb separator="/">
+              <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+              <el-breadcrumb-item v-for="(item, index) in breadcrumbs" :key="index">
+                {{ item }}
+              </el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
+        </div>
+        
+        <div class="navbar-right">
+          <div class="action-item">
+            <el-tooltip content="消息通知" placement="bottom">
+              <el-badge :value="3" class="notification-badge">
+                <i class="el-icon-bell"></i>
+              </el-badge>
+            </el-tooltip>
+          </div>
+          
+          <div class="action-item">
+            <el-tooltip content="帮助文档" placement="bottom">
+              <i class="el-icon-question"></i>
+            </el-tooltip>
+          </div>
+          
+          <div class="action-item">
+            <el-dropdown trigger="click" @command="handleCommand">
+              <div class="user-profile">
+                <div class="avatar-circle">AD</div>
+                <div class="user-info" v-show="!isCollapsed">
+                  <div class="username">Admin</div>
+                  <div class="role">系统管理员</div>
+                </div>
+                <i class="el-icon-caret-bottom"></i>
+              </div>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                <el-dropdown-item command="settings">账号设置</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 仪表盘内容区 -->
+      <div class="dashboard-container">
+        <!-- 顶部操作条 -->
+        <div class="dashboard-header">
+          <div class="header-left">
+            <h2 class="dashboard-title">考核看板</h2>
+            <p class="dashboard-subtitle">绩效考核数据洞察与分析</p>
+          </div>
+          <div class="header-actions">
+            <el-select v-model="selectedCycle" placeholder="选择考核周期" style="width:200px" @change="onCycleChange">
+              <el-option v-for="cycle in cycles" :key="cycle.id" :label="cycle.name" :value="cycle.id" />
+            </el-select>
+            <el-input v-model="keyword" placeholder="搜索员工、部门…" style="width:240px" clearable @keyup.enter="onSearch" />
+            <el-button type="primary" @click="onCreate">新增评审</el-button>
+            <el-button @click="refreshData">刷新</el-button>
+          </div>
+        </div>
 
     <!-- 截止日期提醒 -->
     <DeadlineReminder />
@@ -224,6 +366,8 @@
         </el-table>
         </div>
       </section>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -239,6 +383,11 @@ import DeadlineReminder from '@/components/DeadlineReminder.vue'
 const brand600 = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-600').trim() || '#177fc1'
 const brand400 = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-400').trim() || '#59b6ea'
 const brand700 = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-700').trim() || '#115f96'
+
+// 菜单相关
+const isCollapsed = ref(false)
+const activeMenu = ref('performance-dashboard')
+const breadcrumbs = ref(['绩效管理', '绩效看板'])
 
 // 响应式数据
 const loading = ref(false)
@@ -281,7 +430,53 @@ const pendingTrend = computed(() => {
   return Math.floor(Math.random() * 5) + 1
 })
 
-// 事件处理
+// 菜单事件处理
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value
+  localStorage.setItem('sidebarCollapsed', isCollapsed.value.toString())
+}
+
+const handleMenuSelect = (index: string) => {
+  activeMenu.value = index
+  
+  // 设置面包屑
+  const menuMap: Record<string, string[]> = {
+    'dashboard': ['首页概览'],
+    'org-structure': ['组织管理', '组织架构'],
+    'org-department': ['组织管理', '部门管理'],
+    'org-position': ['组织管理', '岗位管理'],
+    'employee-list': ['人员管理', '员工列表'],
+    'employee-onboarding': ['人员管理', '入职管理'],
+    'employee-offboarding': ['人员管理', '离职管理'],
+    'performance-cycle': ['绩效管理', '考核周期'],
+    'performance-review': ['绩效管理', '绩效评审'],
+    'performance-dashboard': ['绩效管理', '绩效看板'],
+    'talent-plan': ['人才发展', '发展计划'],
+    'talent-training': ['人才发展', '培训管理'],
+    'talent-promotion': ['人才发展', '晋升管理'],
+    'system-user': ['系统设置', '用户管理'],
+    'system-role': ['系统设置', '角色权限'],
+    'system-log': ['系统设置', '操作日志']
+  }
+  
+  breadcrumbs.value = menuMap[index] || ['首页概览']
+  
+  // 路由跳转 - 实际项目中应该使用router.push
+  console.log(`导航到: ${index}`)
+}
+
+const handleCommand = (command: string) => {
+  if (command === 'logout') {
+    // 退出登录逻辑
+    console.log('退出登录')
+  } else if (command === 'profile') {
+    console.log('查看个人信息')
+  } else if (command === 'settings') {
+    console.log('账号设置')
+  }
+}
+
+// 仪表盘事件处理
 const onCycleChange = () => {
   loadData()
 }
@@ -913,6 +1108,12 @@ const initCharts = () => {
 }
 
 onMounted(async () => {
+  // 从本地存储恢复侧边栏状态
+  const savedState = localStorage.getItem('sidebarCollapsed')
+  if (savedState !== null) {
+    isCollapsed.value = savedState === 'true'
+  }
+  
   initCharts()
   await loadData()
 })
@@ -933,10 +1134,299 @@ const getStatusText = (status: string) => {
 </script>
 
 <style scoped>
+/* 应用布局样式 */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+  width: 240px;
+  height: 100%;
+  background-color: #001529;
+  color: #b7c0cd;
+  transition: width 0.3s;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.sidebar-collapsed {
+  width: 64px;
+}
+
+.sidebar-header {
+  height: 64px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.logo-svg {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.logo {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s;
+  filter: brightness(1.1) contrast(1.1);
+  border-radius: 4px;
+}
+
+.sidebar-collapsed .logo {
+  width: 16px;
+  height: 16px;
+}
+
+/* 暗色主题下的logo优化 */
+.dark-theme .logo {
+  filter: brightness(1.2) contrast(1.2);
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.collapse-btn {
+  cursor: pointer;
+  font-size: 18px;
+  color: #b7c0cd;
+  transition: color 0.3s;
+}
+
+.collapse-btn:hover {
+  color: #ffffff;
+}
+
+.menu-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-menu {
+  border-right: none;
+}
+
+/* 次级菜单样式修复 - 颜色反转 + 缩进和图标 */
+.sidebar-menu :deep(.el-submenu .el-menu-item) {
+  height: 45px;
+  line-height: 45px;
+  color: #001529; /* 使用侧边栏背景色作为文字颜色 */
+  background-color: #b7c0cd; /* 使用侧边栏文字颜色作为背景色 */
+  padding-left: 60px; /* 增加更多缩进 */
+  border-left: 3px solid transparent;
+  transition: all 0.3s;
+  font-weight: 500;
+  position: relative;
+}
+
+/* 为二级菜单添加更美观的图标 */
+.sidebar-menu :deep(.el-submenu .el-menu-item::before) {
+  content: "•";
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #001529;
+  transition: all 0.3s;
+  font-weight: bold;
+}
+
+.sidebar-menu :deep(.el-submenu .el-menu-item:hover) {
+  color: #001529; /* 保持侧边栏背景色 */
+  background-color: #a0a8b5; /* 悬停时背景色稍深 */
+  border-left-color: #001529; /* 边框使用侧边栏背景色 */
+  font-weight: 600;
+}
+
+.sidebar-menu :deep(.el-submenu .el-menu-item:hover::before) {
+  content: "▶";
+  transform: translateY(-50%) translateX(3px); /* 悬停时图标向右移动 */
+  color: #001529;
+  font-size: 10px;
+}
+
+.sidebar-menu :deep(.el-submenu .el-menu-item.is-active) {
+  color: #001529; /* 保持侧边栏背景色 */
+  background-color: #8a919d; /* 激活时背景色更深 */
+  border-left-color: #001529; /* 边框使用侧边栏背景色 */
+  font-weight: 600;
+  box-shadow: inset 0 0 8px rgba(0, 21, 41, 0.1); /* 内阴影使用侧边栏背景色 */
+}
+
+.sidebar-menu :deep(.el-submenu .el-menu-item.is-active::before) {
+  content: "◆"; /* 激活时显示菱形 */
+  transform: translateY(-50%);
+  color: #001529;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* 暗色主题下的次级菜单 - 颜色反转 */
+.dark-theme .sidebar-menu :deep(.el-submenu .el-menu-item) {
+  color: #001529; /* 使用侧边栏背景色作为文字颜色 */
+  background-color: #b7c0cd; /* 使用侧边栏文字颜色作为背景色 */
+  font-weight: 500;
+}
+
+.dark-theme .sidebar-menu :deep(.el-submenu .el-menu-item:hover) {
+  color: #001529; /* 保持侧边栏背景色 */
+  background-color: #a0a8b5; /* 悬停时背景色稍深 */
+  border-left-color: #001529; /* 边框使用侧边栏背景色 */
+  font-weight: 600;
+}
+
+.dark-theme .sidebar-menu :deep(.el-submenu .el-menu-item.is-active) {
+  color: #001529; /* 保持侧边栏背景色 */
+  background-color: #8a919d; /* 激活时背景色更深 */
+  border-left-color: #001529; /* 边框使用侧边栏背景色 */
+  font-weight: 600;
+  box-shadow: inset 0 0 12px rgba(0, 21, 41, 0.15); /* 内阴影使用侧边栏背景色 */
+}
+
+.sidebar-footer {
+  height: 40px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.environment-tag {
+  font-size: 12px;
+}
+
+.version-info {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* 主内容区样式 */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s;
+  background-color: #f0f2f5;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.content-expanded {
+  margin-left: -176px;
+}
+
+/* 顶部导航栏样式 */
+.top-navbar {
+  height: 64px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb {
+  font-size: 14px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.action-item {
+  padding: 0 12px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #606266;
+  transition: color 0.3s;
+}
+
+.action-item:hover {
+  color: #409EFF;
+}
+
+.notification-badge {
+  line-height: 1;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.user-info {
+  margin-right: 8px;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+  line-height: 1.2;
+}
+
+.role {
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.2;
+}
+
+/* 仪表盘容器样式 */
 .dashboard-container {
-  padding: 16px;
+  padding: 8px;
   background: #f8fafc;
-  min-height: 100vh;
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* 头部样式 */
@@ -982,7 +1472,8 @@ const getStatusText = (status: string) => {
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .kpi-card {
@@ -1289,6 +1780,26 @@ const getStatusText = (status: string) => {
   
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed;
+    z-index: 1001;
+    height: 100%;
+  }
+  
+  .sidebar-collapsed {
+    transform: translateX(-100%);
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+  
+  .top-navbar {
+    padding: 0 16px;
   }
 }
 

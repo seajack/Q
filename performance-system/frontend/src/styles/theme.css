@@ -1270,3 +1270,319 @@ hr {
   .lg\:p-8 { padding: var(--spacing-8); }
   .lg\:m-8 { margin: var(--spacing-8); }
 }
+
+/* 暗色主题支持 */
+.dark-theme {
+  /* 背景色系统 */
+  --surface-primary: #0d1117;
+  --surface-secondary: #161b22;
+  --surface-tertiary: #21262d;
+  --surface-quaternary: #30363d;
+  --surface-overlay: rgba(0, 0, 0, 0.9);
+  --surface-disabled: #21262d;
+  
+  /* 文本色系统 */
+  --text-primary: #f0f6fc;
+  --text-secondary: #c9d1d9;
+  --text-tertiary: #8b949e;
+  --text-quaternary: #6e7681;
+  --text-inverse: #0d1117;
+  --text-disabled: #484f58;
+  --text-link: #58a6ff;
+  --text-link-hover: #79c0ff;
+  
+  /* 边框色系统 */
+  --border-subtle: #21262d;
+  --border-default: #30363d;
+  --border-strong: #484f58;
+  --border-focus: #1f6feb;
+  --border-error: #f85149;
+  --border-disabled: #21262d;
+  
+  /* 阴影系统 */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.7), 0 1px 2px -1px rgba(0, 0, 0, 0.7);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.7), 0 2px 4px -2px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  --shadow-focus: 0 0 0 3px rgba(31, 111, 235, 0.3);
+  
+  /* 覆盖所有Element Plus组件的默认背景 */
+  .el-card,
+  .el-card__header,
+  .el-card__body,
+  .el-card__footer {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖表格相关背景 */
+  .el-table,
+  .el-table__header,
+  .el-table__body,
+  .el-table th,
+  .el-table td {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖表单相关背景 */
+  .el-form,
+  .el-form-item,
+  .el-form-item__label,
+  .el-form-item__content {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖导航相关背景 */
+  .el-menu,
+  .el-menu-item,
+  .el-submenu,
+  .el-submenu__title {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖按钮相关背景 */
+  .el-button {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+  }
+  
+  /* 覆盖输入框相关背景 */
+  .el-input__wrapper,
+  .el-input__inner,
+  .el-textarea__inner {
+    background-color: var(--surface-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+  }
+  
+  /* 覆盖选择器相关背景 */
+  .el-select,
+  .el-select-dropdown,
+  .el-option {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖分页相关背景 */
+  .el-pagination,
+  .el-pager li {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖标签页相关背景 */
+  .el-tabs,
+  .el-tabs__header,
+  .el-tabs__content,
+  .el-tab-pane {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖对话框相关背景 */
+  .el-dialog,
+  .el-dialog__header,
+  .el-dialog__body,
+  .el-dialog__footer {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖抽屉相关背景 */
+  .el-drawer,
+  .el-drawer__header,
+  .el-drawer__body {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖消息框相关背景 */
+  .el-message,
+  .el-message-box {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖通知相关背景 */
+  .el-notification {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖工具提示相关背景 */
+  .el-tooltip__popper {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖下拉菜单相关背景 */
+  .el-dropdown-menu,
+  .el-dropdown-menu__item {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖树形控件相关背景 */
+  .el-tree,
+  .el-tree-node {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖级联选择器相关背景 */
+  .el-cascader,
+  .el-cascader-panel {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖日期选择器相关背景 */
+  .el-date-picker,
+  .el-date-range-picker {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖穿梭框相关背景 */
+  .el-transfer {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖上传相关背景 */
+  .el-upload,
+  .el-upload-dragger {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖颜色选择器相关背景 */
+  .el-color-picker {
+    background-color: var(--surface-primary) !important;
+  }
+  
+  /* 覆盖骨架屏相关背景 */
+  .el-skeleton {
+    background-color: var(--surface-primary) !important;
+  }
+  
+  /* 覆盖空状态相关背景 */
+  .el-empty {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖结果页相关背景 */
+  .el-result {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖描述列表相关背景 */
+  .el-descriptions,
+  .el-descriptions__header,
+  .el-descriptions__body {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖统计数值相关背景 */
+  .el-statistic {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖锚点相关背景 */
+  .el-anchor {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖回到顶部相关背景 */
+  .el-backtop {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖虚拟滚动相关背景 */
+  .el-virtual-list {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖分割线相关背景 */
+  .el-divider {
+    background-color: var(--border-default) !important;
+  }
+  
+  /* 覆盖头像相关背景 */
+  .el-avatar {
+    background-color: var(--border-default) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖标签相关背景 */
+  .el-tag {
+    background-color: var(--surface-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+  }
+  
+  /* 覆盖链接相关背景 */
+  .el-link {
+    background-color: transparent !important;
+    color: var(--text-link) !important;
+  }
+  
+  /* 覆盖文本相关背景 */
+  .el-text {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖段落相关背景 */
+  .el-paragraph {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖标题相关背景 */
+  .el-title {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖分割面板相关背景 */
+  .el-split {
+    background-color: var(--surface-primary) !important;
+  }
+  
+  /* 覆盖滚动条相关背景 */
+  .el-scrollbar {
+    background-color: var(--surface-primary) !important;
+  }
+  
+  /* 覆盖虚拟化表格相关背景 */
+  .el-table-v2 {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖虚拟化列表相关背景 */
+  .el-virtual-list__container {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* 覆盖虚拟化网格相关背景 */
+  .el-virtual-grid {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+  }
+}

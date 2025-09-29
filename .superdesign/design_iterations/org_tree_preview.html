@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美化组织架构部门树 - 预览</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="org_tree_theme.css">
+    <style>
+        /* 页面布局 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+            padding: var(--space-4) var(--space-6);
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--space-2) var(--space-3) var(--space-2) 2rem;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            background: var(--bg-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: var(--space-2);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: var(--space-4);
+            height: calc(100vh - 200px);
+        }
+
+        .tree-panel {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .tree-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-tertiary);
+        }
+
+        .tree-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tree-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .tree-content {
+            padding: var(--space-3);
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        .tree-node {
+            margin-bottom: var(--space-1);
+            position: relative;
+        }
+
+        .tree-node-content {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: 1px solid transparent;
+        }
+
+        .tree-node-content:hover {
+            background: var(--primary-bg);
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .tree-node-content.selected {
+            background: var(--primary-bg);
+            border-color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .tree-node-icon {
+            font-size: 1rem;
+            opacity: 0.8;
+            width: 1.25rem;
+            text-align: center;
+        }
+
+        .tree-node-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tree-node-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+            font-size: 0.875rem;
+        }
+
+        .tree-node-meta {
+            font-size: 0.625rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .tree-node-badge {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .members-panel {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .members-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-tertiary);
+        }
+
+        .members-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .members-content {
+            padding: var(--space-3);
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        .employee-card {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            margin-bottom: var(--space-2);
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-normal);
+        }
+
+        .employee-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .employee-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .employee-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+            font-size: 0.875rem;
+        }
+
+        .employee-position {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-1);
+        }
+
+        .employee-contact {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: 0.625rem;
+            color: var(--text-tertiary);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .status-indicator {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 50%;
+            background: var(--success);
+            margin-right: var(--space-1);
+        }
+
+        .status-indicator.away {
+            background: var(--warning);
+        }
+
+        .status-indicator.offline {
+            background: var(--gray-400);
+        }
+
+        /* 滚动条样式 */
+        .tree-content::-webkit-scrollbar,
+        .members-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tree-content::-webkit-scrollbar-track,
+        .members-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 3px;
+        }
+
+        .tree-content::-webkit-scrollbar-thumb,
+        .members-content::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 3px;
+        }
+
+        .tree-content::-webkit-scrollbar-thumb:hover,
+        .members-content::-webkit-scrollbar-thumb:hover {
+            background: var(--border-dark);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .tree-panel {
+                order: 2;
+            }
+            
+            .members-panel {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-4);
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: var(--space-4);
+                align-items: stretch;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .main-grid {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <div class="header-title">
+                <i class="fas fa-building"></i>
+                组织架构管理
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="搜索部门或员工...">
+                </div>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-chart-bar"></i>
+                    统计
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-cog"></i>
+                    设置
+                </button>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-grid">
+            <!-- 左侧部门树 -->
+            <div class="tree-panel">
+                <div class="tree-header">
+                    <div class="tree-title">
+                        <i class="fas fa-sitemap"></i>
+                        部门树
+                    </div>
+                    <div class="tree-actions">
+                        <button class="btn btn-secondary" style="padding: var(--space-2);">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                        <button class="btn btn-secondary" style="padding: var(--space-2);">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="tree-content">
+                    <!-- 总公司 -->
+                    <div class="tree-node">
+                        <div class="tree-node-content selected">
+                            <div class="tree-node-icon">🏢</div>
+                            <div class="tree-node-info">
+                                <div class="tree-node-name">总公司</div>
+                                <div class="tree-node-meta">
+                                    <span>3个子部门</span>
+                                    <span>•</span>
+                                    <span>156人</span>
+                                </div>
+                            </div>
+                            <div class="tree-node-badge">
+                                <span class="badge badge-primary">156人</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 技术部 -->
+                    <div class="tree-node" style="margin-left: 1.5rem;">
+                        <div class="tree-node-content">
+                            <div class="tree-node-icon">💻</div>
+                            <div class="tree-node-info">
+                                <div class="tree-node-name">技术部</div>
+                                <div class="tree-node-meta">
+                                    <span>2个子部门</span>
+                                    <span>•</span>
+                                    <span>45人</span>
+                                </div>
+                            </div>
+                            <div class="tree-node-badge">
+                                <span class="badge badge-primary">45人</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 前端组 -->
+                    <div class="tree-node" style="margin-left: 3rem;">
+                        <div class="tree-node-content">
+                            <div class="tree-node-icon">🎨</div>
+                            <div class="tree-node-info">
+                                <div class="tree-node-name">前端组</div>
+                                <div class="tree-node-meta">
+                                    <span>18人</span>
+                                </div>
+                            </div>
+                            <div class="tree-node-badge">
+                                <span class="badge badge-success">18人</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 后端组 -->
+                    <div class="tree-node" style="margin-left: 3rem;">
+                        <div class="tree-node-content">
+                            <div class="tree-node-icon">⚙️</div>
+                            <div class="tree-node-info">
+                                <div class="tree-node-name">后端组</div>
+                                <div class="tree-node-meta">
+                                    <span>27人</span>
+                                </div>
+                            </div>
+                            <div class="tree-node-badge">
+                                <span class="badge badge-success">27人</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 市场部 -->
+                    <div class="tree-node" style="margin-left: 1.5rem;">
+                        <div class="tree-node-content">
+                            <div class="tree-node-icon">📊</div>
+                            <div class="tree-node-info">
+                                <div class="tree-node-name">市场部</div>
+                                <div class="tree-node-meta">
+                                    <span>1个子部门</span>
+                                    <span>•</span>
+                                    <span>32人</span>
+                                </div>
+                            </div>
+                            <div class="tree-node-badge">
+                                <span class="badge badge-primary">32人</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 销售部 -->
+                    <div class="tree-node" style="margin-left: 1.5rem;">
+                        <div class="tree-node-content">
+                            <div class="tree-node-icon">🎯</div>
+                            <div class="tree-node-info">
+                                <div class="tree-node-name">销售部</div>
+                                <div class="tree-node-meta">
+                                    <span>79人</span>
+                                </div>
+                            </div>
+                            <div class="tree-node-badge">
+                                <span class="badge badge-warning">79人</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧成员列表 -->
+            <div class="members-panel">
+                <div class="members-header">
+                    <div class="members-title">
+                        <i class="fas fa-users"></i>
+                        成员列表
+                        <span class="badge badge-primary">45人</span>
+                    </div>
+                    <div class="tree-actions">
+                        <button class="btn btn-secondary" style="padding: var(--space-2);">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                        <button class="btn btn-secondary" style="padding: var(--space-2);">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="members-content">
+                    <!-- 员工卡片1 -->
+                    <div class="employee-card">
+                        <div class="employee-avatar">张</div>
+                        <div class="employee-info">
+                            <div class="employee-name">张三</div>
+                            <div class="employee-position">
+                                <span class="status-indicator"></span>
+                                <span>技术总监</span>
+                                <span class="badge badge-primary">L5</span>
+                            </div>
+                            <div class="employee-contact">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>zhangsan@company.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>138-0000-0000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 员工卡片2 -->
+                    <div class="employee-card">
+                        <div class="employee-avatar">李</div>
+                        <div class="employee-info">
+                            <div class="employee-name">李四</div>
+                            <div class="employee-position">
+                                <span class="status-indicator away"></span>
+                                <span>产品经理</span>
+                                <span class="badge badge-success">L4</span>
+                            </div>
+                            <div class="employee-contact">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>lisi@company.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>139-0000-0000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 员工卡片3 -->
+                    <div class="employee-card">
+                        <div class="employee-avatar">王</div>
+                        <div class="employee-info">
+                            <div class="employee-name">王五</div>
+                            <div class="employee-position">
+                                <span class="status-indicator"></span>
+                                <span>前端工程师</span>
+                                <span class="badge badge-warning">L3</span>
+                            </div>
+                            <div class="employee-contact">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>wangwu@company.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>137-0000-0000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 员工卡片4 -->
+                    <div class="employee-card">
+                        <div class="employee-avatar">赵</div>
+                        <div class="employee-info">
+                            <div class="employee-name">赵六</div>
+                            <div class="employee-position">
+                                <span class="status-indicator offline"></span>
+                                <span>后端工程师</span>
+                                <span class="badge badge-warning">L3</span>
+                            </div>
+                            <div class="employee-contact">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>zhaoliu@company.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>136-0000-0000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 员工卡片5 -->
+                    <div class="employee-card">
+                        <div class="employee-avatar">陈</div>
+                        <div class="employee-info">
+                            <div class="employee-name">陈七</div>
+                            <div class="employee-position">
+                                <span class="status-indicator"></span>
+                                <span>UI设计师</span>
+                                <span class="badge badge-success">L2</span>
+                            </div>
+                            <div class="employee-contact">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>chenqi@company.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>135-0000-0000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 树节点点击效果
+            const treeNodes = document.querySelectorAll('.tree-node-content');
+            treeNodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    // 移除其他选中状态
+                    treeNodes.forEach(n => n.classList.remove('selected'));
+                    // 添加选中状态
+                    this.classList.add('selected');
+                });
+            });
+
+            // 员工卡片悬停效果
+            const employeeCards = document.querySelectorAll('.employee-card');
+            employeeCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // 搜索框功能
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const cards = document.querySelectorAll('.employee-card');
+                
+                cards.forEach(card => {
+                    const name = card.querySelector('.employee-name').textContent.toLowerCase();
+                    const position = card.querySelector('.employee-position span:nth-child(2)').textContent.toLowerCase();
+                    
+                    if (name.includes(searchTerm) || position.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -79,10 +79,10 @@
       <!-- 职位列表 -->
       <ModernCard title="职位列表" icon="List" class="position-list">
         <template #actions>
-          <ModernButton type="secondary" icon="Filter" size="small">
+          <ModernButton type="primary" icon="Filter" size="small">
             筛选
           </ModernButton>
-          <ModernButton type="secondary" icon="Refresh" size="small" @click="loadData">
+          <ModernButton type="success" icon="Refresh" size="small" @click="loadData">
             刷新
           </ModernButton>
         </template>
@@ -95,8 +95,9 @@
             @click="selectPosition(position)"
           >
             <div class="position-header">
-              <div class="position-avatar" :class="getAvatarClass(position.name)">
-                {{ (position.name || '').charAt(0).toUpperCase() }}
+              <div class="position-title">
+                <h4 class="position-name">{{ position.name }}</h4>
+                <span class="position-code">{{ position.code }}</span>
               </div>
               <div class="position-status">
                 <el-tag :type="position.is_active ? 'success' : 'danger'" size="small" effect="light">
@@ -105,25 +106,16 @@
               </div>
             </div>
             
-            <div class="position-info">
-              <h4 class="position-name">{{ position.name }}</h4>
-              <p class="position-code">{{ position.code }}</p>
-              <div class="position-meta">
+            <div class="position-meta">
+              <div class="meta-item">
                 <el-tag :type="getManagementType(position.management_level)" size="small" effect="plain">
                   {{ getManagementLabel(position.management_level) }}
                 </el-tag>
                 <span class="position-level">{{ position.level_display || '未设置' }}</span>
               </div>
-            </div>
-            
-            <div class="position-details">
-              <div class="detail-item" v-if="position.department_name">
-                <el-icon><OfficeBuilding /></el-icon>
-                <span>{{ position.department_name }}</span>
-              </div>
-              <div class="detail-item">
-                <el-icon><User /></el-icon>
-                <span>{{ position.employee_count || 0 }}人</span>
+              <div class="position-details">
+                <span v-if="position.department_name" class="detail-text">{{ position.department_name }}</span>
+                <span class="detail-text">{{ position.employee_count || 0 }}人</span>
               </div>
             </div>
             
@@ -486,7 +478,7 @@ const getAvatarClass = (name: string = '') => {
 .positions-page {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0.5rem 2rem 2rem 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
   min-height: 100vh;
 }
@@ -495,8 +487,9 @@ const getAvatarClass = (name: string = '') => {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
 }
 
 /* 主内容区域 */
@@ -584,8 +577,8 @@ const getAvatarClass = (name: string = '') => {
 
 .position-card {
   background: white;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 6px;
+  padding: 0.75rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border: 1px solid #e2e8f0;
   cursor: pointer;
@@ -594,7 +587,8 @@ const getAvatarClass = (name: string = '') => {
   overflow: hidden;
 }
 
-.position-card::before {
+/* 移除顶部颜色条 */
+/* .position-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -602,7 +596,7 @@ const getAvatarClass = (name: string = '') => {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #10b981, #059669);
-}
+} */
 
 .position-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -613,10 +607,11 @@ const getAvatarClass = (name: string = '') => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-.position-avatar {
+/* 移除头像样式 */
+/* .position-avatar {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.5rem;
@@ -627,7 +622,7 @@ const getAvatarClass = (name: string = '') => {
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.05em;
-}
+} */
 
 .position-avatar.c1 { background: linear-gradient(135deg, #177fc1, #4faee7); }
 .position-avatar.c2 { background: linear-gradient(135deg, #ef4444, #f97316); }
@@ -636,14 +631,18 @@ const getAvatarClass = (name: string = '') => {
 .position-avatar.c5 { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
 .position-avatar.c6 { background: linear-gradient(135deg, #64748b, #0ea5e9); }
 
+.position-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .position-status {
   display: flex;
   align-items: center;
 }
 
-.position-info {
-  margin-bottom: 1rem;
-}
+/* 移除不需要的样式 */
 
 .position-name {
   font-size: 1rem;
@@ -655,17 +654,30 @@ const getAvatarClass = (name: string = '') => {
 .position-code {
   font-size: 0.75rem;
   color: #6b7280;
-  background: #f3f4f6;
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-  display: inline-block;
-  margin: 0 0 0.75rem 0;
+  margin: 0;
 }
 
 .position-meta {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.meta-item {
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+.position-details {
+  display: flex;
+  gap: 1rem;
+}
+
+.detail-text {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .position-level {
@@ -676,23 +688,7 @@ const getAvatarClass = (name: string = '') => {
   color: #6b7280;
 }
 
-.position-details {
-  margin-bottom: 1rem;
-  min-height: 2.5rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-bottom: 0.25rem;
-}
-
-.detail-item:last-child {
-  margin-bottom: 0;
-}
+/* 移除重复的样式 */
 
 .detail-item span {
   overflow: hidden;

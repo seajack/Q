@@ -53,6 +53,18 @@ const routes = [
     meta: { title: '员工管理', layout: 'topnav' }
   },
   {
+    path: '/employee-onboarding',
+    name: 'EmployeeOnboarding',
+    component: () => import('@/views/EmployeeOnboarding.vue'),
+    meta: { title: '入职管理', layout: 'topnav' }
+  },
+  {
+    path: '/employee-offboarding',
+    name: 'EmployeeOffboarding',
+    component: () => import('@/views/EmployeeOffboarding.vue'),
+    meta: { title: '离职管理', layout: 'topnav' }
+  },
+  {
     path: '/tasks',
     name: 'EvaluationTasks',
     component: () => import('@/views/TasksNew.vue'),

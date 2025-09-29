@@ -100,9 +100,10 @@
             @click="selectTemplate(template)"
           >
             <div class="template-header">
-              <div class="template-icon">
+              <!-- 去掉图标 -->
+              <!-- <div class="template-icon">
                 <el-icon><Document /></el-icon>
-              </div>
+              </div> -->
               <div class="template-status">
                 <el-tag :type="template.is_active ? 'success' : 'danger'" size="small" effect="light">
                   {{ template.is_active ? '启用' : '禁用' }}
@@ -578,7 +579,8 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.template-card::before {
+/* 去掉顶部颜色条 */
+/* .template-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -586,7 +588,7 @@ onMounted(() => {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #10b981, #059669);
-}
+} */
 
 .template-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -595,7 +597,7 @@ onMounted(() => {
 
 .template-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-start;
   margin-bottom: 1rem;
 }

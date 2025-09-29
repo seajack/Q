@@ -38,7 +38,7 @@ defineProps<Props>()
 }
 
 .card-header {
-  padding: 1.5rem;
+  padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -60,11 +60,11 @@ defineProps<Props>()
 }
 
 .card-body {
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .card-footer {
-  padding: 1.5rem;
+  padding: 1rem;
   border-top: 1px solid #e2e8f0;
   background: #f8fafc;
 }

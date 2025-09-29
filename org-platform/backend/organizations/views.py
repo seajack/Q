@@ -13,7 +13,6 @@ from .serializers import (
     OrganizationStructureSerializer, OrganizationStatsSerializer,
     SystemConfigSerializer, DictionarySerializer, PositionTemplateSerializer, WorkflowRuleSerializer
 )
-from .tenant_middleware import TenantContextMixin, get_current_tenant
 
 
 @extend_schema_view(
@@ -23,7 +22,7 @@ from .tenant_middleware import TenantContextMixin, get_current_tenant
     update=extend_schema(summary='更新部门', tags=['部门管理']),
     destroy=extend_schema(summary='删除部门', tags=['部门管理']),
 )
-class DepartmentViewSet(TenantContextMixin, viewsets.ModelViewSet):
+class DepartmentViewSet(viewsets.ModelViewSet):
     """部门管理ViewSet"""
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
@@ -42,21 +41,7 @@ class DepartmentViewSet(TenantContextMixin, viewsets.ModelViewSet):
     def tree(self, request):
         """获取部门树形结构"""
         # 只获取根部门（parent为None）
-        # 如果没有租户信息，获取所有部门；否则按租户过滤
-        tenant = get_current_tenant()
-        if tenant:
-            root_departments = Department.objects.filter(
-                parent=None, 
-                is_active=True, 
-                tenant=tenant
-            ).order_by('sort_order')
-        else:
-            # 兼容性：如果没有租户信息，获取所有部门
-            root_departments = Department.objects.filter(
-                parent=None, 
-                is_active=True
-            ).order_by('sort_order')
-        
+        root_departments = Department.objects.filter(parent=None, is_active=True).order_by('sort_order')
         serializer = DepartmentTreeSerializer(root_departments, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -70,45 +55,30 @@ class DepartmentViewSet(TenantContextMixin, viewsets.ModelViewSet):
         """获取包含员工的完整组织架构树"""
         from django.db.models import Prefetch
         
-        # 获取租户信息
-        tenant = get_current_tenant()
-        
         # 获取所有部门，按层级和排序顺序
-        if tenant:
-            departments = Department.objects.filter(
-                is_active=True, 
-                tenant=tenant
-            ).prefetch_related(
-                Prefetch('employees', 
-                        queryset=Employee.objects.filter(
-                            status='active',
-                            tenant=tenant
-                        ).select_related('position')
-                        .order_by('-position__level', 'name'))
-            ).order_by('level', 'sort_order')
-            
-            # 获取高层领导（无上级且职位级别高的员工）
-            top_executives = Employee.objects.filter(
-                supervisor=None, 
-                status='active',
-                tenant=tenant,
-                position__level__gte=10  # 高层职位级别
-            ).select_related('position', 'department').order_by('-position__level', 'name')
-        else:
-            # 兼容性：如果没有租户信息，获取所有部门
-            departments = Department.objects.filter(is_active=True).prefetch_related(
-                Prefetch('employees', 
-                        queryset=Employee.objects.filter(status='active')
-                        .select_related('position')
-                        .order_by('-position__level', 'name'))
-            ).order_by('level', 'sort_order')
-            
-            # 获取高层领导（无上级且职位级别高的员工）
-            top_executives = Employee.objects.filter(
-                supervisor=None, 
-                status='active',
-                position__level__gte=10  # 高层职位级别
-            ).select_related('position', 'department').order_by('-position__level', 'name')
+        departments = Department.objects.filter(is_active=True).prefetch_related(
+            Prefetch('employees', 
+                    queryset=Employee.objects.filter(status='active')
+                    .select_related('position')
+                    .order_by('-position__level', 'name'))
+        ).order_by('level', 'sort_order')
+        
+        # 获取高层领导（无上级且职位级别高的员工）
+        # 使用自定义排序：董事长 > 总经理 > 其他高管
+        from django.db.models import Case, When, IntegerField
+        
+        top_executives = Employee.objects.filter(
+            supervisor=None, 
+            status='active',
+            position__level__gte=10  # 高层职位级别
+        ).select_related('position', 'department').annotate(
+            sort_priority=Case(
+                When(position__name__icontains='董事长', then=1),
+                When(position__name__icontains='总经理', then=2),
+                default=3,
+                output_field=IntegerField()
+            )
+        ).order_by('sort_priority', '-position__level', 'name')
         
         # 构建树形结构
         def build_department_tree(departments_list, parent_id=None):
@@ -207,7 +177,7 @@ class DepartmentViewSet(TenantContextMixin, viewsets.ModelViewSet):
     update=extend_schema(summary='更新职位', tags=['职位管理']),
     destroy=extend_schema(summary='删除职位', tags=['职位管理']),
 )
-class PositionViewSet(TenantContextMixin, viewsets.ModelViewSet):
+class PositionViewSet(viewsets.ModelViewSet):
     """职位管理ViewSet"""
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
@@ -238,7 +208,7 @@ class PositionViewSet(TenantContextMixin, viewsets.ModelViewSet):
     update=extend_schema(summary='更新员工', tags=['员工管理']),
     destroy=extend_schema(summary='删除员工', tags=['员工管理']),
 )
-class EmployeeViewSet(TenantContextMixin, viewsets.ModelViewSet):
+class EmployeeViewSet(viewsets.ModelViewSet):
     """员工管理ViewSet"""
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
@@ -366,50 +336,25 @@ class OrganizationStatsView(viewsets.GenericViewSet):
     @action(detail=False, methods=['get'])
     def overview(self, request):
         """获取组织架构统计信息"""
-        # 获取租户信息
-        tenant = get_current_tenant()
-        
         # 基本统计
-        if tenant:
-            total_departments = Department.objects.filter(tenant=tenant).count()
-            active_departments = Department.objects.filter(tenant=tenant, is_active=True).count()
-            total_positions = Position.objects.filter(tenant=tenant).count()
-            active_positions = Position.objects.filter(tenant=tenant, is_active=True).count()
-            total_employees = Employee.objects.filter(tenant=tenant).count()
-            active_employees = Employee.objects.filter(tenant=tenant, status='active').count()
-        else:
-            # 兼容性：如果没有租户信息，获取所有数据
-            total_departments = Department.objects.count()
-            active_departments = Department.objects.filter(is_active=True).count()
-            total_positions = Position.objects.count()
-            active_positions = Position.objects.filter(is_active=True).count()
-            total_employees = Employee.objects.count()
-            active_employees = Employee.objects.filter(status='active').count()
+        total_departments = Department.objects.count()
+        active_departments = Department.objects.filter(is_active=True).count()
+        total_positions = Position.objects.count()
+        active_positions = Position.objects.filter(is_active=True).count()
+        total_employees = Employee.objects.count()
+        active_employees = Employee.objects.filter(status='active').count()
         
         # 部门层级统计
-        if tenant:
-            department_levels = Department.objects.filter(tenant=tenant, is_active=True) \
-                .values('level') \
-                .annotate(count=Count('id')) \
-                .order_by('level')
-            
-            # 职位级别统计
-            position_levels = Position.objects.filter(tenant=tenant, is_active=True) \
-                .values('level') \
-                .annotate(count=Count('id')) \
-                .order_by('level')
-        else:
-            # 兼容性：如果没有租户信息，获取所有数据
-            department_levels = Department.objects.filter(is_active=True) \
-                .values('level') \
-                .annotate(count=Count('id')) \
-                .order_by('level')
-            
-            # 职位级别统计
-            position_levels = Position.objects.filter(is_active=True) \
-                .values('level') \
-                .annotate(count=Count('id')) \
-                .order_by('level')
+        department_levels = Department.objects.filter(is_active=True) \
+            .values('level') \
+            .annotate(count=Count('id')) \
+            .order_by('level')
+        
+        # 职位级别统计
+        position_levels = Position.objects.filter(is_active=True) \
+            .values('level') \
+            .annotate(count=Count('id')) \
+            .order_by('level')
         
         stats_data = {
             'total_departments': total_departments,
@@ -647,7 +592,7 @@ class DictionaryViewSet(viewsets.ModelViewSet):
     update=extend_schema(summary='更新职位模板', tags=['配置管理']),
     destroy=extend_schema(summary='删除职位模板', tags=['配置管理']),
 )
-class PositionTemplateViewSet(TenantContextMixin, viewsets.ModelViewSet):
+class PositionTemplateViewSet(viewsets.ModelViewSet):
     """职位模板管理"""
     queryset = PositionTemplate.objects.all()
     serializer_class = PositionTemplateSerializer

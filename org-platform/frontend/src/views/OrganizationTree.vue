@@ -8,8 +8,11 @@
             <p>点击节点查看成员</p>
           </div>
           <div class="panel-actions">
-            <el-link type="primary" @click="clearSelection">查看全部</el-link>
-            <el-button text size="small" class="refresh-btn" @click="refreshTree">
+            <el-button type="primary" size="small" @click="clearSelection">
+              <el-icon><View /></el-icon>
+              查看全部
+            </el-button>
+            <el-button type="success" size="small" @click="refreshTree">
               <el-icon><Refresh /></el-icon>
               刷新
             </el-button>
@@ -28,13 +31,16 @@
             @node-click="handleNodeClick"
           >
             <template #default="{ data }">
-              <div class="tree-node">
+              <div class="tree-node" :class="{ 'employee-node': data.type === 'employee' }">
                 <div class="tree-node-main">
                   <span class="tree-node-name">{{ data.name }}</span>
-                  <span class="tree-node-count">{{ data.employee_count || 0 }} 人</span>
+                  <span v-if="data.type === 'department'" class="tree-node-count">{{ data.employee_count || 0 }} 人</span>
+                  <span v-else-if="data.type === 'employee'" class="employee-info">
+                    <span class="position-info">{{ data.position_name || '未分配' }}<span v-if="data.position_level" class="position-level"> L{{ data.position_level }}</span></span>
+                  </span>
                 </div>
-                <p v-if="data.children?.length" class="tree-node-meta">
-                  子部门 {{ data.children.length }}
+                <p v-if="data.type === 'department' && data.children?.length" class="tree-node-meta">
+                  子部门 {{ data.children.filter(child => child.type === 'department').length }}
                 </p>
               </div>
             </template>
@@ -49,16 +55,6 @@
             <p>{{ membersSubtitle }}</p>
           </div>
           <div class="header-actions">
-            <div class="import-actions">
-              <el-button type="success" size="small" @click="downloadTemplate">
-                <el-icon><Download /></el-icon>
-                下载模板
-              </el-button>
-              <el-button type="primary" size="small" @click="showImportDialog = true">
-                <el-icon><Upload /></el-icon>
-                导入组织树
-              </el-button>
-            </div>
             <el-input
               v-model.trim="keyword"
               class="search-input"
@@ -77,7 +73,169 @@
           </div>
         </div>
 
+        <!-- 员工详情显示 -->
+        <div v-if="selectedEmployee" class="employee-detail-panel">
+          <!-- 员工头部信息 -->
+          <div class="detail-header">
+            <div class="detail-avatar" :style="{ backgroundColor: selectedEmployee._avatarColor }">
+              {{ selectedEmployee._initials }}
+            </div>
+            <div class="detail-info">
+              <h3 class="detail-name">{{ selectedEmployee.name }}</h3>
+              <p class="detail-id">工号: {{ selectedEmployee.employee_id || '—' }}</p>
+              <div class="detail-status">
+                <el-tag :type="selectedEmployee._statusMeta.type" effect="light" size="small">
+                  {{ selectedEmployee._statusMeta.label }}
+                </el-tag>
+              </div>
+            </div>
+            <div class="detail-actions-header">
+              <el-button type="primary" size="small" @click="toggleEditMode">
+                <el-icon><Edit /></el-icon>
+                {{ isEditing ? '保存' : '编辑' }}
+              </el-button>
+              <el-button v-if="isEditing" size="small" @click="cancelEdit">
+                <el-icon><Close /></el-icon>
+                取消
+              </el-button>
+              <el-button size="small" @click="clearSelection">
+                <el-icon><Back /></el-icon>
+                返回
+              </el-button>
+            </div>
+          </div>
+          
+          <!-- 员工详细信息 -->
+          <div class="detail-content">
+            <!-- 基本信息卡片 -->
+            <div class="detail-card">
+              <div class="card-header">
+                <h4 class="card-title">
+                  <el-icon><User /></el-icon>
+                  基本信息
+                </h4>
+              </div>
+              <div class="card-body">
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <label>姓名</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee.name }}</div>
+                    <el-input v-else v-model="editForm.name" size="small" />
+                  </div>
+                  <div class="detail-item">
+                    <label>性别</label>
+                    <div v-if="!isEditing" class="detail-value">{{ getGenderLabel(selectedEmployee.gender) }}</div>
+                    <el-select v-else v-model="editForm.gender" size="small" style="width: 100%">
+                      <el-option label="男" value="male" />
+                      <el-option label="女" value="female" />
+                    </el-select>
+                  </div>
+                  <div class="detail-item">
+                    <label>出生日期</label>
+                    <div v-if="!isEditing" class="detail-value">{{ formatDate(selectedEmployee.birth_date) }}</div>
+                    <el-date-picker v-else v-model="editForm.birth_date" type="date" size="small" style="width: 100%" />
+                  </div>
+                  <div class="detail-item">
+                    <label>手机号</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee.phone || '—' }}</div>
+                    <el-input v-else v-model="editForm.phone" size="small" />
+                  </div>
+                  <div class="detail-item">
+                    <label>邮箱</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee.email || '—' }}</div>
+                    <el-input v-else v-model="editForm.email" size="small" />
+                  </div>
+                  <div class="detail-item full-width">
+                    <label>地址</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee.address || '—' }}</div>
+                    <el-input v-else v-model="editForm.address" type="textarea" :rows="2" size="small" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 职位信息卡片 -->
+            <div class="detail-card">
+              <div class="card-header">
+                <h4 class="card-title">
+                  <el-icon><Briefcase /></el-icon>
+                  职位信息
+                </h4>
+              </div>
+              <div class="card-body">
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <label>部门</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee._departmentName }}</div>
+                    <el-select v-else v-model="editForm.department_id" size="small" style="width: 100%">
+                      <el-option 
+                        v-for="dept in departments" 
+                        :key="dept.id" 
+                        :label="dept.name" 
+                        :value="dept.id" 
+                      />
+                    </el-select>
+                  </div>
+                  <div class="detail-item">
+                    <label>岗位</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee._positionName }}</div>
+                    <el-select v-else v-model="editForm.position_id" size="small" style="width: 100%">
+                      <el-option 
+                        v-for="position in positions" 
+                        :key="position.id" 
+                        :label="position.name" 
+                        :value="position.id" 
+                      />
+                    </el-select>
+                  </div>
+                  <div class="detail-item">
+                    <label>职级</label>
+                    <div v-if="!isEditing" class="detail-value">
+                      <span class="level-pill" :class="getLevelClass(selectedEmployee._levelLabel)">
+                        {{ selectedEmployee._levelLabel }}
+                      </span>
+                    </div>
+                    <el-input v-else v-model="editForm.level" size="small" />
+                  </div>
+                  <div class="detail-item">
+                    <label>直属上级</label>
+                    <div v-if="!isEditing" class="detail-value">{{ selectedEmployee.supervisor_name || '—' }}</div>
+                    <el-select v-else v-model="editForm.supervisor_id" size="small" style="width: 100%">
+                      <el-option 
+                        v-for="emp in allEmployees" 
+                        :key="emp.id" 
+                        :label="emp.name" 
+                        :value="emp.id" 
+                      />
+                    </el-select>
+                  </div>
+                  <div class="detail-item">
+                    <label>入职日期</label>
+                    <div v-if="!isEditing" class="detail-value">{{ formatDate(selectedEmployee.hire_date) }}</div>
+                    <el-date-picker v-else v-model="editForm.hire_date" type="date" size="small" style="width: 100%" />
+                  </div>
+                  <div class="detail-item">
+                    <label>状态</label>
+                    <div v-if="!isEditing" class="detail-value">
+                      <el-tag :type="selectedEmployee._statusMeta.type" effect="light" size="small">
+                        {{ selectedEmployee._statusMeta.label }}
+                      </el-tag>
+                    </div>
+                    <el-select v-else v-model="editForm.status" size="small" style="width: 100%">
+                      <el-option label="在职" value="active" />
+                      <el-option label="离职" value="inactive" />
+                      <el-option label="试用" value="probation" />
+                    </el-select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 员工列表显示 -->
         <el-table
+          v-else
           v-loading="membersLoading"
           :data="pagedMembers"
           class="members-table"
@@ -145,117 +303,6 @@
       </section>
     </div>
 
-    <!-- 员工详情弹窗 -->
-    <el-dialog
-      v-model="detailDialogVisible"
-      title="员工详情"
-      width="600px"
-      :before-close="closeDetailDialog"
-    >
-      <div v-if="selectedEmployee" class="employee-detail">
-        <div class="detail-header">
-          <div class="detail-avatar" :style="{ backgroundColor: selectedEmployee._avatarColor }">
-            {{ selectedEmployee._initials }}
-          </div>
-          <div class="detail-info">
-            <h3 class="detail-name">{{ selectedEmployee.name }}</h3>
-            <p class="detail-id">工号: {{ selectedEmployee.employee_id || '—' }}</p>
-          </div>
-        </div>
-        
-        <div class="detail-content">
-          <div class="detail-section">
-            <h4>基本信息</h4>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>性别</label>
-                <span>{{ getGenderLabel(selectedEmployee.gender) }}</span>
-              </div>
-              <div class="detail-item">
-                <label>出生日期</label>
-                <span>{{ formatDate(selectedEmployee.birth_date) }}</span>
-              </div>
-              <div class="detail-item">
-                <label>手机号</label>
-                <span>{{ selectedEmployee.phone || '—' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>邮箱</label>
-                <span>{{ selectedEmployee.email || '—' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>地址</label>
-                <span>{{ selectedEmployee.address || '—' }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="detail-section">
-            <h4>职位信息</h4>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>部门</label>
-                <span>{{ selectedEmployee._departmentName }}</span>
-              </div>
-              <div class="detail-item">
-                <label>岗位</label>
-                <span>{{ selectedEmployee._positionName }}</span>
-              </div>
-              <div class="detail-item">
-                <label>职级</label>
-                <span class="level-pill" :class="getLevelClass(selectedEmployee._levelLabel)">{{ selectedEmployee._levelLabel }}</span>
-              </div>
-              <div class="detail-item">
-                <label>直属上级</label>
-                <span>{{ selectedEmployee.supervisor_name || '—' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>入职日期</label>
-                <span>{{ formatDate(selectedEmployee.hire_date) }}</span>
-              </div>
-              <div class="detail-item">
-                <label>状态</label>
-                <el-tag :type="selectedEmployee._statusMeta.type" effect="light" size="small">
-                  {{ selectedEmployee._statusMeta.label }}
-                </el-tag>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="closeDetailDialog">关闭</el-button>
-          <el-button type="primary" @click="editEmployee(selectedEmployee)">编辑</el-button>
-        </div>
-      </template>
-    </el-dialog>
-
-    <!-- 导入组织树对话框 -->
-    <el-dialog v-model="showImportDialog" title="导入组织树" width="500px">
-      <div style="margin-bottom: 20px;">
-        <el-upload
-          drag
-          accept=".xlsx"
-          :http-request="uploadFile"
-        >
-          <el-icon class="el-icon--upload"><Upload /></el-icon>
-          <div class="el-upload__text">拖拽Excel文件或<em>点击上传</em></div>
-        </el-upload>
-      </div>
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 500;">导入模式：</label>
-        <el-select v-model="importMode" placeholder="选择导入模式" style="width: 100%;">
-          <el-option label="增量更新" value="incremental" />
-          <el-option label="全量替换" value="full" />
-        </el-select>
-      </div>
-      <template #footer>
-        <el-button @click="showImportDialog = false">取消</el-button>
-        <el-button type="primary" @click="importData">导入</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -263,15 +310,19 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ElDialog, ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Search, Download, Upload } from '@element-plus/icons-vue'
+import { Refresh, Search, View, Edit, Close, Back, User, Briefcase } from '@element-plus/icons-vue'
 import { useOrganizationStore } from '@/stores/organization'
 import { useRouter } from 'vue-router'
-import { departmentApi } from '@/utils/api'
 
 interface TreeNodeItem {
-  id: number
+  id: number | string
   name: string
+  type?: 'department' | 'employee'
   employee_count?: number
+  position_name?: string
+  position_level?: number
+  employee_id?: string
+  status?: string
   children?: TreeNodeItem[]
 }
 
@@ -279,14 +330,30 @@ const organizationStore = useOrganizationStore()
 const { employees: employeesRef } = storeToRefs(organizationStore)
 const router = useRouter()
 
-// 详情弹窗相关
-const detailDialogVisible = ref(false)
+// 员工选择相关
 const selectedEmployee = ref<any>(null)
 
-// 导入相关
-const showImportDialog = ref(false)
-const importMode = ref('incremental')
-const importFile = ref(null)
+// 编辑模式相关
+const isEditing = ref(false)
+const editForm = ref({
+  name: '',
+  gender: '',
+  birth_date: '',
+  phone: '',
+  email: '',
+  address: '',
+  department_id: null,
+  position_id: null,
+  level: '',
+  supervisor_id: null,
+  hire_date: '',
+  status: ''
+})
+
+// 数据源
+const departments = ref([])
+const positions = ref([])
+const allEmployees = ref([])
 
 const treeData = ref<TreeNodeItem[]>([])
 const treeLoading = ref(false)
@@ -375,17 +442,32 @@ const pagedMembers = computed(() => {
 
 const pageTotal = computed(() => filteredEmployees.value.length)
 
-const membersTitle = computed(() => selectedDeptName.value || '全部成员')
-const membersSubtitle = computed(() => `共 ${pageTotal.value} 人`)
+const membersTitle = computed(() => {
+  if (selectedEmployee.value) {
+    return '员工详情'
+  }
+  return selectedDeptName.value || '全部成员'
+})
+const membersSubtitle = computed(() => {
+  if (selectedEmployee.value) {
+    return selectedEmployee.value.name
+  }
+  return `共 ${pageTotal.value} 人`
+})
 
 const normalizeTree = (nodes: any[]): TreeNodeItem[] => {
   if (!Array.isArray(nodes)) return []
   return nodes
-    .filter(item => item && (item.type !== 'employee'))
+    .filter(item => item)
     .map(item => ({
       id: item.id,
       name: item.name,
+      type: item.type,
       employee_count: item.employee_count ?? 0,
+      position_name: item.position_name,
+      position_level: item.position_level,
+      employee_id: item.employee_id,
+      status: item.status,
       children: normalizeTree(item.children || [])
     }))
 }
@@ -394,11 +476,14 @@ const refreshTree = async () => {
   try {
     treeLoading.value = true
     const raw = await organizationStore.fetchFullOrganizationTree()
-    const source = Array.isArray(raw?.results)
-      ? raw.results
-      : Array.isArray(raw)
-        ? raw
-        : []
+    const source = Array.isArray(raw?.data)
+      ? raw.data
+      : Array.isArray(raw?.results)
+        ? raw.results
+        : Array.isArray(raw)
+          ? raw
+          : []
+    // 使用normalizeTree处理数据，包含员工节点
     treeData.value = normalizeTree(source)
   } catch (error) {
     console.error('刷新组织架构树失败:', error)
@@ -419,14 +504,25 @@ const fetchMembers = async () => {
 }
 
 const handleNodeClick = (data: TreeNodeItem) => {
-  selectedDeptId.value = data?.id ?? null
-  selectedDeptName.value = data?.name ?? ''
-  currentPage.value = 1
+  if (data?.type === 'department') {
+    selectedDeptId.value = data?.id ?? null
+    selectedDeptName.value = data?.name ?? ''
+    currentPage.value = 1
+    // 清除员工选择
+    selectedEmployee.value = null
+  } else if (data?.type === 'employee') {
+    // 点击员工节点在右侧显示详情
+    showEmployeeDetail(data)
+    // 清除部门选择
+    selectedDeptId.value = null
+    selectedDeptName.value = ''
+  }
 }
 
 const clearSelection = () => {
   selectedDeptId.value = null
   selectedDeptName.value = ''
+  selectedEmployee.value = null
   currentPage.value = 1
   treeRef.value?.setCurrentKey(null)
 }
@@ -450,20 +546,199 @@ const getLevelClass = (label: string) => {
   return 'pill-default'
 }
 
+const getStatusType = (status: string) => {
+  const statusMap: Record<string, string> = {
+    active: 'success',
+    leave: 'warning',
+    resigned: 'info',
+    retired: 'info',
+    probation: 'primary'
+  }
+  return statusMap[status] || 'info'
+}
+
+const getStatusLabel = (status: string) => {
+  const statusMap: Record<string, string> = {
+    active: '在职',
+    leave: '休假',
+    resigned: '离职',
+    retired: '退休',
+    probation: '试用'
+  }
+  return statusMap[status] || '未知'
+}
+
 const showEmployeeDetail = (employee: any) => {
-  selectedEmployee.value = employee
-  detailDialogVisible.value = true
+  // 提取真实的员工ID（如果是emp_X格式，提取数字部分）
+  const realEmployeeId = typeof employee.id === 'string' && employee.id.startsWith('emp_') 
+    ? parseInt(employee.id.replace('emp_', '')) 
+    : employee.id
+  
+  // 为员工数据添加必要的显示字段
+  const employeeData = {
+    ...employee,
+    id: realEmployeeId, // 使用真实的数字ID
+    _avatarColor: avatarPalette[Math.abs(realEmployeeId) % avatarPalette.length],
+    _initials: getInitials(employee.name),
+    _departmentName: employee.department_name || '—',
+    _positionName: employee.position_name || '—',
+    _levelLabel: employee.level_display || '—',
+    _statusMeta: statusMap[employee.status] || statusMap.default
+  }
+  selectedEmployee.value = employeeData
+  // 不在弹窗中显示，而是在右侧显示
 }
 
 const editEmployee = (employee: any) => {
+  // 提取真实的员工ID（如果是emp_X格式，提取数字部分）
+  const realEmployeeId = typeof employee.id === 'string' && employee.id.startsWith('emp_') 
+    ? parseInt(employee.id.replace('emp_', '')) 
+    : employee.id
+  
   // 跳转到员工编辑页面
-  router.push(`/employees/${employee.id}/edit`)
+  router.push(`/employees/${realEmployeeId}/edit`)
 }
 
-const closeDetailDialog = () => {
-  detailDialogVisible.value = false
-  selectedEmployee.value = null
+// 切换编辑模式
+const toggleEditMode = async () => {
+  if (isEditing.value) {
+    // 保存编辑
+    await saveEmployee()
+  } else {
+    // 进入编辑模式
+    await enterEditMode()
+  }
 }
+
+// 进入编辑模式
+const enterEditMode = async () => {
+  isEditing.value = true
+  // 加载数据源
+  await loadEditData()
+  // 填充编辑表单
+  fillEditForm()
+}
+
+// 取消编辑
+const cancelEdit = () => {
+  isEditing.value = false
+  editForm.value = {
+    name: '',
+    gender: '',
+    birth_date: '',
+    phone: '',
+    email: '',
+    address: '',
+    department_id: null,
+    position_id: null,
+    level: '',
+    supervisor_id: null,
+    hire_date: '',
+    status: ''
+  }
+}
+
+// 填充编辑表单
+const fillEditForm = () => {
+  if (selectedEmployee.value) {
+    editForm.value = {
+      name: selectedEmployee.value.name || '',
+      gender: selectedEmployee.value.gender || '',
+      birth_date: selectedEmployee.value.birth_date || '',
+      phone: selectedEmployee.value.phone || '',
+      email: selectedEmployee.value.email || '',
+      address: selectedEmployee.value.address || '',
+      department_id: selectedEmployee.value.department || null,
+      position_id: selectedEmployee.value.position || null,
+      level: selectedEmployee.value.level || '',
+      supervisor_id: selectedEmployee.value.supervisor || null,
+      hire_date: selectedEmployee.value.hire_date || '',
+      status: selectedEmployee.value.status || ''
+    }
+  }
+}
+
+// 加载编辑所需的数据
+const loadEditData = async () => {
+  try {
+    // 加载部门数据
+    const deptResponse = await fetch('/api/departments/')
+    if (deptResponse.ok) {
+      const deptData = await deptResponse.json()
+      departments.value = deptData.results || deptData
+    }
+    
+    // 加载职位数据
+    const posResponse = await fetch('/api/positions/')
+    if (posResponse.ok) {
+      const posData = await posResponse.json()
+      positions.value = posData.results || posData
+    }
+    
+    // 加载员工数据
+    const empResponse = await fetch('/api/employees/')
+    if (empResponse.ok) {
+      const empData = await empResponse.json()
+      allEmployees.value = empData.results || empData
+    }
+  } catch (error) {
+    console.error('加载编辑数据失败:', error)
+    ElMessage.error('加载数据失败')
+  }
+}
+
+// 保存员工信息
+const saveEmployee = async () => {
+  try {
+    // 准备更新数据，只包含需要更新的字段
+    const updateData = {
+      name: editForm.value.name,
+      gender: editForm.value.gender,
+      birth_date: editForm.value.birth_date,
+      phone: editForm.value.phone,
+      email: editForm.value.email,
+      address: editForm.value.address,
+      department: editForm.value.department_id,
+      position: editForm.value.position_id,
+      supervisor: editForm.value.supervisor_id,
+      hire_date: editForm.value.hire_date,
+      status: editForm.value.status
+    }
+    
+    const response = await fetch(`/api/employees/${selectedEmployee.value.id}/`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateData)
+    })
+    
+    if (response.ok) {
+      ElMessage.success('员工信息更新成功')
+      isEditing.value = false
+      // 刷新员工数据
+      await refreshTree()
+      // 更新选中的员工信息
+      const updatedEmployee = await response.json()
+      selectedEmployee.value = {
+        ...selectedEmployee.value,
+        ...updatedEmployee,
+        _avatarColor: selectedEmployee.value._avatarColor,
+        _initials: selectedEmployee.value._initials,
+        _departmentName: updatedEmployee.department_name || '—',
+        _positionName: updatedEmployee.position_name || '—',
+        _levelLabel: updatedEmployee.level_display || '—',
+        _statusMeta: statusMap[updatedEmployee.status] || statusMap.default
+      }
+    } else {
+      ElMessage.error('保存失败')
+    }
+  } catch (error) {
+    console.error('保存员工信息失败:', error)
+    ElMessage.error('保存失败')
+  }
+}
+
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '—'
@@ -488,68 +763,6 @@ watch([pageSize, filteredEmployees], () => {
 watch([keyword, selectedDeptId], () => {
   currentPage.value = 1
 })
-
-const uploadFile = (upload: any) => {
-  importFile.value = upload.file
-}
-
-const importData = async () => {
-  if (!importFile.value) return ElMessage.error('请上传文件')
-  const formData = new FormData()
-  formData.append('file', importFile.value)
-  formData.append('mode', importMode.value)
-  try {
-    const response = await departmentApi.import(formData)
-    const results = response.results
-    
-    // 显示详细的导入结果
-    let message = '导入完成！\n'
-    if (results.departments) {
-      message += `部门：新增${results.departments.created}个，更新${results.departments.updated}个\n`
-    }
-    if (results.positions) {
-      message += `职位：新增${results.positions.created}个，更新${results.positions.updated}个\n`
-    }
-    if (results.employees) {
-      message += `员工：新增${results.employees.created}个，更新${results.employees.updated}个\n`
-    }
-    
-    // 显示错误信息
-    const allErrors = []
-    if (results.departments?.errors) allErrors.push(...results.departments.errors)
-    if (results.positions?.errors) allErrors.push(...results.positions.errors)
-    if (results.employees?.errors) allErrors.push(...results.employees.errors)
-    
-    if (allErrors.length > 0) {
-      message += `\n错误信息：\n${allErrors.slice(0, 5).join('\n')}`
-      if (allErrors.length > 5) {
-        message += `\n...还有${allErrors.length - 5}个错误`
-      }
-    }
-    
-    ElMessage.success(message)
-    showImportDialog.value = false
-    await refreshTree()
-    await fetchMembers()
-  } catch (e) {
-    ElMessage.error('导入失败：' + (e.response?.data?.error || e.message))
-  }
-}
-
-const downloadTemplate = async () => {
-  try {
-    const response = await departmentApi.downloadTemplate()
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'organization_template.xlsx'
-    link.click()
-    window.URL.revokeObjectURL(url)
-    ElMessage.success('模板下载成功')
-  } catch (e) {
-    ElMessage.error('下载失败')
-  }
-}
 
 onMounted(async () => {
   await Promise.all([refreshTree(), fetchMembers()])
@@ -600,11 +813,34 @@ onMounted(async () => {
 .panel-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.refresh-btn {
-  color: #2563eb !important;
+.panel-actions .el-button {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.panel-actions .el-button--primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.panel-actions .el-button--primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.panel-actions .el-button--success {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.panel-actions .el-button--success:hover {
+  background: #059669;
+  border-color: #059669;
 }
 
 .tree-wrapper {
@@ -661,6 +897,45 @@ onMounted(async () => {
   color: #9ca3af !important;
 }
 
+/* 员工节点样式 */
+.employee-node {
+  background-color: #f9fafb;
+  border-left: 3px solid #e5e7eb;
+  margin-left: 8px;
+  border-radius: 6px;
+}
+
+.employee-node:hover {
+  background-color: #f3f4f6;
+}
+
+.employee-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 12px;
+}
+
+.position-info {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.position-level {
+  color: #0ea5e9;
+  font-weight: 600;
+  background-color: #e0f2fe;
+  padding: 1px 4px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.employee-status {
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .org-members-card {
   display: flex;
   flex-direction: column;
@@ -674,13 +949,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.import-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-right: 12px;
 }
 
 .search-input {
@@ -810,7 +1078,15 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-/* 员工详情弹窗样式 */
+/* 员工详情面板样式 */
+.employee-detail-panel {
+  padding: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
 .employee-detail {
   padding: 8px 0;
 }
@@ -895,6 +1171,199 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.detail-actions {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 员工详情头部样式 */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: relative;
+}
+
+.detail-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
+.detail-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.detail-info {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.detail-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.detail-id {
+  font-size: 16px;
+  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.detail-status {
+  margin-top: 8px;
+}
+
+.detail-actions-header {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.detail-actions-header .el-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.detail-actions-header .el-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.detail-actions-header .el-button--primary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.detail-actions-header .el-button--primary:hover {
+  background: white;
+  color: #667eea;
+}
+
+/* 详情内容样式 */
+.detail-content {
+  padding: 24px;
+}
+
+.detail-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.detail-card:last-child {
+  margin-bottom: 0;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0;
+}
+
+.detail-value {
+  font-size: 15px;
+  color: #1e293b;
+  padding: 8px 0;
+  min-height: 20px;
+}
+
+.detail-item .el-input,
+.detail-item .el-select,
+.detail-item .el-date-picker {
+  width: 100%;
+}
+
+.detail-item .el-textarea {
+  width: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .detail-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  
+  .detail-actions-header {
+    justify-content: center;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {

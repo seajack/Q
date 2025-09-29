@@ -56,10 +56,10 @@
     <!-- 主内容区域 -->
     <ModernCard title="员工列表" icon="List">
       <template #actions>
-        <ModernButton type="secondary" icon="Filter" size="small">
+        <ModernButton type="primary" icon="Filter" size="small">
           筛选
         </ModernButton>
-        <ModernButton type="secondary" icon="Refresh" size="small" @click="loadData">
+        <ModernButton type="success" icon="Refresh" size="small" @click="loadData">
           刷新
         </ModernButton>
       </template>
@@ -582,7 +582,7 @@ onMounted(async () => {
 .employees-page {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0.5rem 2rem 2rem 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
   min-height: 100vh;
 }
@@ -591,22 +591,23 @@ onMounted(async () => {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
 }
 
 /* 员工卡片网格 */
 .employees-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-  padding: 1rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem 0;
 }
 
 .employee-card {
   background: white;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 6px;
+  padding: 0.5rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border: 1px solid #e2e8f0;
   cursor: pointer;
@@ -615,7 +616,8 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.employee-card::before {
+/* 移除顶部颜色条 */
+/* .employee-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -623,7 +625,7 @@ onMounted(async () => {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #0ea5e9, #0284c7);
-}
+} */
 
 .employee-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -634,19 +636,19 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .employee-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.75rem;
   letter-spacing: 0.05em;
 }
 
@@ -680,42 +682,42 @@ onMounted(async () => {
 }
 
 .employee-info {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .employee-name {
-  font-size: 1rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.125rem 0;
 }
 
 .employee-id {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   color: #6b7280;
   background: #f3f4f6;
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.1875rem;
   display: inline-block;
-  margin: 0 0 0.5rem 0;
-}
-
-.employee-position {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
   margin: 0 0 0.25rem 0;
 }
 
-.employee-department {
+.employee-position {
   font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 0.125rem 0;
+}
+
+.employee-department {
+  font-size: 0.625rem;
   color: #6b7280;
   margin: 0;
 }
 
 .employee-contact {
-  margin-bottom: 1rem;
-  min-height: 2.5rem;
+  margin-bottom: 0.5rem;
+  min-height: 1.5rem;
 }
 
 .contact-item {
@@ -739,7 +741,7 @@ onMounted(async () => {
 
 .employee-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
   opacity: 0;
   transition: opacity 0.2s ease;
 }

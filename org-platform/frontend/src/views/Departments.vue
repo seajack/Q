@@ -435,7 +435,7 @@ onMounted(() => {
 .departments-page {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0.5rem 2rem 2rem 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
   min-height: 100vh;
 }
@@ -444,8 +444,9 @@ onMounted(() => {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
 }
 
 /* 主内容区域 */

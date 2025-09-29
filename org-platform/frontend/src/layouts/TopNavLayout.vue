@@ -24,6 +24,12 @@
       <div class="spacer" />
       <div class="actions">
         <el-input v-model="q" size="small" placeholder="搜索..." @keyup.enter="onSearch" style="width:200px" />
+        <el-tooltip :content="themeStore.isDark() ? '切换到浅色模式' : '切换到深色模式'" placement="bottom">
+          <div class="theme-toggle" @click="themeStore.toggleTheme()">
+            <el-icon v-if="themeStore.isDark()"><Sunny /></el-icon>
+            <el-icon v-else><Moon /></el-icon>
+          </div>
+        </el-tooltip>
       </div>
     </header>
 
@@ -36,10 +42,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useThemeStore } from '@/stores/theme'
+import { Sunny, Moon } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const q = ref('')
+const themeStore = useThemeStore()
 
 const isActive = (path:string) => route.path.startsWith(path) ? 'active' : ''
 const go = (path:string) => router.push(path)
@@ -50,26 +59,66 @@ const onSearch = () => {
 </script>
 
 <style scoped>
-.topnav-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.topnav-layout { 
+  height: 100vh; 
+  display: flex; 
+  flex-direction: column; 
+  overflow: hidden;
+}
 .topbar {
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; gap: 16px;
-  padding: 10px 16px; background: #ffffff; color: #111827; border-bottom: 1px solid #e5e7eb;
+  padding: 10px 16px; 
+  background: var(--header-bg); 
+  color: var(--header-text); 
+  border-bottom: 1px solid var(--header-border);
+  flex-shrink: 0;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 .brand { display:flex; align-items:center; gap:10px; cursor:pointer; }
-.logo { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; background:#22c55e; color:#0b1220; font-weight:800; }
-.name { font-weight: 700; letter-spacing: .2px; }
+.logo { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; background:var(--brand); color:#0b1220; font-weight:800; }
+.name { font-weight: 700; letter-spacing: .2px; color: var(--header-text); }
 .menu { display:flex; gap: 8px; margin-left: 8px; flex-wrap: wrap; }
-.item { color:#374151; text-decoration:none; padding:6px 10px; border-radius:8px; font-size:13px; transition: all .2s; }
-.item:hover { color:#111827; background: #f3f4f6; }
-.item.active { color:#0b1220; background:#22c55e; }
+.item { color:var(--muted); text-decoration:none; padding:6px 10px; border-radius:8px; font-size:13px; transition: all .2s; }
+.item:hover { color:var(--menu-hover-text); background: var(--menu-hover-bg); }
+.item.active { color:var(--menu-active-text); background:var(--menu-active-bg); }
 .spacer { flex:1; }
-.actions { display:flex; align-items:center; gap:8px; }
-.content { flex:1; padding: 16px; background:#ffffff; }
+.actions { display:flex; align-items:center; gap:12px; }
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--menu-hover-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.theme-toggle:hover {
+  background: var(--brand);
+  color: white;
+  transform: rotate(30deg);
+}
+.content { 
+  flex: 1; 
+  padding: 16px; 
+  background: var(--bg); 
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: background-color 0.3s;
+}
 
-/* 内容卡片背景统一浅色 */
-:deep(.card) { background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
+/* 内容卡片样式 */
+:deep(.card) { 
+  background: var(--card-bg); 
+  border: 1px solid var(--border); 
+  border-radius: 12px; 
+  overflow: hidden;
+  transition: background-color 0.3s, border-color 0.3s;
+}
 :deep(.row) { display:flex; align-items:center; justify-content:space-between; }
 :deep(.toolbar) { display:flex; align-items:center; gap:8px; flex-wrap: wrap; }
-:deep(h3) { color:#111827; }
+:deep(h3) { color: var(--text); transition: color 0.3s; }
 </style>

@@ -30,7 +30,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       loading.value = true
       const response = await departmentApi.list(params)
-      departments.value = response.data.results
+      departments.value = response.results
     } catch (error) {
       console.error('获取部门列表失败:', error)
       throw error
@@ -43,7 +43,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       loading.value = true
       const response = await departmentApi.tree()
-      departmentTree.value = response.data
+      departmentTree.value = response
     } catch (error) {
       console.error('获取部门树失败:', error)
       throw error
@@ -56,7 +56,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       loading.value = true
       const response = await departmentApi.fullTree()
-      return response.data
+      return response
     } catch (error) {
       console.error('获取完整组织架构树失败:', error)
       throw error
@@ -108,7 +108,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       loading.value = true
       const response = await positionApi.list(params)
-      positions.value = response.data.results
+      positions.value = response.results
     } catch (error) {
       console.error('获取职位列表失败:', error)
       throw error
@@ -160,7 +160,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       loading.value = true
       const response = await employeeApi.list(params)
-      employees.value = response.data.results
+      employees.value = response.results
     } catch (error) {
       console.error('获取员工列表失败:', error)
       throw error
@@ -211,7 +211,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const fetchStats = async () => {
     try {
       const response = await statsApi.overview()
-      stats.value = response.data
+      stats.value = response
     } catch (error) {
       console.error('获取统计信息失败:', error)
       throw error

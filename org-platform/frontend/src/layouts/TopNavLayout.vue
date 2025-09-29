@@ -13,10 +13,13 @@
         <RouterLink to="/organization-tree" class="item" :class="isActive('/organization-tree')">组织架构</RouterLink>
         <RouterLink to="/position-templates" class="item" :class="isActive('/position-templates')">职位模板</RouterLink>
         <RouterLink to="/workflow-rules" class="item" :class="isActive('/workflow-rules')">工作流规则</RouterLink>
+        <RouterLink to="/workflow-list" class="item" :class="isActive('/workflow-list')">工作流管理</RouterLink>
+        <RouterLink to="/intelligent-analysis" class="item" :class="isActive('/intelligent-analysis')">智能分析</RouterLink>
         <RouterLink to="/dictionaries" class="item" :class="isActive('/dictionaries')">数据字典</RouterLink>
         <RouterLink to="/configs" class="item" :class="isActive('/configs')">系统配置</RouterLink>
         <RouterLink to="/integration-management" class="item" :class="isActive('/integration-management')">集成管理</RouterLink>
         <RouterLink to="/permission-management" class="item" :class="isActive('/permission-management')">权限管理</RouterLink>
+        <RouterLink to="/tenant-management" class="item" :class="isActive('/tenant-management')">多租户管理</RouterLink>
       </nav>
       <div class="spacer" />
       <div class="actions">

@@ -1,53 +1,116 @@
 <template>
-  <div class="container">
-    <!-- 顶部工具条：标题 + 新建按钮 -->
-    <div class="row" style="margin-bottom:12px">
-      <h3 style="margin:0;font-size:16px">员工管理</h3>
-      <div class="toolbar">
-        <el-button type="primary" @click="openCreateDialog">
-          <el-icon><Plus /></el-icon>
+  <div class="employees-page">
+    <!-- 现代化页面头部 -->
+    <ModernPageHeader
+      title="员工管理"
+      subtitle="企业人员信息与组织架构管理"
+      icon="User"
+      color="blue"
+    >
+      <template #actions>
+        <ModernButton type="secondary" icon="Download">
+          导出员工
+        </ModernButton>
+        <ModernButton type="primary" icon="Plus" @click="openCreateDialog">
           新建员工
-        </el-button>
-      </div>
+        </ModernButton>
+      </template>
+    </ModernPageHeader>
+
+    <!-- 统计概览 -->
+    <div class="stats-grid">
+      <ModernStatCard
+        title="总员工数"
+        :value="employees.length"
+        change="+8 本月"
+        change-type="positive"
+        icon="User"
+        icon-type="primary"
+      />
+      <ModernStatCard
+        title="在职人员"
+        :value="getActiveEmployees()"
+        change="+5 本月"
+        change-type="positive"
+        icon="CircleCheck"
+        icon-type="success"
+      />
+      <ModernStatCard
+        title="本月入职"
+        :value="getNewHires()"
+        change="+8 人"
+        change-type="positive"
+        icon="UserFilled"
+        icon-type="primary"
+      />
+      <ModernStatCard
+        title="部门数量"
+        :value="departments.length"
+        change="稳定"
+        change-type="positive"
+        icon="OfficeBuilding"
+        icon-type="warning"
+      />
     </div>
 
-    <div class="card">
-      <div class="table-wrap">
-        <el-table :data="employees" v-loading="loading" border stripe>
-          <el-table-column prop="employee_id" label="员工号" width="120" />
-          <el-table-column label="姓名" min-width="240">
-            <template #default="{ row }">
-              <div class="name-cell">
-                <div class="avatar" :class="getAvatarClass(row.name)">
-                  {{ (row.name || '').charAt(0).toUpperCase() }}
-                </div>
-                <div class="name-meta">
-                  <div class="name-text">{{ row.name }}</div>
-                  <div class="email-text">{{ row.email || '暂无邮箱' }}</div>
-                </div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column prop="department_name" label="部门" min-width="160" />
-          <el-table-column prop="position_name" label="职位" min-width="160" />
-          <el-table-column prop="supervisor_name" label="直属上级" min-width="160" />
-          <el-table-column prop="phone" label="电话" min-width="140" />
-          <el-table-column label="状态" width="110" align="center">
-            <template #default="{ row }">
-              <el-tag :type="getStatusType(row.status)">
-                {{ getStatusText(row.status) }}
+    <!-- 主内容区域 -->
+    <ModernCard title="员工列表" icon="List">
+      <template #actions>
+        <ModernButton type="secondary" icon="Filter" size="small">
+          筛选
+        </ModernButton>
+        <ModernButton type="secondary" icon="Refresh" size="small" @click="loadData">
+          刷新
+        </ModernButton>
+      </template>
+      
+      <div class="employees-grid" v-loading="loading">
+        <div 
+          v-for="employee in employees" 
+          :key="employee.id" 
+          class="employee-card"
+          @click="selectEmployee(employee)"
+        >
+          <div class="employee-header">
+            <div class="employee-avatar" :class="getAvatarClass(employee.name)">
+              {{ (employee.name || '').charAt(0).toUpperCase() }}
+            </div>
+            <div class="employee-status">
+              <el-tag :type="getStatusType(employee.status)" size="small" effect="light">
+                {{ getStatusText(employee.status) }}
               </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="180" fixed="right" align="center">
-            <template #default="{ row }">
-              <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+            </div>
+          </div>
+          
+          <div class="employee-info">
+            <h4 class="employee-name">{{ employee.name }}</h4>
+            <p class="employee-id">{{ employee.employee_id }}</p>
+            <p class="employee-position">{{ employee.position_name || '暂无职位' }}</p>
+            <p class="employee-department">{{ employee.department_name || '暂无部门' }}</p>
+          </div>
+          
+          <div class="employee-contact">
+            <div class="contact-item" v-if="employee.phone">
+              <el-icon><Phone /></el-icon>
+              <span>{{ employee.phone }}</span>
+            </div>
+            <div class="contact-item" v-if="employee.email">
+              <el-icon><Message /></el-icon>
+              <span>{{ employee.email }}</span>
+            </div>
+          </div>
+          
+          <div class="employee-actions">
+            <ModernButton type="secondary" icon="Edit" size="small" @click.stop="openEditDialog(employee)">
+              编辑
+            </ModernButton>
+            <ModernButton type="danger" icon="Delete" size="small" @click.stop="handleDelete(employee)">
+              删除
+            </ModernButton>
+          </div>
+        </div>
       </div>
-    </div>
+    </ModernCard>
 
     <!-- 新建/编辑员工对话框 -->
     <el-dialog
@@ -219,10 +282,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, reactive, watch } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Phone, Message, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { useOrganizationStore } from '@/stores/organization'
 import type { Employee } from '@/types'
+import ModernPageHeader from '@/components/common/ModernPageHeader.vue'
+import ModernStatCard from '@/components/common/ModernStatCard.vue'
+import ModernCard from '@/components/common/ModernCard.vue'
+import ModernButton from '@/components/common/ModernButton.vue'
 
 const organizationStore = useOrganizationStore()
 
@@ -239,6 +306,27 @@ const getAvatarClass = (name: string = '') => {
   return palette[code % palette.length]
 }
 
+// 统计方法
+const getActiveEmployees = () => {
+  return employees.value.filter(emp => emp.status === 'active').length
+}
+
+const getNewHires = () => {
+  const currentMonth = new Date().getMonth()
+  const currentYear = new Date().getFullYear()
+  return employees.value.filter(emp => {
+    if (!emp.hire_date) return false
+    const hireDate = new Date(emp.hire_date)
+    return hireDate.getMonth() === currentMonth && hireDate.getFullYear() === currentYear
+  }).length
+}
+
+// 选中员工
+const selectedEmployee = ref<Employee | null>(null)
+const selectEmployee = (employee: Employee) => {
+  selectedEmployee.value = employee
+}
+
 // 对话框相关
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -247,8 +335,8 @@ const formRef = ref<FormInstance>()
 
 // 表单数据接口定义
 interface EmployeeForm extends Partial<Employee> {
-  username?: string;
-  password?: string;
+  username?: string
+  password?: string
 }
 
 const form = reactive<EmployeeForm>({
@@ -435,6 +523,18 @@ const handleSubmit = async () => {
   }
 }
 
+// 加载数据
+const loadData = async () => {
+  try {
+    await organizationStore.fetchEmployees()
+    await organizationStore.fetchDepartments()
+    await organizationStore.fetchPositions()
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  }
+}
+
 // 删除员工
 const handleDelete = async (row: Employee) => {
   try {
@@ -479,66 +579,197 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.table-wrap {
-  padding: 16px;
+.employees-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  min-height: 100vh;
 }
 
-.name-cell {
+/* 统计卡片网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* 员工卡片网格 */
+.employees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.employee-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.employee-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+}
+
+.employee-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #0ea5e9;
+}
+
+.employee-header {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+.employee-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.5px;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
 }
 
-.avatar.c1 {
+.employee-avatar.c1 {
   background: linear-gradient(135deg, #177fc1, #4faee7);
 }
 
-.avatar.c2 {
+.employee-avatar.c2 {
   background: linear-gradient(135deg, #ef4444, #f97316);
 }
 
-.avatar.c3 {
+.employee-avatar.c3 {
   background: linear-gradient(135deg, #10b981, #14b8a6);
 }
 
-.avatar.c4 {
+.employee-avatar.c4 {
   background: linear-gradient(135deg, #f59e0b, #f97316);
 }
 
-.avatar.c5 {
+.employee-avatar.c5 {
   background: linear-gradient(135deg, #8b5cf6, #ec4899);
 }
 
-.avatar.c6 {
+.employee-avatar.c6 {
   background: linear-gradient(135deg, #64748b, #0ea5e9);
 }
 
-.name-meta {
+.employee-status {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
 }
 
-.name-text {
+.employee-info {
+  margin-bottom: 1rem;
+}
+
+.employee-name {
+  font-size: 1rem;
   font-weight: 600;
   color: #111827;
+  margin: 0 0 0.25rem 0;
 }
 
-.email-text {
-  font-size: 12px;
+.employee-id {
+  font-size: 0.75rem;
   color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  margin: 0 0 0.5rem 0;
+}
+
+.employee-position {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 0.25rem 0;
+}
+
+.employee-department {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.employee-contact {
+  margin-bottom: 1rem;
+  min-height: 2.5rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.contact-item:last-child {
+  margin-bottom: 0;
+}
+
+.contact-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.employee-actions {
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.employee-card:hover .employee-actions {
+  opacity: 1;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .employees-page {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .employees-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .employee-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

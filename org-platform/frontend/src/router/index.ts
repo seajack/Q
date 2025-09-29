@@ -62,6 +62,30 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '工作流规则' }
       },
       {
+        path: 'workflow-list',
+        name: 'WorkflowList',
+        component: () => import('@/views/WorkflowList.vue'),
+        meta: { title: '工作流管理' }
+      },
+      {
+        path: 'workflow-designer',
+        name: 'WorkflowDesigner',
+        component: () => import('@/views/WorkflowDesigner.vue'),
+        meta: { title: '工作流设计器' }
+      },
+      {
+        path: 'workflow-designer/:id',
+        name: 'WorkflowDesignerEdit',
+        component: () => import('@/views/WorkflowDesigner.vue'),
+        meta: { title: '编辑工作流' }
+      },
+      {
+        path: 'intelligent-analysis',
+        name: 'IntelligentAnalysis',
+        component: () => import('@/views/IntelligentAnalysis.vue'),
+        meta: { title: '智能分析' }
+      },
+      {
         path: 'integration-management',
         name: 'IntegrationManagement',
         component: () => import('@/views/IntegrationManagement.vue'),
@@ -120,6 +144,12 @@ const routes: RouteRecordRaw[] = [
         name: 'PermissionDashboard',
         component: () => import('@/views/PermissionDashboard.vue'),
         meta: { title: '权限仪表板' }
+      },
+      {
+        path: 'tenant-management',
+        name: 'TenantManagement',
+        component: () => import('@/views/TenantManagement.vue'),
+        meta: { title: '多租户管理' }
       }
     ]
   }

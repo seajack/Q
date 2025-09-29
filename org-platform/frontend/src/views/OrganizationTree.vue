@@ -394,13 +394,11 @@ const refreshTree = async () => {
   try {
     treeLoading.value = true
     const raw = await organizationStore.fetchFullOrganizationTree()
-    const source = Array.isArray(raw?.data)
-      ? raw.data
-      : Array.isArray(raw?.results)
-        ? raw.results
-        : Array.isArray(raw)
-          ? raw
-          : []
+    const source = Array.isArray(raw?.results)
+      ? raw.results
+      : Array.isArray(raw)
+        ? raw
+        : []
     treeData.value = normalizeTree(source)
   } catch (error) {
     console.error('刷新组织架构树失败:', error)
@@ -502,7 +500,7 @@ const importData = async () => {
   formData.append('mode', importMode.value)
   try {
     const response = await departmentApi.import(formData)
-    const results = response.data.results
+    const results = response.results
     
     // 显示详细的导入结果
     let message = '导入完成！\n'

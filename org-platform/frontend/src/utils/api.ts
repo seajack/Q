@@ -1,22 +1,8 @@
-import axios from 'axios'
+import request from '@/utils/request'
 import type { ApiResponse, Department, Position, Employee, OrganizationStats } from '@/types'
 
-const api = axios.create({
-  baseURL: '/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-// 响应拦截器
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
-  }
-)
+// 使用统一的request工具
+const api = request
 
 // 部门API
 export const departmentApi = {
@@ -177,7 +163,7 @@ export const templateApi = {
 // 工作流规则API
 export const workflowApi = {
   // 获取规则列表
-  getRules: (params?: any) => api.get('/workflow-rules/', { params }),
+  getRules: (params?: any) => api.get('/simple-workflow/rules/', { params }),
   
   // 创建规则
   createRule: (data: any) => api.post('/workflow-rules/', data),
@@ -187,6 +173,60 @@ export const workflowApi = {
   
   // 删除规则
   deleteRule: (id: number) => api.delete(`/workflow-rules/${id}/`),
+  
+  // 获取模板列表
+  getTemplates: (params?: any) => api.get('/simple-workflow/templates/', { params }),
+  
+  // 创建模板
+  createTemplate: (data: any) => api.post('/workflow-templates/', data),
+  
+  // 更新模板
+  updateTemplate: (id: number, data: any) => api.put(`/workflow-templates/${id}/`, data),
+  
+  // 删除模板
+  deleteTemplate: (id: number) => api.delete(`/workflow-templates/${id}/`),
+  
+  // 使用模板
+  useTemplate: (id: number) => api.post(`/workflow-templates/${id}/use/`),
+}
+
+// 多租户API
+export const tenantApi = {
+  // 租户管理
+  list: (params?: any) => api.get('/tenants/', { params }),
+  get: (id: string) => api.get(`/tenants/${id}/`),
+  create: (data: any) => api.post('/tenants/', data),
+  update: (id: string, data: any) => api.put(`/tenants/${id}/`, data),
+  delete: (id: string) => api.delete(`/tenants/${id}/`),
+  
+  // 租户用户管理
+  users: {
+    list: (params?: any) => api.get('/tenant-users/', { params }),
+    get: (id: number) => api.get(`/tenant-users/${id}/`),
+    create: (data: any) => api.post('/tenant-users/', data),
+    update: (id: number, data: any) => api.put(`/tenant-users/${id}/`, data),
+    delete: (id: number) => api.delete(`/tenant-users/${id}/`),
+    updatePermissions: (id: number, data: any) => api.post(`/tenant-users/${id}/update_permissions/`, data),
+  },
+  
+  // 租户设置
+  settings: {
+    get: (tenantId: string) => api.get(`/tenant-settings/current_settings/`),
+    update: (id: number, data: any) => api.put(`/tenant-settings/${id}/`, data),
+  },
+  
+  // 租户订阅
+  subscriptions: {
+    list: (params?: any) => api.get('/tenant-subscriptions/', { params }),
+    get: (id: number) => api.get(`/tenant-subscriptions/${id}/`),
+    renew: (id: number, data: any) => api.post(`/tenant-subscriptions/${id}/renew_subscription/`, data),
+  },
+  
+  // 租户操作
+  myTenants: () => api.get('/tenants/my_tenants/'),
+  switchTenant: (id: string) => api.post(`/tenants/${id}/switch_tenant/`),
+  getStats: (id: string) => api.get(`/tenants/${id}/stats/`),
+  inviteUser: (id: string, data: any) => api.post(`/tenants/${id}/invite_user/`, data),
 }
 
 export default api

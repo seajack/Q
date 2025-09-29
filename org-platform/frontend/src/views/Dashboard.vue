@@ -1,108 +1,295 @@
 <template>
-  <div class="container dashboard-view">
-    <div class="row" style="margin-bottom:12px">
-      <h3 style="margin:0;font-size:16px">首页概览</h3>
-      <div class="toolbar"></div>
+  <div class="dashboard-page">
+    <!-- 现代化页面头部 -->
+    <ModernPageHeader
+      title="组织架构中台"
+      subtitle="智能化组织管理与数据分析平台"
+      icon="TrendCharts"
+      color="blue"
+    >
+      <template #actions>
+        <ModernButton type="secondary" icon="Download">
+          导出报告
+        </ModernButton>
+        <ModernButton type="primary" icon="Plus">
+          快速操作
+        </ModernButton>
+      </template>
+    </ModernPageHeader>
+
+    <!-- 统计概览 -->
+    <div class="stats-grid">
+      <ModernStatCard
+        title="总员工数"
+        :value="stats.active_employees || 0"
+        change="+12 本月"
+        change-type="positive"
+        icon="User"
+        icon-type="primary"
+      />
+      <ModernStatCard
+        title="部门数量"
+        :value="stats.active_departments || 0"
+        change="+2 本月"
+        change-type="positive"
+        icon="OfficeBuilding"
+        icon-type="success"
+      />
+      <ModernStatCard
+        title="职位数量"
+        :value="stats.active_positions || 0"
+        change="+8 本月"
+        change-type="positive"
+        icon="Suitcase"
+        icon-type="warning"
+      />
+      <ModernStatCard
+        title="活跃租户"
+        :value="15"
+        change="+1 本月"
+        change-type="positive"
+        icon="Globe"
+        icon-type="success"
+      />
     </div>
 
-    <div class="kpi-grid">
-      <div v-for="card in kpiCards" :key="card.key" class="kpi-card">
-        <div class="kpi-header">
-          <p class="kpi-label">{{ card.label }}</p>
-          <span class="kpi-tag" :class="card.tagClass">{{ card.tag }}</span>
-        </div>
-        <div class="kpi-body">
-          <h3>{{ card.displayValue }}</h3>
-          <div class="kpi-bubble" :class="card.palette"></div>
-        </div>
-        <div v-if="card.progress !== undefined" class="kpi-progress">
-          <div class="kpi-progress-track">
-            <div class="kpi-progress-fill" :style="{ width: card.progress + '%' }"></div>
-          </div>
-          <div class="kpi-progress-meta">
-            <span>{{ card.progress }}%</span>
-            <span>{{ card.progressLabel }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="chart-grid">
-      <div class="chart-card large">
-        <div class="chart-header">
-          <h3>部门层级分布</h3>
-          <span class="chart-sub">当前结构</span>
-        </div>
-        <div class="chart-body">
-          <div v-if="departmentLevels.length" class="level-list">
-            <div v-for="level in departmentLevels" :key="level.label" class="level-row">
-              <div class="level-left">
-                <span class="level-dot"></span>
-                <span class="level-name">第 {{ level.label }} 层</span>
-              </div>
-              <div class="level-right">
-                <span class="level-value">{{ level.count }} 个</span>
-                <div class="level-bar">
-                  <div class="level-bar-fill" :style="{ width: level.percent + '%' }"></div>
-                </div>
-              </div>
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <!-- 快速导航 -->
+      <ModernCard title="快速导航" icon="Rocket" class="navigation-card">
+        <div class="nav-grid">
+          <div class="nav-item" @click="$router.push('/employees')">
+            <div class="nav-icon blue">
+              <el-icon><User /></el-icon>
+            </div>
+            <div class="nav-info">
+              <h4>员工管理</h4>
+              <p>管理员工信息</p>
             </div>
           </div>
-          <div v-else class="empty-placeholder">暂无部门层级数据</div>
-        </div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>职位级别分布</h3>
-          <span class="chart-sub">活跃职位</span>
-        </div>
-        <div class="chart-body">
-          <div v-if="positionLevels.length" class="level-list compact">
-            <div v-for="level in positionLevels" :key="level.label" class="level-row">
-              <div class="level-left">
-                <span class="level-dot secondary"></span>
-                <span class="level-name">级别 {{ level.label }}</span>
-              </div>
-              <div class="level-right">
-                <span class="level-value">{{ level.count }} 个</span>
-                <div class="level-bar">
-                  <div class="level-bar-fill secondary" :style="{ width: level.percent + '%' }"></div>
-                </div>
-              </div>
+          
+          <div class="nav-item" @click="$router.push('/departments')">
+            <div class="nav-icon emerald">
+              <el-icon><OfficeBuilding /></el-icon>
+            </div>
+            <div class="nav-info">
+              <h4>部门管理</h4>
+              <p>组织架构管理</p>
             </div>
           </div>
-          <div v-else class="empty-placeholder">暂无职位级别数据</div>
+          
+          <div class="nav-item" @click="$router.push('/positions')">
+            <div class="nav-icon green">
+              <el-icon><Suitcase /></el-icon>
+            </div>
+            <div class="nav-info">
+              <h4>职位管理</h4>
+              <p>职位体系管理</p>
+            </div>
+          </div>
+          
+          <div class="nav-item" @click="$router.push('/workflow-rules')">
+            <div class="nav-icon purple">
+              <el-icon><Setting /></el-icon>
+            </div>
+            <div class="nav-info">
+              <h4>工作流</h4>
+              <p>流程规则配置</p>
+            </div>
+          </div>
+          
+          <div class="nav-item" @click="$router.push('/intelligent-analysis')">
+            <div class="nav-icon indigo">
+              <el-icon><DataAnalysis /></el-icon>
+            </div>
+            <div class="nav-info">
+              <h4>智能分析</h4>
+              <p>AI驱动分析</p>
+            </div>
+          </div>
+          
+          <div class="nav-item" @click="$router.push('/permission-management')">
+            <div class="nav-icon purple">
+              <el-icon><Lock /></el-icon>
+            </div>
+            <div class="nav-info">
+              <h4>权限管理</h4>
+              <p>安全权限控制</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </ModernCard>
+
+      <!-- 最近活动 -->
+      <ModernCard title="最近活动" icon="Clock" class="activity-card">
+        <template #actions>
+          <ModernButton type="secondary" icon="Refresh" size="small">
+            查看全部
+          </ModernButton>
+        </template>
+        
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="activity-icon blue">
+              <el-icon><UserFilled /></el-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">新员工入职</div>
+              <div class="activity-desc">张三加入技术部</div>
+              <div class="activity-time">5分钟前</div>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon emerald">
+              <el-icon><OfficeBuilding /></el-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">部门调整</div>
+              <div class="activity-desc">产品部组织架构更新</div>
+              <div class="activity-time">1小时前</div>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon green">
+              <el-icon><Suitcase /></el-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">职位创建</div>
+              <div class="activity-desc">新增高级产品经理职位</div>
+              <div class="activity-time">2小时前</div>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon purple">
+              <el-icon><Setting /></el-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">工作流更新</div>
+              <div class="activity-desc">员工转岗流程优化</div>
+              <div class="activity-time">3小时前</div>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon indigo">
+              <el-icon><TrendCharts /></el-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">分析报告</div>
+              <div class="activity-desc">月度组织健康度报告生成</div>
+              <div class="activity-time">4小时前</div>
+            </div>
+          </div>
+        </div>
+      </ModernCard>
     </div>
 
-    <div class="action-panel">
-      <div class="action-header">
-        <div>
-          <h3>快捷操作</h3>
-          <p>常用入口与新增操作</p>
+    <!-- 底部网格 -->
+    <div class="bottom-grid">
+      <!-- 系统状态 -->
+      <ModernCard title="系统状态" icon="Monitor" class="status-card">
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>核心服务</h5>
+              <p>运行正常</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>数据库</h5>
+              <p>连接正常</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator warning"></div>
+            <div class="status-info">
+              <h5>集成服务</h5>
+              <p>部分延迟</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>权限服务</h5>
+              <p>运行正常</p>
+            </div>
+          </div>
         </div>
-        <el-tag size="small" effect="plain">日常管理</el-tag>
-      </div>
-      <div class="action-grid">
-        <el-button class="action-btn" @click="$router.push('/departments')">
-          <el-icon><Plus /></el-icon>
-          新建部门
-        </el-button>
-        <el-button class="action-btn" @click="$router.push('/positions')">
-          <el-icon><Plus /></el-icon>
-          新建职位
-        </el-button>
-        <el-button class="action-btn" @click="$router.push('/employees')">
-          <el-icon><Plus /></el-icon>
-          新建员工
-        </el-button>
-        <el-button class="action-btn" @click="$router.push('/organization-tree')">
-          <el-icon><View /></el-icon>
-          查看组织架构
-        </el-button>
-      </div>
+      </ModernCard>
+
+      <!-- 数据概览 -->
+      <ModernCard title="数据概览" icon="Database" class="data-card">
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>数据同步</h5>
+              <p>实时同步中</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>备份状态</h5>
+              <p>今日已备份</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>存储空间</h5>
+              <p>使用率 68%</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-info">
+              <h5>API调用</h5>
+              <p>今日 2.3K</p>
+            </div>
+          </div>
+        </div>
+      </ModernCard>
+
+      <!-- 快速统计 -->
+      <ModernCard title="快速统计" icon="PieChart" class="quick-stats-card">
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-indicator blue"></div>
+            <div class="status-info">
+              <h5>在职员工</h5>
+              <p>{{ stats.active_employees || 0 }} 人</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator emerald"></div>
+            <div class="status-info">
+              <h5>本月入职</h5>
+              <p>12 人</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator green"></div>
+            <div class="status-info">
+              <h5>职位空缺</h5>
+              <p>8 个</p>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator purple"></div>
+            <div class="status-info">
+              <h5>待审批</h5>
+              <p>3 项</p>
+            </div>
+          </div>
+        </div>
+      </ModernCard>
     </div>
   </div>
 </template>
@@ -111,7 +298,11 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useOrganizationStore } from '@/stores/organization'
-import { Plus, View } from '@element-plus/icons-vue'
+import { Plus, View, User, OfficeBuilding, Suitcase, Setting, DataAnalysis, Lock, UserFilled, TrendCharts } from '@element-plus/icons-vue'
+import ModernPageHeader from '@/components/common/ModernPageHeader.vue'
+import ModernStatCard from '@/components/common/ModernStatCard.vue'
+import ModernCard from '@/components/common/ModernCard.vue'
+import ModernButton from '@/components/common/ModernButton.vue'
 
 interface KpiCard {
   key: string
@@ -225,29 +416,85 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.dashboard-view {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding-bottom: 32px;
-  background: #ffffff !important;
+.dashboard-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  min-height: 100vh;
 }
 
-.kpi-grid {
+/* 统计卡片网格 */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.kpi-card {
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 16px !important;
-  padding: 20px !important;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+/* 主内容区域 */
+.main-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* 导航网格 */
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.nav-item {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: white;
+}
+
+.nav-item:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: white;
+}
+
+.nav-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.nav-icon.emerald { background: linear-gradient(135deg, #10b981, #059669); }
+.nav-icon.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.nav-icon.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.nav-icon.indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+.nav-info h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: #111827;
+}
+
+.nav-info p {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
 }
 
 .kpi-header {
@@ -510,17 +757,152 @@ onMounted(async () => {
   font-size: 16px;
 }
 
+/* 活动列表 */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+  border-color: #e5e7eb;
+  background: #f9fafb;
+}
+
+.activity-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.activity-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.activity-icon.emerald { background: linear-gradient(135deg, #10b981, #059669); }
+.activity-icon.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.activity-icon.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.activity-icon.indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #111827;
+}
+
+.activity-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.activity-time {
+  font-size: 0.625rem;
+  color: #9ca3af;
+}
+
+/* 底部网格 */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+/* 状态网格 */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+}
+
+.status-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator.online { background: #10b981; }
+.status-indicator.offline { background: #ef4444; }
+.status-indicator.warning { background: #f59e0b; }
+.status-indicator.blue { background: #3b82f6; border-radius: 0.25rem; }
+.status-indicator.emerald { background: #10b981; border-radius: 0.25rem; }
+.status-indicator.green { background: #22c55e; border-radius: 0.25rem; }
+.status-indicator.purple { background: #8b5cf6; border-radius: 0.25rem; }
+
+.status-info h5 {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0 0 0.125rem 0;
+  color: #111827;
+}
+
+.status-info p {
+  font-size: 0.625rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-page {
+    padding: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
-  .kpi-card {
-    padding: 16px !important;
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
   }
-
-  .chart-card.large {
-    grid-column: span 1;
+  
+  .nav-grid {
+    grid-template-columns: 1fr;
   }
+  
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
-  .action-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

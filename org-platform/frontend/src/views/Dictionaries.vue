@@ -1,85 +1,161 @@
 <template>
-  <div class="dictionaries">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>数据字典管理</span>
-          <div class="header-actions">
-            <el-button type="primary" @click="showAddDialog = true">
-              新增字典项
-            </el-button>
+  <div class="dictionaries-page">
+    <!-- 现代化页面头部 -->
+    <ModernPageHeader
+      title="数据字典"
+      subtitle="系统数据字典管理与维护"
+      icon="Collection"
+      color="indigo"
+    >
+      <template #actions>
+        <ModernButton type="secondary" icon="Download">
+          导出字典
+        </ModernButton>
+        <ModernButton type="primary" icon="Plus" @click="showAddDialog = true">
+          新增字典项
+        </ModernButton>
+      </template>
+    </ModernPageHeader>
+
+    <!-- 统计概览 -->
+    <div class="stats-grid">
+      <ModernStatCard
+        title="字典总数"
+        :value="total"
+        change="+8 本月"
+        change-type="positive"
+        icon="Collection"
+        icon-type="primary"
+      />
+      <ModernStatCard
+        title="活跃字典"
+        :value="getActiveDictionaries()"
+        change="+6 本月"
+        change-type="positive"
+        icon="CircleCheck"
+        icon-type="success"
+      />
+      <ModernStatCard
+        title="字典分类"
+        :value="getDictionaryCategories()"
+        change="稳定"
+        change-type="positive"
+        icon="FolderOpened"
+        icon-type="warning"
+      />
+      <ModernStatCard
+        title="父级字典"
+        :value="getParentDictionaries()"
+        change="+2 本月"
+        change-type="positive"
+        icon="DataLine"
+        icon-type="success"
+      />
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <!-- 分类导航 -->
+      <ModernCard title="字典分类" icon="Menu" class="category-nav">
+        <div class="category-list">
+          <div 
+            v-for="category in dictionaryCategories" 
+            :key="category.value"
+            class="category-item"
+            :class="{ active: selectedCategory === category.value }"
+            @click="selectCategory(category.value)"
+          >
+            <div class="category-icon" :class="category.iconClass">
+              <el-icon><component :is="category.icon" /></el-icon>
+            </div>
+            <div class="category-info">
+              <div class="category-name">{{ category.name }}</div>
+              <div class="category-count">{{ getCategoryCount(category.value) }}个字典</div>
+            </div>
           </div>
         </div>
-      </template>
-      
-      <!-- 字典分类筛选 -->
-      <el-row class="filter-row">
-        <el-col :span="6">
-          <el-select v-model="selectedCategory" placeholder="选择字典分类" @change="loadDictionaries">
-            <el-option label="全部" value="" />
-            <el-option label="员工状态" value="employee_status" />
-            <el-option label="学历层次" value="education_level" />
-            <el-option label="技能等级" value="skill_level" />
-            <el-option label="婚姻状况" value="marital_status" />
-            <el-option label="部门类型" value="department_type" />
-            <el-option label="职位级别" value="position_level" />
-            <el-option label="工作流状态" value="workflow_status" />
-          </el-select>
-        </el-col>
-        <el-col :span="6">
+      </ModernCard>
+
+      <!-- 字典列表 -->
+      <ModernCard title="字典列表" icon="List" class="dictionary-list">
+        <template #actions>
           <el-input
             v-model="searchKeyword"
-            placeholder="搜索字典项"
+            placeholder="搜索字典"
             @input="handleSearch"
             clearable
-          />
-        </el-col>
-        <el-col :span="6">
-          <el-button @click="loadDictionaries">刷新</el-button>
-        </el-col>
-      </el-row>
-      
-      <!-- 字典列表 -->
-      <el-table :data="dictionaries" v-loading="loading" style="margin-top: 20px">
-        <el-table-column prop="code" label="编码" width="150" />
-        <el-table-column prop="name" label="名称" width="200" />
-        <el-table-column prop="value" label="值" width="150" />
-        <el-table-column prop="category" label="分类" width="120">
-          <template #default="{ row }">
-            <el-tag :type="getCategoryType(row.category)">
-              {{ getCategoryName(row.category) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="parent_name" label="父级" width="150" />
-        <el-table-column prop="sort_order" label="排序" width="80" />
-        <el-table-column prop="is_active" label="状态" width="80">
-          <template #default="{ row }">
-            <el-tag :type="row.is_active ? 'success' : 'danger'">
-              {{ row.is_active ? '启用' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="150">
-          <template #default="{ row }">
-            <el-button size="small" @click="editDictionary(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="deleteDictionary(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      
-      <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        style="margin-top: 20px; text-align: right"
-      />
-    </el-card>
+            style="width: 200px"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+        </template>
+        
+        <div class="dictionaries-grid" v-loading="loading">
+          <div 
+            v-for="dictionary in filteredDictionaries" 
+            :key="dictionary.id" 
+            class="dictionary-card"
+            @click="selectDictionary(dictionary)"
+          >
+            <div class="dictionary-header">
+              <div class="dictionary-icon" :class="getDictionaryIconClass(dictionary.category)">
+                <el-icon><component :is="getDictionaryIcon(dictionary.category)" /></el-icon>
+              </div>
+              <div class="dictionary-status">
+                <el-tag :type="dictionary.is_active ? 'success' : 'danger'" size="small" effect="light">
+                  {{ dictionary.is_active ? '启用' : '禁用' }}
+                </el-tag>
+              </div>
+            </div>
+            
+            <div class="dictionary-info">
+              <h4 class="dictionary-name">{{ dictionary.name }}</h4>
+              <p class="dictionary-code">{{ dictionary.code }}</p>
+              <div class="dictionary-meta">
+                <el-tag :type="getCategoryType(dictionary.category)" size="small" effect="plain">
+                  {{ getCategoryName(dictionary.category) }}
+                </el-tag>
+                <span class="dictionary-sort">排序: {{ dictionary.sort_order }}</span>
+              </div>
+            </div>
+            
+            <div class="dictionary-details">
+              <div class="detail-item" v-if="dictionary.value">
+                <span class="detail-label">值</span>
+                <span class="detail-value">{{ dictionary.value }}</span>
+              </div>
+              <div class="detail-item" v-if="dictionary.parent_name">
+                <span class="detail-label">父级</span>
+                <span class="detail-value">{{ dictionary.parent_name }}</span>
+              </div>
+            </div>
+            
+            <div class="dictionary-actions">
+              <ModernButton type="secondary" icon="Edit" size="small" @click.stop="editDictionary(dictionary)">
+                编辑
+              </ModernButton>
+              <ModernButton type="danger" icon="Delete" size="small" @click.stop="deleteDictionary(dictionary)">
+                删除
+              </ModernButton>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 分页 -->
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          style="margin-top: 20px; text-align: right"
+        />
+      </ModernCard>
+    </div>
     
     <!-- 新增/编辑字典项对话框 -->
     <el-dialog v-model="showAddDialog" :title="isEdit ? '编辑字典项' : '新增字典项'" width="600px">
@@ -135,9 +211,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch } from 'vue'
+import { ref, onMounted, reactive, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, User, GraduationCap, Trophy, Female, OfficeBuilding, Suitcase, Operation } from '@element-plus/icons-vue'
 import { dictionaryApi } from '@/utils/api'
+import ModernPageHeader from '@/components/common/ModernPageHeader.vue'
+import ModernStatCard from '@/components/common/ModernStatCard.vue'
+import ModernCard from '@/components/common/ModernCard.vue'
+import ModernButton from '@/components/common/ModernButton.vue'
 
 const dictionaries = ref([])
 const parentOptions = ref([])
@@ -147,6 +228,86 @@ const searchKeyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+const selectedDictionary = ref<any | null>(null)
+
+// 字典分类定义
+const dictionaryCategories = [
+  { value: '', name: '全部分类', icon: 'Collection', iconClass: 'icon-all' },
+  { value: 'employee_status', name: '员工状态', icon: 'User', iconClass: 'icon-employee' },
+  { value: 'education_level', name: '学历层次', icon: 'GraduationCap', iconClass: 'icon-education' },
+  { value: 'skill_level', name: '技能等级', icon: 'Trophy', iconClass: 'icon-skill' },
+  { value: 'marital_status', name: '婚姻状况', icon: 'Female', iconClass: 'icon-marital' },
+  { value: 'department_type', name: '部门类型', icon: 'OfficeBuilding', iconClass: 'icon-department' },
+  { value: 'position_level', name: '职位级别', icon: 'Suitcase', iconClass: 'icon-position' },
+  { value: 'workflow_status', name: '工作流状态', icon: 'Operation', iconClass: 'icon-workflow' }
+]
+
+// 统计方法
+const getActiveDictionaries = () => {
+  return dictionaries.value.filter(d => d.is_active).length
+}
+
+const getDictionaryCategories = () => {
+  const categories = new Set(dictionaries.value.map(d => d.category))
+  return categories.size
+}
+
+const getParentDictionaries = () => {
+  return dictionaries.value.filter(d => !d.parent).length
+}
+
+const getCategoryCount = (category: string) => {
+  if (!category) return dictionaries.value.length
+  return dictionaries.value.filter(d => d.category === category).length
+}
+
+// 选择分类
+const selectCategory = (category: string) => {
+  selectedCategory.value = category
+  currentPage.value = 1
+  loadDictionaries()
+}
+
+// 选择字典
+const selectDictionary = (dictionary: any) => {
+  selectedDictionary.value = dictionary
+}
+
+// 过滤字典
+const filteredDictionaries = computed(() => {
+  let filtered = dictionaries.value
+  if (selectedCategory.value) {
+    filtered = filtered.filter(d => d.category === selectedCategory.value)
+  }
+  return filtered
+})
+
+// 获取字典图标
+const getDictionaryIcon = (category: string) => {
+  const iconMap = {
+    employee_status: 'User',
+    education_level: 'GraduationCap',
+    skill_level: 'Trophy',
+    marital_status: 'Female',
+    department_type: 'OfficeBuilding',
+    position_level: 'Suitcase',
+    workflow_status: 'Operation'
+  }
+  return iconMap[category] || 'Collection'
+}
+
+const getDictionaryIconClass = (category: string) => {
+  const classMap = {
+    employee_status: 'icon-employee',
+    education_level: 'icon-education',
+    skill_level: 'icon-skill',
+    marital_status: 'icon-marital',
+    department_type: 'icon-department',
+    position_level: 'icon-position',
+    workflow_status: 'icon-workflow'
+  }
+  return classMap[category] || 'icon-default'
+}
 
 const showAddDialog = ref(false)
 const isEdit = ref(false)
@@ -178,8 +339,8 @@ const loadDictionaries = async () => {
       ...(searchKeyword.value && { search: searchKeyword.value })
     }
     const response = await dictionaryApi.getDictionaries(params)
-    dictionaries.value = response.data.results
-    total.value = response.data.count
+    dictionaries.value = response.results
+    total.value = response.count
   } catch (error) {
     ElMessage.error('加载字典数据失败')
   } finally {
@@ -190,7 +351,7 @@ const loadDictionaries = async () => {
 const loadParentOptions = async () => {
   try {
     const response = await dictionaryApi.getDictionaries({ page_size: 1000 })
-    parentOptions.value = response.data.results
+    parentOptions.value = response.results
   } catch (error) {
     console.error('加载父级选项失败', error)
   }
@@ -290,18 +451,289 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.card-header {
+.dictionaries-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  min-height: 100vh;
+}
+
+/* 统计卡片网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* 主内容区域 */
+.main-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.5rem;
+}
+
+/* 分类导航 */
+.category-nav {
+  height: fit-content;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.category-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.category-item.active {
+  background: #eef2ff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+}
+
+.category-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.125rem;
+}
+
+.icon-all { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.icon-employee { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.icon-education { background: linear-gradient(135deg, #10b981, #059669); }
+.icon-skill { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.icon-marital { background: linear-gradient(135deg, #ec4899, #db2777); }
+.icon-department { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.icon-position { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.icon-workflow { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.category-info {
+  flex: 1;
+}
+
+.category-name {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.category-count {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* 字典列表 */
+.dictionary-list {
+  height: fit-content;
+}
+
+.dictionaries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.dictionary-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dictionary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #4f46e5);
+}
+
+.dictionary-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #6366f1;
+}
+
+.dictionary-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.dictionary-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+}
+
+.icon-default { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+.dictionary-status {
+  display: flex;
   align-items: center;
 }
 
-.header-actions {
-  display: flex;
-  gap: 10px;
+.dictionary-info {
+  margin-bottom: 1rem;
 }
 
-.filter-row {
-  margin-bottom: 20px;
+.dictionary-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.dictionary-code {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  margin: 0 0 0.75rem 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.dictionary-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dictionary-sort {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: #f3f4f6;
+  border-radius: 0.25rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.dictionary-details {
+  margin-bottom: 1rem;
+  min-height: 2.5rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 0.75rem;
+  color: #111827;
+  font-weight: 500;
+  max-width: 60%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dictionary-actions {
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dictionary-card:hover .dictionary-actions {
+  opacity: 1;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-nav {
+    order: 2;
+  }
+  
+  .dictionary-list {
+    order: 1;
+  }
+  
+  .category-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .dictionaries-page {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .dictionaries-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dictionary-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-list {
+    flex-direction: column;
+  }
 }
 </style>

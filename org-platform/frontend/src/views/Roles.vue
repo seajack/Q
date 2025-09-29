@@ -244,7 +244,7 @@ const loadRoles = async () => {
       is_active: filterStatus.value
     }
     const response = await api.get('/permission/roles/', { params })
-    roles.value = response.data.results
+    roles.value = response.results
   } catch (error) {
     ElMessage.error('加载角色列表失败')
   } finally {
@@ -264,7 +264,7 @@ const loadPermissionTree = async () => {
 const loadUsers = async () => {
   try {
     const response = await api.get('/api/users/')
-    allUsers.value = response.data.results.map(user => ({
+    allUsers.value = response.results.map(user => ({
       key: user.id,
       label: user.username,
       disabled: false

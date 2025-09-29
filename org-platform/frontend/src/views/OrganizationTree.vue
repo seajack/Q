@@ -49,6 +49,16 @@
             <p>{{ membersSubtitle }}</p>
           </div>
           <div class="header-actions">
+            <div class="import-actions">
+              <el-button type="success" size="small" @click="downloadTemplate">
+                <el-icon><Download /></el-icon>
+                下载模板
+              </el-button>
+              <el-button type="primary" size="small" @click="showImportDialog = true">
+                <el-icon><Upload /></el-icon>
+                导入组织树
+              </el-button>
+            </div>
             <el-input
               v-model.trim="keyword"
               class="search-input"
@@ -221,6 +231,31 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 导入组织树对话框 -->
+    <el-dialog v-model="showImportDialog" title="导入组织树" width="500px">
+      <div style="margin-bottom: 20px;">
+        <el-upload
+          drag
+          accept=".xlsx"
+          :http-request="uploadFile"
+        >
+          <el-icon class="el-icon--upload"><Upload /></el-icon>
+          <div class="el-upload__text">拖拽Excel文件或<em>点击上传</em></div>
+        </el-upload>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 500;">导入模式：</label>
+        <el-select v-model="importMode" placeholder="选择导入模式" style="width: 100%;">
+          <el-option label="增量更新" value="incremental" />
+          <el-option label="全量替换" value="full" />
+        </el-select>
+      </div>
+      <template #footer>
+        <el-button @click="showImportDialog = false">取消</el-button>
+        <el-button type="primary" @click="importData">导入</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -228,9 +263,10 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ElDialog, ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Search } from '@element-plus/icons-vue'
+import { Refresh, Search, Download, Upload } from '@element-plus/icons-vue'
 import { useOrganizationStore } from '@/stores/organization'
 import { useRouter } from 'vue-router'
+import { departmentApi } from '@/utils/api'
 
 interface TreeNodeItem {
   id: number
@@ -246,6 +282,11 @@ const router = useRouter()
 // 详情弹窗相关
 const detailDialogVisible = ref(false)
 const selectedEmployee = ref<any>(null)
+
+// 导入相关
+const showImportDialog = ref(false)
+const importMode = ref('incremental')
+const importFile = ref(null)
 
 const treeData = ref<TreeNodeItem[]>([])
 const treeLoading = ref(false)
@@ -450,6 +491,68 @@ watch([keyword, selectedDeptId], () => {
   currentPage.value = 1
 })
 
+const uploadFile = (upload: any) => {
+  importFile.value = upload.file
+}
+
+const importData = async () => {
+  if (!importFile.value) return ElMessage.error('请上传文件')
+  const formData = new FormData()
+  formData.append('file', importFile.value)
+  formData.append('mode', importMode.value)
+  try {
+    const response = await departmentApi.import(formData)
+    const results = response.data.results
+    
+    // 显示详细的导入结果
+    let message = '导入完成！\n'
+    if (results.departments) {
+      message += `部门：新增${results.departments.created}个，更新${results.departments.updated}个\n`
+    }
+    if (results.positions) {
+      message += `职位：新增${results.positions.created}个，更新${results.positions.updated}个\n`
+    }
+    if (results.employees) {
+      message += `员工：新增${results.employees.created}个，更新${results.employees.updated}个\n`
+    }
+    
+    // 显示错误信息
+    const allErrors = []
+    if (results.departments?.errors) allErrors.push(...results.departments.errors)
+    if (results.positions?.errors) allErrors.push(...results.positions.errors)
+    if (results.employees?.errors) allErrors.push(...results.employees.errors)
+    
+    if (allErrors.length > 0) {
+      message += `\n错误信息：\n${allErrors.slice(0, 5).join('\n')}`
+      if (allErrors.length > 5) {
+        message += `\n...还有${allErrors.length - 5}个错误`
+      }
+    }
+    
+    ElMessage.success(message)
+    showImportDialog.value = false
+    await refreshTree()
+    await fetchMembers()
+  } catch (e) {
+    ElMessage.error('导入失败：' + (e.response?.data?.error || e.message))
+  }
+}
+
+const downloadTemplate = async () => {
+  try {
+    const response = await departmentApi.downloadTemplate()
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'organization_template.xlsx'
+    link.click()
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('模板下载成功')
+  } catch (e) {
+    ElMessage.error('下载失败')
+  }
+}
+
 onMounted(async () => {
   await Promise.all([refreshTree(), fetchMembers()])
 })
@@ -573,6 +676,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.import-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
 }
 
 .search-input {

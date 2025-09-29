@@ -1,91 +1,211 @@
 <template>
   <div class="evaluation-cycles">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>考核周期管理</span>
-          <div style="display: flex; gap: 8px;">
-            <el-button type="info" @click="debugData">调试数据</el-button>
-            <el-button type="primary" @click="showCreateDialog">
-              <el-icon><Plus /></el-icon>
-              新建考核周期
-            </el-button>
-          </div>
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="page-title">
+            <el-icon class="title-icon"><Calendar /></el-icon>
+            考核周期管理
+          </h1>
+          <p class="page-subtitle">管理和配置绩效考核周期，设置考核规则和指标</p>
         </div>
-      </template>
+        <div class="header-actions">
+          <el-button @click="debugData" class="debug-btn">
+            <el-icon><Setting /></el-icon>
+            调试数据
+          </el-button>
+          <el-button type="primary" @click="showCreateDialog" class="create-btn">
+            <el-icon><Plus /></el-icon>
+            新建考核周期
+          </el-button>
+        </div>
+      </div>
+    </div>
 
-      <el-table :data="cycles" v-loading="loading">
-        <template #empty>
-          <div style="text-align: center; padding: 20px;">
-            <p>暂无考核周期数据</p>
-            <p>请先创建考核周期</p>
-          </div>
-        </template>
-        <el-table-column prop="name" label="周期名称" />
-        <el-table-column prop="start_date" label="开始日期" />
-        <el-table-column prop="end_date" label="结束日期" />
-        <el-table-column prop="status" label="状态">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="300" fixed="right">
-          <template #default="{ row }">
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <el-button size="small" @click="editCycle(row)" style="display: inline-block !important;">编辑</el-button>
-              <el-button size="small" type="success" @click="generateTasks(row)" style="display: inline-block !important;">生成任务</el-button>
-              <el-button size="small" type="info" @click="viewTasks(row)" style="display: inline-block !important;">查看任务</el-button>
-              <el-button size="small" type="danger" @click="deleteCycle(row)" style="display: inline-block !important;">删除</el-button>
+    <!-- 数据表格区域 -->
+    <div class="table-section">
+      <div class="table-container">
+        <el-table 
+          :data="cycles" 
+          v-loading="loading" 
+          class="cycles-table"
+          :empty-text="loading ? '加载中...' : '暂无考核周期数据'"
+        >
+          <template #empty>
+            <div class="empty-state">
+              <el-icon class="empty-icon"><Calendar /></el-icon>
+              <p class="empty-text">暂无考核周期数据</p>
+              <p class="empty-subtitle">点击上方"新建考核周期"按钮开始创建</p>
             </div>
           </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+          
+          <el-table-column prop="name" label="周期名称" min-width="180" show-overflow-tooltip>
+            <template #default="{ row }">
+              <div class="cycle-name">
+                <el-icon class="name-icon"><Calendar /></el-icon>
+                <span class="name-text">{{ row.name }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>
+            <template #default="{ row }">
+              <span v-if="row.description" class="description-text">{{ row.description }}</span>
+              <span v-else class="no-description">暂无描述</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="时间范围" width="180">
+            <template #default="{ row }">
+              <div class="time-range">
+                <div class="start-date">
+                  <el-icon class="date-icon"><Calendar /></el-icon>
+                  <span>{{ row.start_date }}</span>
+                </div>
+                <div class="end-date">
+                  <el-icon class="date-icon"><Calendar /></el-icon>
+                  <span>{{ row.end_date }}</span>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="status" label="状态" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag 
+                :type="getStatusType(row.status)" 
+                :class="`status-tag status-${row.status}`"
+                effect="light"
+              >
+                {{ getStatusText(row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="考核规则" width="160" show-overflow-tooltip>
+            <template #default="{ row }">
+              <div class="rule-info">
+                <el-icon v-if="row.evaluation_rule_name" class="rule-icon"><Setting /></el-icon>
+                <span v-if="row.evaluation_rule_name" class="rule-name">{{ row.evaluation_rule_name }}</span>
+                <span v-else class="no-rule">未设置</span>
+              </div>
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="操作" width="320" fixed="right" align="center">
+            <template #default="{ row }">
+              <div class="action-buttons">
+                <el-button 
+                  size="small" 
+                  @click="editCycle(row)"
+                  class="action-btn edit-btn"
+                >
+                  <el-icon><Edit /></el-icon>
+                  编辑
+                </el-button>
+                <el-button 
+                  size="small" 
+                  type="success" 
+                  @click="generateTasks(row)"
+                  class="action-btn generate-btn"
+                >
+                  <el-icon><Plus /></el-icon>
+                  生成任务
+                </el-button>
+                <el-button 
+                  size="small" 
+                  type="info" 
+                  @click="viewTasks(row)"
+                  class="action-btn tasks-btn"
+                >
+                  <el-icon><List /></el-icon>
+                  查看任务
+                </el-button>
+                <el-button 
+                  size="small" 
+                  type="danger" 
+                  @click="deleteCycle(row)"
+                  class="action-btn delete-btn"
+                >
+                  <el-icon><Delete /></el-icon>
+                  删除
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
 
     <!-- 创建/编辑对话框 -->
-    <el-dialog
-      :title="isEdit ? '编辑考核周期' : '新建考核周期'"
-      v-model="dialogVisible"
+    <el-dialog 
+      v-model="dialogVisible" 
+      :title="isEdit ? '编辑考核周期' : '新建考核周期'" 
       width="600px"
+      class="cycle-dialog"
+      :close-on-click-modal="false"
     >
-      <el-form :model="formData" :rules="rules" ref="formRef" label-width="100px">
-        <el-form-item label="周期名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入周期名称" />
+      <el-form :model="formData" :rules="rules" ref="formRef" label-width="100px" class="cycle-form">
+        <el-form-item label="周期名称" prop="name" required>
+          <el-input 
+            v-model="formData.name" 
+            placeholder="请输入考核周期名称"
+            maxlength="50"
+            show-word-limit
+          />
         </el-form-item>
-        <el-form-item label="开始日期" prop="start_date">
-          <el-date-picker
-            v-model="formData.start_date"
-            type="date"
+        
+        <el-form-item label="周期描述">
+          <el-input 
+            v-model="formData.description" 
+            type="textarea"
+            placeholder="请输入考核周期描述（可选）"
+            :rows="3"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+        
+        <el-form-item label="开始日期" prop="start_date" required>
+          <el-date-picker 
+            v-model="formData.start_date" 
+            type="date" 
             placeholder="选择开始日期"
             style="width: 100%"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
           />
         </el-form-item>
-        <el-form-item label="结束日期" prop="end_date">
-          <el-date-picker
-            v-model="formData.end_date"
-            type="date"
+        
+        <el-form-item label="结束日期" prop="end_date" required>
+          <el-date-picker 
+            v-model="formData.end_date" 
+            type="date" 
             placeholder="选择结束日期"
             style="width: 100%"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
           />
         </el-form-item>
-        <el-form-item label="考核规则" prop="evaluation_rule">
+        
+        <el-form-item label="考核规则" prop="evaluation_rule" required>
           <el-select 
             v-model="formData.evaluation_rule" 
             placeholder="请选择考核规则" 
             style="width: 100%"
             :loading="rulesLoading"
           >
-            <el-option
-              v-for="rule in activeRules"
-              :key="rule.id"
-              :label="rule.name"
+            <el-option 
+              v-for="rule in activeRules" 
+              :key="rule.id" 
+              :label="rule.name" 
               :value="rule.id"
+              :disabled="!rule.is_active"
             >
-              <div>
-                <span>{{ rule.name }}</span>
-                <span style="color: #8492a6; font-size: 12px; margin-left: 8px">{{ rule.description }}</span>
+              <div class="rule-option">
+                <span class="rule-name">{{ rule.name }}</span>
+                <span class="rule-desc">{{ rule.description }}</span>
               </div>
             </el-option>
           </el-select>
@@ -94,11 +214,19 @@
           </div>
         </el-form-item>
       </el-form>
+      
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm" :loading="submitting">
-          确定
-        </el-button>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false" size="large">取消</el-button>
+          <el-button 
+            type="primary" 
+            @click="submitForm" 
+            size="large"
+            :loading="submitting"
+          >
+            {{ isEdit ? '保存' : '创建' }}
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -107,7 +235,14 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { 
+  Plus, 
+  Calendar, 
+  Setting, 
+  Edit, 
+  List, 
+  Delete 
+} from '@element-plus/icons-vue'
 import { useEvaluationStore } from '@/stores/evaluation'
 import type { EvaluationCycle } from '@/types'
 

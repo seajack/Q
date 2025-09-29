@@ -44,6 +44,14 @@ export const departmentApi = {
   
   // 获取部门员工
   employees: (id: number) => api.get<Employee[]>(`/departments/${id}/employees/`),
+  
+  // 下载模板
+  downloadTemplate: () => api.get('/departments-template/', { responseType: 'blob' }),
+  
+  // 导入部门
+  import: (formData: FormData) => api.post('/departments-import/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 }
 
 // 职位API

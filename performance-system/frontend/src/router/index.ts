@@ -31,7 +31,7 @@ const routes = [
   {
     path: '/cycles',
     name: 'EvaluationCycles',
-    component: () => import('@/views/CyclesNew.vue'),
+    component: () => import('@/views/EvaluationCycles_Enhanced.vue'),
     meta: { title: '考核周期管理', layout: 'topnav' }
   },
   {

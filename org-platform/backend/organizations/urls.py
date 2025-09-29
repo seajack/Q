@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from . import integration_views
 from . import permission_views
+from .integration_views import DownloadTemplateView, ImportDepartmentsView
 
 router = DefaultRouter()
 router.register(r'departments', views.DepartmentViewSet)
@@ -47,4 +48,7 @@ urlpatterns = [
     # 绩效考核系统代理API
     path('performance-api/stats/overview/', views.performance_overview_stats, name='performance_overview_stats'),
     path('performance-api/stats/cycle/<int:cycle_id>/', views.performance_cycle_stats, name='performance_cycle_stats'),
+    # 部门导入和模板下载API
+    path('api/departments-template/', DownloadTemplateView.as_view(), name='download_template'),
+    path('api/departments-import/', ImportDepartmentsView.as_view(), name='import_departments'),
 ]

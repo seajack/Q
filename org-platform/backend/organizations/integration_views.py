@@ -2,10 +2,20 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.utils import timezone
 from django.db.models import Q
+from django.db import transaction
+from django.http import HttpResponse
+import pandas as pd
+import io
+import logging
+
+logger = logging.getLogger(__name__)
+from .models import Department, Position, Employee
 from .integration_models import (
     IntegrationSystem, APIGateway, APIRoute, DataSyncRule, 
     SyncLog, APIMonitor, IntegrationConfig
@@ -19,6 +29,10 @@ from .serializers import (
     IntegrationConfigSerializer
 )
 import logging
+import io
+from django.http import HttpResponse
+import pandas as pd
+from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
 
@@ -396,3 +410,382 @@ class IntegrationDashboardViewSet(viewsets.ViewSet):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ImportDepartmentsView(APIView):
+    parser_classes = [MultiPartParser]
+    
+    def post(self, request):
+        try:
+            file = request.FILES.get('file')
+            mode = request.data.get('mode', 'incremental')
+            
+            if not file:
+                return Response({'error': '没有上传文件'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 读取Excel文件的所有工作表
+            excel_file = pd.ExcelFile(file)
+            results = {
+                'departments': {'created': 0, 'updated': 0, 'errors': []},
+                'positions': {'created': 0, 'updated': 0, 'errors': []},
+                'employees': {'created': 0, 'updated': 0, 'errors': []}
+            }
+            
+            # 开始事务
+            with transaction.atomic():
+                if mode == 'full':
+                    # 全量替换：删除所有现有数据
+                    Employee.objects.all().delete()
+                    Position.objects.all().delete()
+                    Department.objects.all().delete()
+                
+                # 1. 导入部门数据
+                if '部门信息' in excel_file.sheet_names:
+                    dept_df = pd.read_excel(file, sheet_name='部门信息')
+                    results['departments'] = self._import_departments(dept_df, mode)
+                
+                # 2. 导入职位数据
+                if '职位信息' in excel_file.sheet_names:
+                    position_df = pd.read_excel(file, sheet_name='职位信息')
+                    results['positions'] = self._import_positions(position_df, mode)
+                
+                # 3. 导入员工数据
+                if '员工信息' in excel_file.sheet_names:
+                    employee_df = pd.read_excel(file, sheet_name='员工信息')
+                    results['employees'] = self._import_employees(employee_df, mode)
+                
+                return Response({
+                    'message': '导入完成',
+                    'results': results
+                })
+                
+        except Exception as e:
+            logger.error(f'导入组织架构失败: {str(e)}')
+            return Response({
+                'error': f'导入失败: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _import_departments(self, df, mode):
+        """导入部门数据"""
+        created_count = 0
+        updated_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                if pd.isna(row.get('name')):
+                    continue
+                    
+                dept_data = {
+                    'name': str(row['name']),
+                    'code': str(row.get('code', '')),
+                    'level': int(row.get('level', 1)),
+                    'sort_order': int(row.get('sort_order', 0)),
+                    'description': str(row.get('description', '')),
+                    'is_active': bool(row.get('is_active', True))
+                }
+                
+                # 处理父部门
+                if pd.notna(row.get('parent_id')):
+                    try:
+                        # 先尝试按ID查找，如果失败则按编码查找
+                        try:
+                            parent = Department.objects.get(id=int(row['parent_id']))
+                        except (ValueError, Department.DoesNotExist):
+                            parent = Department.objects.get(code=str(row['parent_id']))
+                        dept_data['parent'] = parent
+                    except Department.DoesNotExist:
+                        errors.append(f"第{index+1}行: 父部门ID/编码 {row['parent_id']} 不存在")
+                        continue
+                
+                # 处理部门经理
+                if pd.notna(row.get('manager_id')):
+                    try:
+                        from django.contrib.auth.models import User
+                        manager = User.objects.get(id=int(row['manager_id']))
+                        dept_data['manager'] = manager
+                    except User.DoesNotExist:
+                        errors.append(f"第{index+1}行: 部门经理ID {row['manager_id']} 不存在")
+                
+                # 创建或更新部门
+                if 'id' in df.columns and pd.notna(row.get('id')):
+                    dept, created = Department.objects.update_or_create(
+                        id=int(row['id']),
+                        defaults=dept_data
+                    )
+                else:
+                    dept, created = Department.objects.get_or_create(
+                        name=dept_data['name'],
+                        defaults=dept_data
+                    )
+                
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+                    
+            except Exception as e:
+                errors.append(f"第{index+1}行: {str(e)}")
+        
+        return {'created': created_count, 'updated': updated_count, 'errors': errors}
+    
+    def _import_positions(self, df, mode):
+        """导入职位数据"""
+        created_count = 0
+        updated_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                if pd.isna(row.get('name')):
+                    continue
+                    
+                position_data = {
+                    'name': str(row['name']),
+                    'code': str(row.get('code', '')),
+                    'management_level': str(row.get('management_level', 'junior')),
+                    'level': int(row.get('level', 1)),
+                    'description': str(row.get('description', '')),
+                    'requirements': str(row.get('requirements', '')),
+                    'responsibilities': str(row.get('responsibilities', '')),
+                    'is_active': bool(row.get('is_active', True))
+                }
+                
+                # 处理所属部门
+                if pd.notna(row.get('department_id')):
+                    try:
+                        # 先尝试按ID查找，如果失败则按编码查找
+                        try:
+                            department = Department.objects.get(id=int(row['department_id']))
+                        except (ValueError, Department.DoesNotExist):
+                            department = Department.objects.get(code=str(row['department_id']))
+                        position_data['department'] = department
+                    except Department.DoesNotExist:
+                        errors.append(f"第{index+1}行: 部门ID/编码 {row['department_id']} 不存在")
+                        continue
+                
+                # 创建或更新职位
+                if 'id' in df.columns and pd.notna(row.get('id')):
+                    position, created = Position.objects.update_or_create(
+                        id=int(row['id']),
+                        defaults=position_data
+                    )
+                else:
+                    # 先尝试按编码查找，如果不存在则创建
+                    try:
+                        position = Position.objects.get(code=position_data['code'])
+                        # 更新现有职位
+                        for key, value in position_data.items():
+                            setattr(position, key, value)
+                        position.save()
+                        created = False
+                    except Position.DoesNotExist:
+                        position = Position.objects.create(**position_data)
+                        created = True
+                
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+                    
+            except Exception as e:
+                errors.append(f"第{index+1}行: {str(e)}")
+        
+        return {'created': created_count, 'updated': updated_count, 'errors': errors}
+    
+    def _import_employees(self, df, mode):
+        """导入员工数据"""
+        created_count = 0
+        updated_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                if pd.isna(row.get('name')) or pd.isna(row.get('employee_id')):
+                    continue
+                    
+                # 创建或获取用户账号
+                from django.contrib.auth.models import User
+                username = f"emp_{row['employee_id']}"
+                user, user_created = User.objects.get_or_create(
+                    username=username,
+                    defaults={
+                        'first_name': str(row['name']),
+                        'email': str(row.get('email', ''))
+                    }
+                )
+                
+                employee_data = {
+                    'user': user,
+                    'employee_id': str(row['employee_id']),
+                    'name': str(row['name']),
+                    'gender': str(row.get('gender', 'M')),
+                    'phone': str(row.get('phone', '')),
+                    'email': str(row.get('email', '')),
+                    'address': str(row.get('address', '')),
+                    'hire_date': pd.to_datetime(row.get('hire_date', '2024-01-01')).date(),
+                    'status': str(row.get('status', 'active'))
+                }
+                
+                # 处理出生日期
+                if pd.notna(row.get('birth_date')):
+                    employee_data['birth_date'] = pd.to_datetime(row['birth_date']).date()
+                
+                # 处理所属部门
+                if pd.notna(row.get('department_id')):
+                    try:
+                        # 先尝试按ID查找，如果失败则按编码查找
+                        try:
+                            department = Department.objects.get(id=int(row['department_id']))
+                        except (ValueError, Department.DoesNotExist):
+                            department = Department.objects.get(code=str(row['department_id']))
+                        employee_data['department'] = department
+                    except Department.DoesNotExist:
+                        errors.append(f"第{index+1}行: 部门ID/编码 {row['department_id']} 不存在")
+                        continue
+                
+                # 处理职位
+                if pd.notna(row.get('position_id')):
+                    try:
+                        # 先尝试按ID查找，如果失败则按编码查找
+                        try:
+                            position = Position.objects.get(id=int(row['position_id']))
+                        except (ValueError, Position.DoesNotExist):
+                            position = Position.objects.get(code=str(row['position_id']))
+                        employee_data['position'] = position
+                    except Position.DoesNotExist:
+                        errors.append(f"第{index+1}行: 职位ID/编码 {row['position_id']} 不存在")
+                        continue
+                
+                # 处理直接上级
+                if pd.notna(row.get('supervisor_id')):
+                    try:
+                        supervisor = Employee.objects.get(id=int(row['supervisor_id']))
+                        employee_data['supervisor'] = supervisor
+                    except Employee.DoesNotExist:
+                        errors.append(f"第{index+1}行: 上级员工ID {row['supervisor_id']} 不存在")
+                
+                # 创建或更新员工
+                if 'id' in df.columns and pd.notna(row.get('id')):
+                    employee, created = Employee.objects.update_or_create(
+                        id=int(row['id']),
+                        defaults=employee_data
+                    )
+                else:
+                    # 先尝试按员工号查找，如果不存在则创建
+                    try:
+                        employee = Employee.objects.get(employee_id=employee_data['employee_id'])
+                        # 更新现有员工
+                        for key, value in employee_data.items():
+                            setattr(employee, key, value)
+                        employee.save()
+                        created = False
+                    except Employee.DoesNotExist:
+                        employee = Employee.objects.create(**employee_data)
+                        created = True
+                
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+                    
+            except Exception as e:
+                errors.append(f"第{index+1}行: {str(e)}")
+        
+        return {'created': created_count, 'updated': updated_count, 'errors': errors}
+
+
+class DownloadTemplateView(APIView):
+    def get(self, request):
+        # 创建多个工作表
+        output = io.BytesIO()
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            # 1. 部门工作表
+            dept_columns = [
+                'id', 'name', 'code', 'parent_id', 'manager_id', 'level', 
+                'sort_order', 'description', 'is_active'
+            ]
+            dept_df = pd.DataFrame(columns=dept_columns)
+            dept_df.to_excel(writer, sheet_name='部门信息', index=False)
+            
+            # 2. 职位工作表
+            position_columns = [
+                'id', 'name', 'code', 'department_id', 'management_level', 
+                'level', 'description', 'requirements', 'responsibilities', 'is_active'
+            ]
+            position_df = pd.DataFrame(columns=position_columns)
+            position_df.to_excel(writer, sheet_name='职位信息', index=False)
+            
+            # 3. 员工工作表
+            employee_columns = [
+                'id', 'employee_id', 'name', 'gender', 'birth_date', 'phone', 
+                'email', 'address', 'department_id', 'position_id', 'supervisor_id', 
+                'hire_date', 'status'
+            ]
+            employee_df = pd.DataFrame(columns=employee_columns)
+            employee_df.to_excel(writer, sheet_name='员工信息', index=False)
+            
+            # 4. 使用指南工作表
+            guide_data = [
+                ['Excel模板使用指南', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['1. 部门信息表', '', '', '', '', '', '', '', ''],
+                ['字段说明：', '', '', '', '', '', '', '', ''],
+                ['id', '部门唯一标识符', '首次导入可留空，系统自动生成；更新时填写现有ID', '', '', '', '', '', ''],
+                ['name', '部门名称', '必填，如：销售部、技术部', '', '', '', '', '', ''],
+                ['code', '部门编码', '必填，唯一标识，如：SALES、TECH', '', '', '', '', '', ''],
+                ['parent_id', '父部门ID', '顶级部门留空，子部门填写父部门ID或编码', '', '', '', '', '', ''],
+                ['manager_id', '部门经理员工ID', '可选，填写员工ID', '', '', '', '', '', ''],
+                ['level', '部门层级', '1=顶级，2=二级，以此类推', '', '', '', '', '', ''],
+                ['sort_order', '排序', '数字，用于同级别部门排序', '', '', '', '', '', ''],
+                ['description', '部门描述', '可选，部门说明', '', '', '', '', '', ''],
+                ['is_active', '是否激活', 'true/false，默认true', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['2. 职位信息表', '', '', '', '', '', '', '', ''],
+                ['字段说明：', '', '', '', '', '', '', '', ''],
+                ['id', '职位唯一标识符', '首次导入可留空，系统自动生成', '', '', '', '', '', ''],
+                ['name', '职位名称', '必填，如：部门经理、高级工程师', '', '', '', '', '', ''],
+                ['code', '职位编码', '必填，唯一标识，如：MGR、ENG', '', '', '', '', '', ''],
+                ['department_id', '所属部门ID', '必填，填写部门ID或编码', '', '', '', '', '', ''],
+                ['management_level', '管理层级', 'senior(高层)/middle(中层)/junior(基层)', '', '', '', '', '', ''],
+                ['level', '职位级别', '1-13，数字越大级别越高', '', '', '', '', '', ''],
+                ['description', '职位描述', '可选，职位说明', '', '', '', '', '', ''],
+                ['requirements', '任职要求', '可选，任职条件', '', '', '', '', '', ''],
+                ['responsibilities', '岗位职责', '可选，工作职责', '', '', '', '', '', ''],
+                ['is_active', '是否激活', 'true/false，默认true', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['3. 员工信息表', '', '', '', '', '', '', '', ''],
+                ['字段说明：', '', '', '', '', '', '', '', ''],
+                ['id', '员工唯一标识符', '首次导入可留空，系统自动生成', '', '', '', '', '', ''],
+                ['employee_id', '员工号', '必填，唯一，如：E001、E002', '', '', '', '', '', ''],
+                ['name', '姓名', '必填，员工姓名', '', '', '', '', '', ''],
+                ['gender', '性别', 'M(男)/F(女)', '', '', '', '', '', ''],
+                ['birth_date', '出生日期', '格式：YYYY-MM-DD，如：1990-01-01', '', '', '', '', '', ''],
+                ['phone', '手机号码', '可选，联系电话', '', '', '', '', '', ''],
+                ['email', '邮箱', '可选，邮箱地址', '', '', '', '', '', ''],
+                ['address', '地址', '可选，居住地址', '', '', '', '', '', ''],
+                ['department_id', '所属部门ID', '必填，填写部门ID或编码', '', '', '', '', '', ''],
+                ['position_id', '职位ID', '必填，填写职位ID', '', '', '', '', '', ''],
+                ['supervisor_id', '直接上级员工ID', '可选，填写上级员工ID', '', '', '', '', '', ''],
+                ['hire_date', '入职日期', '必填，格式：YYYY-MM-DD', '', '', '', '', '', ''],
+                ['status', '在职状态', 'active(在职)/leave(休假)/resigned(离职)/retired(退休)', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['4. 导入模式说明', '', '', '', '', '', '', '', ''],
+                ['增量更新', '根据ID更新现有数据，添加新数据，保留未在文件中的数据', '', '', '', '', '', '', ''],
+                ['全量替换', '删除所有现有数据，完全使用Excel文件重建组织架构', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['5. 注意事项', '', '', '', '', '', '', '', ''],
+                ['• 请按顺序填写：先部门，再职位，最后员工', '', '', '', '', '', '', '', ''],
+                ['• 父部门必须在子部门之前定义', '', '', '', '', '', '', '', ''],
+                ['• 部门ID和职位ID必须在员工信息中正确引用', '', '', '', '', '', '', '', ''],
+                ['• 建议先备份现有数据', '', '', '', '', '', '', '', ''],
+                ['• 测试小批量数据后再进行大批量导入', '', '', '', '', '', '', '', ''],
+            ]
+            guide_df = pd.DataFrame(guide_data)
+            guide_df.to_excel(writer, sheet_name='使用指南', index=False)
+        
+        output.seek(0)
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="organization_template.xlsx"'
+        return response

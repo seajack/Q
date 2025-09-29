@@ -464,7 +464,7 @@ const loadData = async () => {
 const loadEmployees = async () => {
   try {
     const res = await statsApi.listEmployees()
-    employees.value = res.data.results || []
+    employees.value = res.results || []
     if (employees.value.length > 0) {
       selectedEmployee.value = employees.value[0].id
     }
@@ -488,7 +488,7 @@ const loadCycles = async () => {
 const loadKpi = async () => {
   try {
     const res = await statsApi.overview()
-    kpi.value = res.data || {}
+    kpi.value = res || {}
     console.log('KPI数据:', kpi.value)
   } catch (error) {
     console.error('加载KPI失败:', error)
@@ -833,7 +833,7 @@ const updateRadarChart = async () => {
   try {
     // 获取员工能力数据
     const res = await statsApi.getEmployeeSkills(selectedEmployee.value)
-    const skills = res.data.skills || []
+    const skills = res.skills || []
     
     const indicator = skills.map(skill => ({
       name: skill.name,

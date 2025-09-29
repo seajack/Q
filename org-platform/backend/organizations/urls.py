@@ -3,6 +3,9 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from . import integration_views
 from . import permission_views
+from . import views_intelligence
+from . import views_workflow_designer
+from . import health_views
 from .integration_views import DownloadTemplateView, ImportDepartmentsView
 
 router = DefaultRouter()
@@ -16,6 +19,12 @@ router.register(r'configs', views.SystemConfigViewSet)
 router.register(r'dictionaries', views.DictionaryViewSet)
 router.register(r'position-templates', views.PositionTemplateViewSet)
 router.register(r'workflow-rules', views.WorkflowRuleViewSet)
+
+# 工作流设计器路由
+workflow_router = DefaultRouter()
+workflow_router.register(r'workflow-designs', views_workflow_designer.WorkflowDesignViewSet)
+workflow_router.register(r'workflow-versions', views_workflow_designer.WorkflowVersionViewSet)
+workflow_router.register(r'workflow-executions', views_workflow_designer.WorkflowExecutionViewSet)
 
 # 系统集成路由
 integration_router = DefaultRouter()
@@ -32,6 +41,7 @@ integration_router.register(r'dashboard', integration_views.IntegrationDashboard
 permission_router = DefaultRouter()
 permission_router.register(r'permissions', permission_views.PermissionViewSet)
 permission_router.register(r'roles', permission_views.RoleViewSet)
+permission_router.register(r'users', permission_views.UserViewSet)
 permission_router.register(r'user-roles', permission_views.UserRoleViewSet)
 permission_router.register(r'data-permissions', permission_views.DataPermissionViewSet)
 permission_router.register(r'field-permissions', permission_views.FieldPermissionViewSet)
@@ -40,11 +50,29 @@ permission_router.register(r'permission-logs', permission_views.PermissionLogVie
 permission_router.register(r'dashboard', permission_views.PermissionDashboardViewSet, basename='permission-dashboard')
 
 urlpatterns = [
+    # 根路径重定向
+    path('', health_views.api_status, name='root'),
+    # 健康检查
+    path('health/', health_views.health_check, name='health_check'),
+    path('api/status/', health_views.api_status, name='api_status'),
     path('api/', include(router.urls)),
+    # 智能分析API
+    path('api/intelligence/analysis/', views_intelligence.organization_analysis, name='organization_analysis'),
+    path('api/intelligence/metrics/', views_intelligence.organization_metrics, name='organization_metrics'),
+    path('api/intelligence/refresh/', views_intelligence.refresh_analysis, name='refresh_analysis'),
+    path('api/intelligence/departments/<int:department_id>/', views_intelligence.department_analysis, name='department_analysis'),
+    path('api/intelligence/suggestions/', views_intelligence.optimization_suggestions, name='optimization_suggestions'),
+    path('api/intelligence/history/', views_intelligence.analysis_history, name='analysis_history'),
+    path('api/intelligence/simulate/', views_intelligence.simulate_changes, name='simulate_changes'),
+    path('api/intelligence/benchmark/', views_intelligence.benchmark_comparison, name='benchmark_comparison'),
+    # 工作流设计器API
+    path('workflow/', include(workflow_router.urls)),
+    path('api/workflow-templates/', views_workflow_designer.workflow_templates, name='workflow_templates'),
+    path('api/workflow-create-from-template/', views_workflow_designer.create_from_template, name='create_from_template'),
     # 系统集成API
-    path('integration/', include(integration_router.urls)),
+    path('api/integration/', include(integration_router.urls)),
     # 权限管理API
-    path('permission/', include(permission_router.urls)),
+    path('api/permission/', include(permission_router.urls)),
     # 绩效考核系统代理API
     path('performance-api/stats/overview/', views.performance_overview_stats, name='performance_overview_stats'),
     path('performance-api/stats/cycle/<int:cycle_id>/', views.performance_cycle_stats, name='performance_cycle_stats'),

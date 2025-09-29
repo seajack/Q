@@ -23,6 +23,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('organizations.urls')),
+    path('api/', include('organizations.tenant_urls')),  # 多租户API
+    path('api/', include('organizations.intelligence_urls')),  # 智能分析API
+    path('api/', include('organizations.simple_intelligence_urls')),  # 简单智能分析API
+    path('api/', include('organizations.simple_integration_urls')),  # 简单集成管理API
+    path('api/', include('organizations.simple_permission_urls')),  # 简单权限管理API
+    path('api/', include('organizations.workflow_urls')),  # 工作流管理API
+    path('api/', include('organizations.test_urls')),  # 测试API
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]

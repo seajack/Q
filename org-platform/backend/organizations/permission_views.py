@@ -17,6 +17,7 @@ from .serializers import (
     UserRoleSerializer, DataPermissionSerializer, RoleDataPermissionSerializer,
     PermissionLogSerializer, FieldPermissionSerializer, DepartmentPermissionSerializer
 )
+from rest_framework.serializers import ModelSerializer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -435,3 +436,22 @@ class PermissionDashboardViewSet(viewsets.ViewSet):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# 用户序列化器
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'date_joined']
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """用户管理"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['is_active', 'is_staff']
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    ordering_fields = ['username', 'email', 'date_joined']
+    ordering = ['-date_joined']

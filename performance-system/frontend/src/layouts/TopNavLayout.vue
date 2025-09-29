@@ -44,6 +44,8 @@
           <RouterLink class="link" to="/cycles">考核周期</RouterLink>
           <RouterLink class="link" to="/indicators">考核指标</RouterLink>
           <RouterLink class="link" to="/rules">考核规则</RouterLink>
+          <RouterLink class="link" to="/multidimensional-evaluation">多维度评估</RouterLink>
+          <RouterLink class="link" to="/evaluation-dimensions">评估维度</RouterLink>
           <RouterLink class="link" to="/tasks">考核任务</RouterLink>
           <RouterLink class="link" to="/manual-assignments">手动分配</RouterLink>
           <RouterLink class="link" to="/manual-evaluation">手动分配评分</RouterLink>

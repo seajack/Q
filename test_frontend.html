@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能组织架构API测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">🧪 智能组织架构API测试</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">测试控制台</h2>
+            <div class="flex gap-4 mb-4">
+                <button onclick="testAllAPIs()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    🚀 运行所有测试
+                </button>
+                <button onclick="clearResults()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    🗑️ 清除结果
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="testAPI('/api/intelligence/analysis/', '组织分析')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    📊 测试组织分析
+                </button>
+                <button onclick="testAPI('/api/intelligence/metrics/', '组织指标')" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                    📈 测试组织指标
+                </button>
+                <button onclick="testAPI('/api/intelligence/suggestions/', '优化建议')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
+                    💡 测试优化建议
+                </button>
+                <button onclick="testRefreshAPI()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    🔄 测试刷新分析
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">测试结果</h2>
+            <div id="testResults" class="space-y-2">
+                <div class="test-result loading">
+                    📝 点击上方按钮开始测试...
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">测试数据预览</h2>
+            <div id="dataPreview" class="bg-gray-50 p-4 rounded border overflow-auto max-h-96">
+                <pre id="jsonData" class="text-sm">暂无数据</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8001';
+        let testCount = 0;
+        let passedCount = 0;
+        
+        function addResult(message, isSuccess, data = null) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${isSuccess ? 'success' : 'error'}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            resultDiv.innerHTML = `
+                <strong>[${timestamp}]</strong> ${message}
+                ${data ? `<details class="mt-2"><summary class="cursor-pointer">查看数据</summary><pre class="mt-2 text-xs bg-white p-2 rounded">${JSON.stringify(data, null, 2)}</pre></details>` : ''}
+            `;
+            
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            testCount++;
+            if (isSuccess) passedCount++;
+            
+            updateTestStats();
+        }
+        
+        function updateTestStats() {
+            const successRate = testCount > 0 ? ((passedCount / testCount) * 100).toFixed(1) : 0;
+            document.title = `测试进度: ${passedCount}/${testCount} (${successRate}%)`;
+        }
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '<div class="test-result loading">📝 测试结果已清除，可以重新开始测试...</div>';
+            document.getElementById('jsonData').textContent = '暂无数据';
+            testCount = 0;
+            passedCount = 0;
+            updateTestStats();
+        }
+        
+        async function testAPI(endpoint, name) {
+            addResult(`🔄 正在测试 ${name}...`, true);
+            
+            try {
+                const response = await fetch(BASE_URL + endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        addResult(`✅ ${name} 测试成功`, true, data);
+                        
+                        // 更新数据预览
+                        document.getElementById('jsonData').textContent = JSON.stringify(data, null, 2);
+                    } else {
+                        addResult(`⚠️ ${name} API返回失败: ${data.error || '未知错误'}`, false, data);
+                    }
+                } else {
+                    addResult(`❌ ${name} HTTP错误: ${response.status} ${response.statusText}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ ${name} 网络错误: ${error.message}`, false);
+            }
+        }
+        
+        async function testRefreshAPI() {
+            addResult(`🔄 正在测试刷新分析...`, true);
+            
+            try {
+                const response = await fetch(BASE_URL + '/api/intelligence/refresh/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        addResult(`✅ 刷新分析测试成功`, true, data);
+                    } else {
+                        addResult(`⚠️ 刷新分析失败: ${data.error || '未知错误'}`, false, data);
+                    }
+                } else {
+                    addResult(`❌ 刷新分析HTTP错误: ${response.status} ${response.statusText}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ 刷新分析网络错误: ${error.message}`, false);
+            }
+        }
+        
+        async function testAllAPIs() {
+            clearResults();
+            addResult(`🚀 开始执行完整API测试套件...`, true);
+            
+            const tests = [
+                ['/api/intelligence/analysis/', '组织分析'],
+                ['/api/intelligence/metrics/', '组织指标'],
+                ['/api/intelligence/suggestions/', '优化建议'],
+                ['/api/intelligence/history/', '分析历史'],
+                ['/api/intelligence/benchmark/', '基准对比']
+            ];
+            
+            for (const [endpoint, name] of tests) {
+                await testAPI(endpoint, name);
+                await new Promise(resolve => setTimeout(resolve, 500)); // 延迟500ms
+            }
+            
+            // 测试POST接口
+            await testRefreshAPI();
+            
+            addResult(`🏁 所有测试完成！通过率: ${passedCount}/${testCount} (${((passedCount/testCount)*100).toFixed(1)}%)`, passedCount === testCount);
+        }
+        
+        // 页面加载时的初始化
+        window.onload = function() {
+            addResult(`🌐 测试页面已加载，后端地址: ${BASE_URL}`, true);
+            
+            // 测试基础连接
+            fetch(BASE_URL + '/api/')
+                .then(response => {
+                    if (response.ok) {
+                        addResult(`✅ 后端服务连接正常`, true);
+                    } else {
+                        addResult(`⚠️ 后端服务响应异常: ${response.status}`, false);
+                    }
+                })
+                .catch(error => {
+                    addResult(`❌ 无法连接到后端服务: ${error.message}`, false);
+                    addResult(`💡 请确保后端服务运行在 ${BASE_URL}`, false);
+                });
+        };
+    </script>
+</body>
+</html>

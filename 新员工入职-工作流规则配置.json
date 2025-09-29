@@ -1,0 +1,109 @@
+{
+  "workflow_rules": [
+    {
+      "id": "rule_001",
+      "name": "新员工入职触发规则",
+      "description": "当创建新员工记录时自动触发入职流程",
+      "rule_type": "employee_onboarding",
+      "trigger_conditions": {
+        "event_type": "data_change",
+        "table": "employees",
+        "operation": "insert",
+        "conditions": [
+          {
+            "field": "status",
+            "operator": "equals",
+            "value": "pending"
+          },
+          {
+            "field": "employee_type",
+            "operator": "equals",
+            "value": "new_hire"
+          }
+        ]
+      },
+      "execution_actions": [
+        {
+          "action": "start_workflow",
+          "workflow_id": "employee_onboarding_workflow",
+          "parameters": {
+            "employee_id": "{{record.id}}",
+            "department_id": "{{record.department_id}}",
+            "manager_id": "{{record.manager_id}}"
+          }
+        },
+        {
+          "action": "send_notification",
+          "template": "workflow_started",
+          "recipients": ["hr@company.com"]
+        }
+      ],
+      "is_active": true,
+      "priority": 1
+    },
+    {
+      "id": "rule_002", 
+      "name": "入职信息验证规则",
+      "description": "验证入职员工信息的完整性",
+      "rule_type": "data_validation",
+      "trigger_conditions": {
+        "event_type": "workflow_started",
+        "workflow_id": "employee_onboarding_workflow"
+      },
+      "execution_actions": [
+        {
+          "action": "validate_required_fields",
+          "fields": [
+            "personal_info.name",
+            "personal_info.id_card", 
+            "personal_info.phone",
+            "contract_info.position",
+            "contract_info.salary",
+            "contract_info.start_date"
+          ]
+        },
+        {
+          "action": "validate_data_format",
+          "validations": [
+            {
+              "field": "personal_info.id_card",
+              "pattern": "^[0-9]{17}[0-9Xx]$",
+              "message": "身份证号格式不正确"
+            },
+            {
+              "field": "personal_info.phone",
+              "pattern": "^1[3-9]\\d{9}$",
+              "message": "手机号格式不正确"
+            }
+          ]
+        }
+      ],
+      "is_active": true,
+      "priority": 2
+    },
+    {
+      "id": "rule_003",
+      "name": "部门确认超时规则",
+      "description": "部门确认超时自动升级",
+      "rule_type": "timeout_escalation",
+      "trigger_conditions": {
+        "event_type": "timeout",
+        "workflow_id": "employee_onboarding_workflow",
+        "node_name": "department_confirmation"
+      },
+      "execution_actions": [
+        {
+          "action": "escalate_approval",
+          "escalate_to": "department_director"
+        },
+        {
+          "action": "send_notification",
+          "template": "approval_timeout",
+          "recipients": ["{{escalate_to.email}}", "hr@company.com"]
+        }
+      ],
+      "is_active": true,
+      "priority": 3
+    }
+  ]
+}

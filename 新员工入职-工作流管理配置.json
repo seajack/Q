@@ -1,0 +1,314 @@
+{
+  "workflow_definition": {
+    "id": "employee_onboarding_workflow",
+    "name": "新员工入职流程",
+    "description": "新员工入职的完整流程，包括信息收集、部门确认、权限分配等步骤",
+    "version": "1.0.0",
+    "category": "hr",
+    "nodes": [
+      {
+        "id": "start",
+        "name": "开始",
+        "type": "start",
+        "position": {"x": 100, "y": 100},
+        "config": {
+          "trigger_type": "automatic",
+          "trigger_conditions": ["employee_created"]
+        }
+      },
+      {
+        "id": "info_collection",
+        "name": "信息收集",
+        "type": "form",
+        "position": {"x": 300, "y": 100},
+        "config": {
+          "form_schema": {
+            "title": "新员工信息收集",
+            "sections": [
+              {
+                "title": "个人信息",
+                "fields": [
+                  {
+                    "name": "name",
+                    "label": "姓名",
+                    "type": "text",
+                    "required": true,
+                    "validation": {
+                      "minLength": 2,
+                      "maxLength": 50
+                    }
+                  },
+                  {
+                    "name": "id_card",
+                    "label": "身份证号",
+                    "type": "text",
+                    "required": true,
+                    "validation": {
+                      "pattern": "^[0-9]{17}[0-9Xx]$"
+                    }
+                  },
+                  {
+                    "name": "phone",
+                    "label": "手机号",
+                    "type": "text",
+                    "required": true,
+                    "validation": {
+                      "pattern": "^1[3-9]\\d{9}$"
+                    }
+                  },
+                  {
+                    "name": "email",
+                    "label": "邮箱",
+                    "type": "email",
+                    "required": true
+                  }
+                ]
+              },
+              {
+                "title": "合同信息",
+                "fields": [
+                  {
+                    "name": "position",
+                    "label": "职位",
+                    "type": "select",
+                    "required": true,
+                    "options": "{{positions}}"
+                  },
+                  {
+                    "name": "salary",
+                    "label": "薪资",
+                    "type": "number",
+                    "required": true,
+                    "validation": {
+                      "min": 0
+                    }
+                  },
+                  {
+                    "name": "start_date",
+                    "label": "入职日期",
+                    "type": "date",
+                    "required": true
+                  },
+                  {
+                    "name": "contract_type",
+                    "label": "合同类型",
+                    "type": "select",
+                    "required": true,
+                    "options": ["正式", "试用", "实习"]
+                  }
+                ]
+              }
+            ]
+          },
+          "assignee": {
+            "type": "role",
+            "role": "hr_specialist"
+          },
+          "timeout": "24h",
+          "reminder": {
+            "enabled": true,
+            "interval": "4h"
+          }
+        }
+      },
+      {
+        "id": "department_confirmation",
+        "name": "部门确认",
+        "type": "approval",
+        "position": {"x": 500, "y": 100},
+        "config": {
+          "approval_type": "sequential",
+          "approvers": [
+            {
+              "type": "department_manager",
+              "department": "{{employee.department_id}}"
+            },
+            {
+              "type": "direct_manager",
+              "manager_id": "{{employee.manager_id}}"
+            }
+          ],
+          "timeout": "48h",
+          "escalation": {
+            "enabled": true,
+            "escalate_to": "department_director",
+            "escalate_after": "24h"
+          },
+          "approval_criteria": {
+            "required_approvals": 1,
+            "approval_threshold": 100
+          }
+        }
+      },
+      {
+        "id": "permission_assignment",
+        "name": "权限分配",
+        "type": "service",
+        "position": {"x": 700, "y": 100},
+        "config": {
+          "service_name": "permission_service",
+          "method": "assign_employee_permissions",
+          "parameters": {
+            "employee_id": "{{employee.id}}",
+            "department_id": "{{employee.department_id}}",
+            "position_id": "{{employee.position_id}}",
+            "role": "{{employee.position.role}}"
+          },
+          "retry_config": {
+            "max_retries": 3,
+            "retry_interval": "5m"
+          },
+          "error_handling": {
+            "on_failure": "notify_admin",
+            "notification_template": "permission_assignment_failed"
+          }
+        }
+      },
+      {
+        "id": "system_configuration",
+        "name": "系统配置",
+        "type": "parallel",
+        "position": {"x": 900, "y": 100},
+        "config": {
+          "parallel_tasks": [
+            {
+              "id": "create_user_account",
+              "name": "创建用户账号",
+              "service": "user_service",
+              "method": "create_account",
+              "parameters": {
+                "username": "{{employee.employee_id}}",
+                "email": "{{employee.email}}",
+                "full_name": "{{employee.name}}"
+              }
+            },
+            {
+              "id": "create_email",
+              "name": "分配邮箱",
+              "service": "email_service",
+              "method": "create_email",
+              "parameters": {
+                "email": "{{employee.email}}",
+                "display_name": "{{employee.name}}",
+                "department": "{{employee.department.name}}"
+              }
+            },
+            {
+              "id": "assign_workspace",
+              "name": "配置工位",
+              "service": "workspace_service",
+              "method": "assign_workspace",
+              "parameters": {
+                "employee_id": "{{employee.id}}",
+                "department_id": "{{employee.department_id}}"
+              }
+            },
+            {
+              "id": "setup_equipment",
+              "name": "设备配置",
+              "service": "equipment_service",
+              "method": "setup_equipment",
+              "parameters": {
+                "employee_id": "{{employee.id}}",
+                "position": "{{employee.position}}"
+              }
+            }
+          ],
+          "completion_criteria": "all_tasks",
+          "timeout": "2h"
+        }
+      },
+      {
+        "id": "final_notification",
+        "name": "完成通知",
+        "type": "notification",
+        "position": {"x": 1100, "y": 100},
+        "config": {
+          "notification_template": "onboarding_complete",
+          "recipients": [
+            "{{employee.email}}",
+            "{{employee.manager.email}}",
+            "hr@company.com"
+          ],
+          "channels": ["email", "sms"],
+          "content": {
+            "subject": "欢迎加入公司！",
+            "body": "亲爱的{{employee.name}}，欢迎加入我们！您的入职流程已完成，请查看附件了解相关信息。"
+          }
+        }
+      },
+      {
+        "id": "end",
+        "name": "结束",
+        "type": "end",
+        "position": {"x": 1300, "y": 100},
+        "config": {
+          "completion_status": "success",
+          "final_actions": [
+            {
+              "action": "update_employee_status",
+              "status": "active"
+            },
+            {
+              "action": "create_audit_log",
+              "log_type": "onboarding_complete"
+            }
+          ]
+        }
+      }
+    ],
+    "connections": [
+      {
+        "from": "start",
+        "to": "info_collection",
+        "condition": "always"
+      },
+      {
+        "from": "info_collection",
+        "to": "department_confirmation",
+        "condition": "form_completed"
+      },
+      {
+        "from": "department_confirmation",
+        "to": "permission_assignment",
+        "condition": "approved"
+      },
+      {
+        "from": "department_confirmation",
+        "to": "info_collection",
+        "condition": "rejected"
+      },
+      {
+        "from": "permission_assignment",
+        "to": "system_configuration",
+        "condition": "success"
+      },
+      {
+        "from": "system_configuration",
+        "to": "final_notification",
+        "condition": "all_tasks_completed"
+      },
+      {
+        "from": "final_notification",
+        "to": "end",
+        "condition": "notification_sent"
+      }
+    ],
+    "settings": {
+      "timeout": "72h",
+      "retry_policy": {
+        "max_retries": 3,
+        "retry_interval": "1h"
+      },
+      "escalation": {
+        "enabled": true,
+        "escalate_to": "hr_manager",
+        "escalate_after": "48h"
+      },
+      "notifications": {
+        "enabled": true,
+        "channels": ["email", "sms", "system"]
+      }
+    }
+  }
+}

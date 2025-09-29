@@ -44,7 +44,14 @@
               <el-tag :type="row.enabled ? 'success' : 'info'">{{ row.enabled ? '启用' : '停用' }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="updated_at" label="更新时间" min-width="180" />
+          <el-table-column prop="updated_at" label="更新时间" min-width="180">
+            <template #default="{ row }">
+              <div class="time-info">
+                <div class="time-main">{{ formatDateTime(row.updated_at) }}</div>
+                <div class="time-relative">{{ formatRelativeTime(row.updated_at) }}</div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="200" fixed="right">
             <template #default="{ row }">
               <div class="toolbar">
@@ -98,6 +105,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { indicatorApi } from '@/utils/api'
+import { formatDateTime, formatRelativeTime } from '@/utils/dateUtils'
 
 const loading = ref(false)
 const rows = ref<any[]>([])
@@ -193,3 +201,22 @@ const typeText = (t:string) => ({performance:'工作绩效', ability:'工作能�
 
 onMounted(load)
 </script>
+
+<style scoped>
+.time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.time-main {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.time-relative {
+  font-size: 12px;
+  color: #909399;
+}
+</style>

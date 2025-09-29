@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现代化系统设置 - 组织架构中台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-50: #f0f9ff;
+            --primary-100: #e0f2fe;
+            --primary-500: #0ea5e9;
+            --primary-600: #0284c7;
+            --primary-700: #0369a1;
+            
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --success-500: #10b981;
+            --warning-500: #f59e0b;
+            --error-500: #ef4444;
+            --indigo-500: #6366f1;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--indigo-500), #4f46e5);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* 按钮系统 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--indigo-500), #4f46e5);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+
+        /* 设置导航 */
+        .settings-nav {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .nav-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .nav-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: var(--gray-50);
+            color: var(--gray-900);
+        }
+
+        .nav-link.active {
+            background: var(--indigo-50);
+            color: var(--indigo-600);
+            border-right: 3px solid var(--indigo-500);
+        }
+
+        .nav-icon {
+            width: 1.25rem;
+            text-align: center;
+        }
+
+        /* 设置面板 */
+        .settings-panel {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-desc {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+        }
+
+        /* 设置组 */
+        .setting-group {
+            margin-bottom: 2rem;
+        }
+
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-name {
+            font-weight: 500;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .setting-desc {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .setting-control {
+            margin-left: 1rem;
+        }
+
+        /* 表单控件 */
+        .form-input {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            width: 200px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--indigo-500);
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+        }
+
+        .form-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            background: white;
+            cursor: pointer;
+            width: 200px;
+        }
+
+        /* 开关控件 */
+        .toggle-switch {
+            position: relative;
+            width: 3rem;
+            height: 1.5rem;
+            background: var(--gray-300);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--indigo-500);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(1.5rem);
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: var(--success-100);
+            color: var(--success-700);
+        }
+
+        .status-warning {
+            background: var(--warning-100);
+            color: var(--warning-700);
+        }
+
+        .status-error {
+            background: var(--error-100);
+            color: var(--error-700);
+        }
+
+        /* 保存操作 */
+        .save-actions {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .settings-nav {
+                order: 2;
+            }
+            
+            .settings-panel {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .setting-control {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .form-input,
+            .form-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div>
+                        <h1 class="header-title">系统设置</h1>
+                        <p class="header-subtitle">系统配置与管理中心</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        重置配置
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        保存设置
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 设置导航 -->
+            <nav class="settings-nav">
+                <div class="nav-header">
+                    <h2 class="nav-title">设置分类</h2>
+                </div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <i class="fas fa-cog nav-icon"></i>
+                            基础设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-shield-alt nav-icon"></i>
+                            安全设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-envelope nav-icon"></i>
+                            邮件设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-database nav-icon"></i>
+                            数据库设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-cloud nav-icon"></i>
+                            存储设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-bell nav-icon"></i>
+                            通知设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-chart-bar nav-icon"></i>
+                            监控设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-plug nav-icon"></i>
+                            集成设置
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- 设置面板 -->
+            <div class="settings-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">基础设置</h2>
+                    <p class="panel-desc">配置系统的基本参数和功能选项</p>
+                </div>
+                
+                <div class="panel-content">
+                    <!-- 系统信息 -->
+                    <div class="setting-group">
+                        <h3 class="group-title">系统信息</h3>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">系统名称</div>
+                                <div class="setting-desc">显示在页面标题和登录页面的系统名称</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" class="form-input" value="组织架构中台系统">
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">系统版本</div>
+                                <div class="setting-desc">当前系统版本号</div>
+                            </div>
+                            <div class="setting-control">
+                                <span class="status-indicator status-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    v2.1.0
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">系统状态</div>
+                                <div class="setting-desc">系统运行状态监控</div>
+                            </div>
+                            <div class="setting-control">
+                                <span class="status-indicator status-success">
+                                    <i class="fas fa-circle"></i>
+                                    正常运行
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 功能开关 -->
+                    <div class="setting-group">
+                        <h3 class="group-title">功能开关</h3>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">用户注册</div>
+                                <div class="setting-desc">允许新用户自主注册账号</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">邮箱验证</div>
+                                <div class="setting-desc">注册时需要验证邮箱地址</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch active"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">多租户模式</div>
+                                <div class="setting-desc">启用多租户架构支持</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch active"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">API访问</div>
+                                <div class="setting-desc">允许外部系统通过API访问</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch active"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 界面设置 -->
+                    <div class="setting-group">
+                        <h3 class="group-title">界面设置</h3>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">默认主题</div>
+                                <div class="setting-desc">系统默认使用的主题风格</div>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select">
+                                    <option>浅色主题</option>
+                                    <option>深色主题</option>
+                                    <option>自动切换</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">默认语言</div>
+                                <div class="setting-desc">系统界面显示语言</div>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select">
+                                    <option>简体中文</option>
+                                    <option>繁体中文</option>
+                                    <option>English</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">页面大小</div>
+                                <div class="setting-desc">列表页面默认显示条数</div>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select">
+                                    <option>10条/页</option>
+                                    <option selected>20条/页</option>
+                                    <option>50条/页</option>
+                                    <option>100条/页</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 性能设置 -->
+                    <div class="setting-group">
+                        <h3 class="group-title">性能设置</h3>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">缓存时间</div>
+                                <div class="setting-desc">数据缓存有效时间（分钟）</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" class="form-input" value="30" min="1" max="1440">
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">会话超时</div>
+                                <div class="setting-desc">用户会话超时时间（小时）</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" class="form-input" value="8" min="1" max="24">
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">文件上传限制</div>
+                                <div class="setting-desc">单个文件最大上传大小（MB）</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" class="form-input" value="10" min="1" max="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 保存操作 -->
+                <div class="save-actions">
+                    <button class="btn btn-secondary">取消</button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        保存设置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 开关控件交互
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // 导航切换
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                const title = this.textContent.trim();
+                document.querySelector('.panel-title').textContent = title;
+                
+                // 根据不同设置页面更新描述
+                const descriptions = {
+                    '基础设置': '配置系统的基本参数和功能选项',
+                    '安全设置': '配置系统安全策略和访问控制',
+                    '邮件设置': '配置邮件服务器和通知模板',
+                    '数据库设置': '配置数据库连接和性能参数',
+                    '存储设置': '配置文件存储和备份策略',
+                    '通知设置': '配置系统通知和消息推送',
+                    '监控设置': '配置系统监控和日志记录',
+                    '集成设置': '配置第三方系统集成接口'
+                };
+                
+                document.querySelector('.panel-desc').textContent = descriptions[title] || '系统配置选项';
+            });
+        });
+
+        // 保存设置
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            if (btn.textContent.includes('保存')) {
+                btn.addEventListener('click', function() {
+                    // 模拟保存操作
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-check"></i> 保存成功';
+                        setTimeout(() => {
+                            this.innerHTML = '<i class="fas fa-save"></i> 保存设置';
+                            this.disabled = false;
+                        }, 2000);
+                    }, 1500);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

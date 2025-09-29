@@ -145,6 +145,8 @@ export const resultApi = {
 export const statsApi = {
   overview: () => api.get<EvaluationStats>('/stats/overview/'),
   cycleStats: (cycleId: number) => api.get(`/stats/cycle/${cycleId}/`),
+  listEmployees: () => api.get('/employees/'),
+  getEmployeeSkills: (employeeId: number) => api.get(`/employees/${employeeId}/skills/`),
 }
 
 // 组织架构中台API
@@ -162,6 +164,79 @@ export const orgPlatformApi = {
     tree: () => orgApi.get<OrgDepartment[]>('/departments/tree/'),
     fullTree: () => orgApi.get<OrgDepartment[]>('/departments/full_tree/'),
     get: (id: number) => orgApi.get<OrgDepartment>(`/departments/${id}/`),
+  },
+}
+
+// 多维度评估API
+export const multidimensionalApi = {
+  // 评估维度
+  dimensions: {
+    list: (params?: any) => api.get('/multidimensional/dimensions/', { params }),
+    get: (id: number) => api.get(`/multidimensional/dimensions/${id}/`),
+    create: (data: any) => api.post('/multidimensional/dimensions/', data),
+    update: (id: number, data: any) => api.put(`/multidimensional/dimensions/${id}/`, data),
+    delete: (id: number) => api.delete(`/multidimensional/dimensions/${id}/`),
+    active: () => api.get('/multidimensional/dimensions/active/'),
+    indicators: (id: number) => api.get(`/multidimensional/dimensions/${id}/indicators/`),
+    batchUpdateWeights: (data: any) => api.post('/multidimensional/dimensions/batch_update_weights/', data),
+  },
+  
+  // 评估方法
+  methods: {
+    list: (params?: any) => api.get('/multidimensional/methods/', { params }),
+    get: (id: number) => api.get(`/multidimensional/methods/${id}/`),
+    create: (data: any) => api.post('/multidimensional/methods/', data),
+    update: (id: number, data: any) => api.put(`/multidimensional/methods/${id}/`, data),
+    delete: (id: number) => api.delete(`/multidimensional/methods/${id}/`),
+    active: () => api.get('/multidimensional/methods/active/'),
+    templates: (id: number) => api.get(`/multidimensional/methods/${id}/templates/`),
+  },
+  
+  // 评估周期类型
+  cycleTypes: {
+    list: (params?: any) => api.get('/multidimensional/cycle-types/', { params }),
+    get: (id: number) => api.get(`/multidimensional/cycle-types/${id}/`),
+    create: (data: any) => api.post('/multidimensional/cycle-types/', data),
+    update: (id: number, data: any) => api.put(`/multidimensional/cycle-types/${id}/`, data),
+    delete: (id: number) => api.delete(`/multidimensional/cycle-types/${id}/`),
+    active: () => api.get('/multidimensional/cycle-types/active/'),
+  },
+  
+  // 多维度评估
+  evaluations: {
+    list: (params?: any) => api.get('/multidimensional/evaluations/', { params }),
+    get: (id: number) => api.get(`/multidimensional/evaluations/${id}/`),
+    create: (data: any) => api.post('/multidimensional/evaluations/', data),
+    update: (id: number, data: any) => api.put(`/multidimensional/evaluations/${id}/`, data),
+    delete: (id: number) => api.delete(`/multidimensional/evaluations/${id}/`),
+    myEvaluations: (params?: any) => api.get('/multidimensional/evaluations/my_evaluations/', { params }),
+    myEvaluated: (params?: any) => api.get('/multidimensional/evaluations/my_evaluated/', { params }),
+    submit: (id: number) => api.post(`/multidimensional/evaluations/${id}/submit/`),
+    review: (id: number) => api.post(`/multidimensional/evaluations/${id}/review/`),
+    finalize: (id: number) => api.post(`/multidimensional/evaluations/${id}/finalize/`),
+    statistics: (params?: any) => api.get('/multidimensional/evaluations/statistics/', { params }),
+  },
+  
+  // 评估指标
+  indicators: {
+    list: (params?: any) => api.get('/multidimensional/indicators/', { params }),
+    get: (id: number) => api.get(`/multidimensional/indicators/${id}/`),
+    create: (data: any) => api.post('/multidimensional/indicators/', data),
+    update: (id: number, data: any) => api.put(`/multidimensional/indicators/${id}/`, data),
+    delete: (id: number) => api.delete(`/multidimensional/indicators/${id}/`),
+    byDimension: (dimensionId: number) => api.get(`/multidimensional/indicators/by_dimension/?dimension_id=${dimensionId}`),
+  },
+  
+  // 评估模板
+  templates: {
+    list: (params?: any) => api.get('/multidimensional/templates/', { params }),
+    get: (id: number) => api.get(`/multidimensional/templates/${id}/`),
+    create: (data: any) => api.post('/multidimensional/templates/', data),
+    update: (id: number, data: any) => api.put(`/multidimensional/templates/${id}/`, data),
+    delete: (id: number) => api.delete(`/multidimensional/templates/${id}/`),
+    active: () => api.get('/multidimensional/templates/active/'),
+    default: () => api.get('/multidimensional/templates/default/'),
+    copy: (id: number) => api.post(`/multidimensional/templates/${id}/copy/`),
   },
 }
 

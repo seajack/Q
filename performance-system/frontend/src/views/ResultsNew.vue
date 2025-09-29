@@ -298,7 +298,7 @@
             </el-table-column>
             <el-table-column prop="updated_at" label="更新时间" width="150">
               <template #default="{ row }">
-                {{ formatDate(row.updated_at) }}
+                {{ formatDateTime(row.updated_at) }}
               </template>
             </el-table-column>
           </el-table>
@@ -327,6 +327,7 @@ import { Edit, DataAnalysis, Refresh, RefreshRight, PieChart, TrendCharts, Docum
 import ReportTemplates from '@/components/ReportTemplates.vue'
 import CustomReportBuilder from '@/components/CustomReportBuilder.vue'
 import ReportExporter from '@/components/ReportExporter.vue'
+import { formatDateTime } from '@/utils/dateUtils'
 
 // 基础数据
 const cycles = ref<any[]>([])
@@ -752,10 +753,7 @@ const getGradeType = (grade: string) => {
   return 'danger'
 }
 
-const formatDate = (date: string) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleString('zh-CN')
-}
+// 使用统一的时间格式化工具函数
 
 onMounted(async () => {
   await loadCycles()

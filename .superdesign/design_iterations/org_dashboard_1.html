@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组织架构中台 - 仪表盘</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, -20px) rotate(180deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-left p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 统计卡片网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.blue::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+        .stat-card.emerald::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .stat-card.green::before { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .stat-card.purple::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+        .stat-card.indigo::before { background: linear-gradient(90deg, #6366f1, #4f46e5); }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+
+        .stat-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .stat-icon.emerald { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-icon.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .stat-icon.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .stat-icon.indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+        .stat-info h3 {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive { color: #059669; }
+        .stat-change.negative { color: #dc2626; }
+
+        /* 主内容区域 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: #6366f1;
+        }
+
+        /* 快速导航 */
+        .quick-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .nav-item:hover {
+            border-color: #6366f1;
+            background: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .nav-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .nav-info h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-info p {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* 最近活动 */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #f3f4f6;
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            border-color: #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .activity-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-desc {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.625rem;
+            color: #9ca3af;
+        }
+
+        /* 底部网格 */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        /* 系统状态 */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #f9fafb;
+        }
+
+        .status-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .status-indicator.online { background: #10b981; }
+        .status-indicator.offline { background: #ef4444; }
+        .status-indicator.warning { background: #f59e0b; }
+
+        .status-info h5 {
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+        }
+
+        .status-info p {
+            font-size: 0.625rem;
+            color: #6b7280;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .quick-nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+            }
+            
+            .header-left h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 页面头部 -->
+        <header class="page-header fade-in">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><i class="fas fa-chart-line"></i> 组织架构中台</h1>
+                    <p>智能化组织管理与数据分析平台</p>
+                </div>
+                <div class="header-actions">
+                    <a href="#" class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        导出报告
+                    </a>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        快速操作
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- 统计概览 -->
+        <section class="stats-grid fade-in">
+            <div class="stat-card blue">
+                <div class="stat-header">
+                    <div class="stat-info">
+                        <h3>总员工数</h3>
+                        <div class="stat-value">1,247</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +12 本月
+                        </div>
+                    </div>
+                    <div class="stat-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card emerald">
+                <div class="stat-header">
+                    <div class="stat-info">
+                        <h3>部门数量</h3>
+                        <div class="stat-value">28</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +2 本月
+                        </div>
+                    </div>
+                    <div class="stat-icon emerald">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card green">
+                <div class="stat-header">
+                    <div class="stat-info">
+                        <h3>职位数量</h3>
+                        <div class="stat-value">156</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +8 本月
+                        </div>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card purple">
+                <div class="stat-header">
+                    <div class="stat-info">
+                        <h3>活跃租户</h3>
+                        <div class="stat-value">15</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +1 本月
+                        </div>
+                    </div>
+                    <div class="stat-icon purple">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主内容区域 -->
+        <section class="main-content slide-in">
+            <!-- 快速导航 -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-rocket"></i>
+                        快速导航
+                    </h2>
+                </div>
+                <div class="quick-nav-grid">
+                    <a href="#" class="nav-item">
+                        <div class="nav-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="nav-info">
+                            <h4>员工管理</h4>
+                            <p>管理员工信息</p>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <div class="nav-icon emerald">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="nav-info">
+                            <h4>部门管理</h4>
+                            <p>组织架构管理</p>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <div class="nav-icon green">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="nav-info">
+                            <h4>职位管理</h4>
+                            <p>职位体系管理</p>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <div class="nav-icon purple">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="nav-info">
+                            <h4>工作流</h4>
+                            <p>流程规则配置</p>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <div class="nav-icon indigo">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="nav-info">
+                            <h4>智能分析</h4>
+                            <p>AI驱动分析</p>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <div class="nav-icon purple">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="nav-info">
+                            <h4>权限管理</h4>
+                            <p>安全权限控制</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 最近活动 -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-clock"></i>
+                        最近活动
+                    </h2>
+                    <a href="#" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">
+                        查看全部
+                    </a>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon blue">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">新员工入职</div>
+                            <div class="activity-desc">张三加入技术部</div>
+                            <div class="activity-time">5分钟前</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon emerald">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">部门调整</div>
+                            <div class="activity-desc">产品部组织架构更新</div>
+                            <div class="activity-time">1小时前</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon green">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">职位创建</div>
+                            <div class="activity-desc">新增高级产品经理职位</div>
+                            <div class="activity-time">2小时前</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon purple">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">工作流更新</div>
+                            <div class="activity-desc">员工转岗流程优化</div>
+                            <div class="activity-time">3小时前</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon indigo">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">分析报告</div>
+                            <div class="activity-desc">月度组织健康度报告生成</div>
+                            <div class="activity-time">4小时前</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 底部网格 -->
+        <section class="bottom-grid fade-in">
+            <!-- 系统状态 -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-server"></i>
+                        系统状态
+                    </h2>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>核心服务</h5>
+                            <p>运行正常</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>数据库</h5>
+                            <p>连接正常</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator warning"></div>
+                        <div class="status-info">
+                            <h5>集成服务</h5>
+                            <p>部分延迟</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>权限服务</h5>
+                            <p>运行正常</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据概览 -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-database"></i>
+                        数据概览
+                    </h2>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>数据同步</h5>
+                            <p>实时同步中</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>备份状态</h5>
+                            <p>今日已备份</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>存储空间</h5>
+                            <p>使用率 68%</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <h5>API调用</h5>
+                            <p>今日 2.3K</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速统计 -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-chart-pie"></i>
+                        快速统计
+                    </h2>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-indicator blue" style="border-radius: 0.25rem;"></div>
+                        <div class="status-info">
+                            <h5>在职员工</h5>
+                            <p>1,247 人</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator emerald" style="border-radius: 0.25rem;"></div>
+                        <div class="status-info">
+                            <h5>本月入职</h5>
+                            <p>12 人</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator green" style="border-radius: 0.25rem;"></div>
+                        <div class="status-info">
+                            <h5>职位空缺</h5>
+                            <p>8 个</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-indicator purple" style="border-radius: 0.25rem;"></div>
+                        <div class="status-info">
+                            <h5>待审批</h5>
+                            <p>3 项</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 添加交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为导航项添加点击效果
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // 为统计卡片添加动画
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+
+            // 模拟实时数据更新
+            function updateStats() {
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues.forEach(value => {
+                    const currentValue = parseInt(value.textContent.replace(/,/g, ''));
+                    const change = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
+                    if (change !== 0) {
+                        const newValue = currentValue + change;
+                        value.textContent = newValue.toLocaleString();
+                    }
+                });
+            }
+
+            // 每30秒更新一次数据（演示用）
+            setInterval(updateStats, 30000);
+
+            // 添加页面加载动画
+            const elements = document.querySelectorAll('.fade-in, .slide-in');
+            elements.forEach((element, index) => {
+                element.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>

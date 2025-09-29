@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现代化部门管理 - 组织架构中台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-50: #f0f9ff;
+            --primary-100: #e0f2fe;
+            --primary-500: #0ea5e9;
+            --primary-600: #0284c7;
+            --primary-700: #0369a1;
+            
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --success-500: #10b981;
+            --warning-500: #f59e0b;
+            --error-500: #ef4444;
+            --emerald-500: #10b981;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--emerald-500), #059669);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* 按钮系统 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--emerald-500), #059669);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 2rem;
+        }
+
+        /* 组织架构树 */
+        .org-tree-panel {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tree-container {
+            padding: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .tree-node {
+            margin-bottom: 0.5rem;
+        }
+
+        .node-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .node-content:hover {
+            background: var(--gray-50);
+        }
+
+        .node-content.active {
+            background: var(--emerald-50);
+            border: 1px solid var(--emerald-200);
+        }
+
+        .node-toggle {
+            width: 1rem;
+            height: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            cursor: pointer;
+        }
+
+        .node-icon {
+            width: 2rem;
+            height: 2rem;
+            background: var(--emerald-100);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--emerald-600);
+        }
+
+        .node-info {
+            flex: 1;
+        }
+
+        .node-name {
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        .node-meta {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .node-children {
+            margin-left: 1.5rem;
+            border-left: 1px dashed var(--gray-300);
+            padding-left: 1rem;
+        }
+
+        /* 部门详情面板 */
+        .dept-details-panel {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+
+        .details-content {
+            padding: 1.5rem;
+        }
+
+        .dept-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .dept-avatar {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, var(--emerald-500), #059669);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .dept-info {
+            flex: 1;
+        }
+
+        .dept-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .dept-path {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .dept-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            background: white;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--emerald-50);
+            border-color: var(--emerald-300);
+            color: var(--emerald-600);
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--emerald-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* 详情表格 */
+        .details-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--emerald-100);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--emerald-600);
+            font-size: 0.75rem;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details-table th,
+        .details-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .details-table th {
+            background: var(--gray-50);
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .details-table td {
+            color: var(--gray-900);
+        }
+
+        /* 员工列表 */
+        .employee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .employee-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s ease;
+        }
+
+        .employee-item:hover {
+            border-color: var(--emerald-300);
+            background: var(--emerald-50);
+        }
+
+        .employee-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--emerald-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--emerald-600);
+            font-weight: 600;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        .employee-position {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .employee-status {
+            padding: 0.25rem 0.5rem;
+            background: var(--success-100);
+            color: var(--success-700);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .org-tree-panel {
+                order: 2;
+            }
+            
+            .dept-details-panel {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .dept-header {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <div>
+                        <h1 class="header-title">部门管理</h1>
+                        <p class="header-subtitle">组织架构与部门信息管理</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        导出架构图
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        新建部门
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 组织架构树 -->
+            <div class="org-tree-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-sitemap"></i>
+                        组织架构
+                    </h2>
+                </div>
+                <div class="tree-container">
+                    <div class="tree-node">
+                        <div class="node-content active">
+                            <div class="node-toggle">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="node-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="node-info">
+                                <div class="node-name">科技有限公司</div>
+                                <div class="node-meta">总公司 • 156人</div>
+                            </div>
+                        </div>
+                        <div class="node-children">
+                            <div class="tree-node">
+                                <div class="node-content">
+                                    <div class="node-toggle">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="node-icon">
+                                        <i class="fas fa-code"></i>
+                                    </div>
+                                    <div class="node-info">
+                                        <div class="node-name">技术部</div>
+                                        <div class="node-meta">研发中心 • 45人</div>
+                                    </div>
+                                </div>
+                                <div class="node-children">
+                                    <div class="tree-node">
+                                        <div class="node-content">
+                                            <div class="node-toggle"></div>
+                                            <div class="node-icon">
+                                                <i class="fas fa-laptop-code"></i>
+                                            </div>
+                                            <div class="node-info">
+                                                <div class="node-name">前端组</div>
+                                                <div class="node-meta">开发团队 • 15人</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="node-content">
+                                            <div class="node-toggle"></div>
+                                            <div class="node-icon">
+                                                <i class="fas fa-server"></i>
+                                            </div>
+                                            <div class="node-info">
+                                                <div class="node-name">后端组</div>
+                                                <div class="node-meta">开发团队 • 20人</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="node-content">
+                                            <div class="node-toggle"></div>
+                                            <div class="node-icon">
+                                                <i class="fas fa-mobile-alt"></i>
+                                            </div>
+                                            <div class="node-info">
+                                                <div class="node-name">移动端组</div>
+                                                <div class="node-meta">开发团队 • 10人</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="node-content">
+                                    <div class="node-toggle">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                    <div class="node-icon">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div class="node-info">
+                                        <div class="node-name">产品部</div>
+                                        <div class="node-meta">产品中心 • 25人</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="node-content">
+                                    <div class="node-toggle">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                    <div class="node-icon">
+                                        <i class="fas fa-palette"></i>
+                                    </div>
+                                    <div class="node-info">
+                                        <div class="node-name">设计部</div>
+                                        <div class="node-meta">设计中心 • 18人</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="node-content">
+                                    <div class="node-toggle">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                    <div class="node-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="node-info">
+                                        <div class="node-name">市场部</div>
+                                        <div class="node-meta">营销中心 • 32人</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="node-content">
+                                    <div class="node-toggle">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                    <div class="node-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="node-info">
+                                        <div class="node-name">人事部</div>
+                                        <div class="node-meta">行政中心 • 12人</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 部门详情面板 -->
+            <div class="dept-details-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-info-circle"></i>
+                        部门详情
+                    </h2>
+                </div>
+                
+                <div class="details-content">
+                    <!-- 部门头部信息 -->
+                    <div class="dept-header">
+                        <div class="dept-avatar">科</div>
+                        <div class="dept-info">
+                            <div class="dept-name">科技有限公司</div>
+                            <div class="dept-path">根部门</div>
+                        </div>
+                        <div class="dept-actions">
+                            <button class="action-btn" title="编辑">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" title="设置">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <button class="action-btn" title="更多">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 统计信息 -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">156</div>
+                            <div class="stat-label">总员工数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">子部门数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">直属员工</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">管理层级</div>
+                        </div>
+                    </div>
+
+                    <!-- 基本信息 -->
+                    <div class="details-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-info"></i>
+                            </div>
+                            基本信息
+                        </div>
+                        <table class="details-table">
+                            <tr>
+                                <th>部门名称</th>
+                                <td>科技有限公司</td>
+                            </tr>
+                            <tr>
+                                <th>部门编码</th>
+                                <td>DEPT001</td>
+                            </tr>
+                            <tr>
+                                <th>部门类型</th>
+                                <td>总公司</td>
+                            </tr>
+                            <tr>
+                                <th>成立时间</th>
+                                <td>2020-01-01</td>
+                            </tr>
+                            <tr>
+                                <th>负责人</th>
+                                <td>张总</td>
+                            </tr>
+                            <tr>
+                                <th>联系电话</th>
+                                <td>400-123-4567</td>
+                            </tr>
+                            <tr>
+                                <th>办公地址</th>
+                                <td>北京市朝阳区科技园区A座</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 直属员工 -->
+                    <div class="details-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            直属员工 (12人)
+                        </div>
+                        <div class="employee-list">
+                            <div class="employee-item">
+                                <div class="employee-avatar">张</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">张总</div>
+                                    <div class="employee-position">总经理</div>
+                                </div>
+                                <div class="employee-status">在职</div>
+                            </div>
+                            <div class="employee-item">
+                                <div class="employee-avatar">李</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">李副总</div>
+                                    <div class="employee-position">副总经理</div>
+                                </div>
+                                <div class="employee-status">在职</div>
+                            </div>
+                            <div class="employee-item">
+                                <div class="employee-avatar">王</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">王秘书</div>
+                                    <div class="employee-position">总经理秘书</div>
+                                </div>
+                                <div class="employee-status">在职</div>
+                            </div>
+                            <div class="employee-item">
+                                <div class="employee-avatar">赵</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">赵助理</div>
+                                    <div class="employee-position">行政助理</div>
+                                </div>
+                                <div class="employee-status">在职</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 树节点展开/收起
+        document.querySelectorAll('.node-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const icon = this.querySelector('i');
+                const children = this.closest('.tree-node').querySelector('.node-children');
+                
+                if (children) {
+                    if (icon.classList.contains('fa-chevron-down')) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-right');
+                        children.style.display = 'none';
+                    } else {
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-down');
+                        children.style.display = 'block';
+                    }
+                }
+            });
+        });
+
+        // 节点选择
+        document.querySelectorAll('.node-content').forEach(node => {
+            node.addEventListener('click', function() {
+                document.querySelectorAll('.node-content').forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                
+                const name = this.querySelector('.node-name').textContent;
+                const meta = this.querySelector('.node-meta').textContent;
+                
+                // 更新部门详情
+                document.querySelector('.dept-name').textContent = name;
+                document.querySelector('.dept-path').textContent = meta;
+                document.querySelector('.dept-avatar').textContent = name.charAt(0);
+            });
+        });
+
+        // 操作按钮交互
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const title = this.getAttribute('title');
+                console.log(`执行操作: ${title}`);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现代化员工管理 - 组织架构中台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-50: #f0f9ff;
+            --primary-100: #e0f2fe;
+            --primary-500: #0ea5e9;
+            --primary-600: #0284c7;
+            --primary-700: #0369a1;
+            
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --success-500: #10b981;
+            --warning-500: #f59e0b;
+            --error-500: #ef4444;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* 按钮系统 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        /* 搜索和筛选栏 */
+        .search-filter-bar {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .search-filter-content {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgb(14 165 233 / 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* 员工网格 */
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .employee-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .employee-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .employee-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+        }
+
+        .employee-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .employee-avatar {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .employee-position {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .employee-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .employee-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .detail-icon {
+            color: var(--gray-400);
+            width: 1rem;
+        }
+
+        .employee-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            background: white;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-50);
+            border-color: var(--primary-300);
+            color: var(--primary-600);
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            background: white;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover {
+            background: var(--primary-50);
+            border-color: var(--primary-300);
+            color: var(--primary-600);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary-500);
+            border-color: var(--primary-500);
+            color: white;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .employee-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-filter-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h1 class="header-title">员工管理</h1>
+                        <p class="header-subtitle">企业人力资源管理平台</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        导出数据
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        新增员工
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 搜索和筛选栏 -->
+        <div class="search-filter-bar">
+            <div class="search-filter-content">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="搜索员工姓名、工号、邮箱...">
+                </div>
+                <div class="filter-group">
+                    <select class="filter-select">
+                        <option>全部部门</option>
+                        <option>技术部</option>
+                        <option>产品部</option>
+                        <option>市场部</option>
+                        <option>人事部</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>全部状态</option>
+                        <option>在职</option>
+                        <option>离职</option>
+                        <option>试用期</option>
+                    </select>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-filter"></i>
+                        高级筛选
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 员工网格 -->
+        <div class="employee-grid">
+            <div class="employee-card">
+                <div class="employee-header">
+                    <div class="employee-avatar">张</div>
+                    <div class="employee-info">
+                        <div class="employee-name">张三</div>
+                        <div class="employee-position">高级前端工程师</div>
+                    </div>
+                    <div class="employee-status status-active">在职</div>
+                </div>
+                <div class="employee-details">
+                    <div class="detail-item">
+                        <i class="fas fa-id-card detail-icon"></i>
+                        <span>EMP001</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span>技术部</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-envelope detail-icon"></i>
+                        <span>zhang@company.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar detail-icon"></i>
+                        <span>2023-01-15</span>
+                    </div>
+                </div>
+                <div class="employee-actions">
+                    <button class="action-btn" title="查看详情">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn" title="更多操作">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="employee-card">
+                <div class="employee-header">
+                    <div class="employee-avatar">李</div>
+                    <div class="employee-info">
+                        <div class="employee-name">李四</div>
+                        <div class="employee-position">产品经理</div>
+                    </div>
+                    <div class="employee-status status-active">在职</div>
+                </div>
+                <div class="employee-details">
+                    <div class="detail-item">
+                        <i class="fas fa-id-card detail-icon"></i>
+                        <span>EMP002</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span>产品部</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-envelope detail-icon"></i>
+                        <span>li@company.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar detail-icon"></i>
+                        <span>2023-02-20</span>
+                    </div>
+                </div>
+                <div class="employee-actions">
+                    <button class="action-btn" title="查看详情">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn" title="更多操作">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="employee-card">
+                <div class="employee-header">
+                    <div class="employee-avatar">王</div>
+                    <div class="employee-info">
+                        <div class="employee-name">王五</div>
+                        <div class="employee-position">UI设计师</div>
+                    </div>
+                    <div class="employee-status status-active">在职</div>
+                </div>
+                <div class="employee-details">
+                    <div class="detail-item">
+                        <i class="fas fa-id-card detail-icon"></i>
+                        <span>EMP003</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span>设计部</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-envelope detail-icon"></i>
+                        <span>wang@company.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar detail-icon"></i>
+                        <span>2023-03-10</span>
+                    </div>
+                </div>
+                <div class="employee-actions">
+                    <button class="action-btn" title="查看详情">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn" title="更多操作">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="employee-card">
+                <div class="employee-header">
+                    <div class="employee-avatar">赵</div>
+                    <div class="employee-info">
+                        <div class="employee-name">赵六</div>
+                        <div class="employee-position">市场专员</div>
+                    </div>
+                    <div class="employee-status status-inactive">试用期</div>
+                </div>
+                <div class="employee-details">
+                    <div class="detail-item">
+                        <i class="fas fa-id-card detail-icon"></i>
+                        <span>EMP004</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-building detail-icon"></i>
+                        <span>市场部</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-envelope detail-icon"></i>
+                        <span>zhao@company.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar detail-icon"></i>
+                        <span>2024-01-05</span>
+                    </div>
+                </div>
+                <div class="employee-actions">
+                    <button class="action-btn" title="查看详情">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn" title="更多操作">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination">
+            <button class="pagination-btn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">...</button>
+            <button class="pagination-btn">10</button>
+            <button class="pagination-btn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</body>
+</html>

@@ -264,10 +264,14 @@ import { useRoute } from 'vue-router'
 import { useEvaluationStore } from '@/stores/evaluation'
 import { Download, Operation, Rank } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { formatDateTime as formatDateTimeUtil } from '@/utils/dateUtils'
 import * as XLSX from 'xlsx'
 // import { saveAs } from 'file-saver'
 import FeedbackSystem from '@/components/FeedbackSystem.vue'
 import DragSortable from '@/components/DragSortable.vue'
+
+// 定义 formatDateTime 函数供模板使用
+const formatDateTime = formatDateTimeUtil
 
 const route = useRoute()
 const evaluationStore = useEvaluationStore()
@@ -555,18 +559,6 @@ const getStatusType = (status: string) => {
   return map[status as keyof typeof map] || 'info'
 }
 
-const formatDateTime = (dateTime: string) => {
-  if (!dateTime) return '-'
-  const date = new Date(dateTime)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
 
 onMounted(async () => { 
   // 加载考核周期数据

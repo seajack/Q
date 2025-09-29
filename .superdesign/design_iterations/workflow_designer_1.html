@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作流可视化设计器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .node-item { transition: all 0.3s ease; cursor: grab; }
+        .node-item:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .canvas-grid { 
+            background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .workflow-node {
+            position: absolute;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+        .workflow-node:hover { transform: scale(1.02); }
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform-origin: left center;
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    </style>
+</head>
+<body class="bg-gray-50 overflow-hidden">
+    <!-- 顶部工具栏 -->
+    <div class="gradient-bg text-white h-16 flex items-center justify-between px-6 shadow-lg">
+        <div class="flex items-center space-x-4">
+            <i data-lucide="workflow" class="w-8 h-8"></i>
+            <div>
+                <h1 class="text-xl font-bold">工作流设计器</h1>
+                <p class="text-sm opacity-90">拖拽式流程设计平台</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <!-- 版本信息 -->
+            <div class="bg-white/20 px-3 py-1 rounded-lg text-sm">
+                <span>版本: v1.2.3</span>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>保存</span>
+            </button>
+            <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span>测试</span>
+            </button>
+            <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                <i data-lucide="git-branch" class="w-4 h-4"></i>
+                <span>版本</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="flex h-screen">
+        <!-- 左侧工具面板 -->
+        <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
+            <!-- 节点库 -->
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i data-lucide="layers" class="w-5 h-5 mr-2 text-blue-600"></i>
+                    节点库
+                </h3>
+                
+                <div class="space-y-3">
+                    <!-- 触发节点 -->
+                    <div class="node-category">
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">触发器</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="node-item bg-green-50 border-2 border-green-200 rounded-lg p-3 text-center">
+                                <i data-lucide="play-circle" class="w-6 h-6 mx-auto mb-1 text-green-600"></i>
+                                <div class="text-xs font-medium text-green-800">开始</div>
+                            </div>
+                            <div class="node-item bg-blue-50 border-2 border-blue-200 rounded-lg p-3 text-center">
+                                <i data-lucide="clock" class="w-6 h-6 mx-auto mb-1 text-blue-600"></i>
+                                <div class="text-xs font-medium text-blue-800">定时</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理节点 -->
+                    <div class="node-category">
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">处理器</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="node-item bg-purple-50 border-2 border-purple-200 rounded-lg p-3 text-center">
+                                <i data-lucide="check-circle" class="w-6 h-6 mx-auto mb-1 text-purple-600"></i>
+                                <div class="text-xs font-medium text-purple-800">审批</div>
+                            </div>
+                            <div class="node-item bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3 text-center">
+                                <i data-lucide="mail" class="w-6 h-6 mx-auto mb-1 text-yellow-600"></i>
+                                <div class="text-xs font-medium text-yellow-800">通知</div>
+                            </div>
+                            <div class="node-item bg-indigo-50 border-2 border-indigo-200 rounded-lg p-3 text-center">
+                                <i data-lucide="database" class="w-6 h-6 mx-auto mb-1 text-indigo-600"></i>
+                                <div class="text-xs font-medium text-indigo-800">数据</div>
+                            </div>
+                            <div class="node-item bg-red-50 border-2 border-red-200 rounded-lg p-3 text-center">
+                                <i data-lucide="git-branch" class="w-6 h-6 mx-auto mb-1 text-red-600"></i>
+                                <div class="text-xs font-medium text-red-800">条件</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 结束节点 -->
+                    <div class="node-category">
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">结束器</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="node-item bg-gray-50 border-2 border-gray-200 rounded-lg p-3 text-center">
+                                <i data-lucide="stop-circle" class="w-6 h-6 mx-auto mb-1 text-gray-600"></i>
+                                <div class="text-xs font-medium text-gray-800">结束</div>
+                            </div>
+                            <div class="node-item bg-orange-50 border-2 border-orange-200 rounded-lg p-3 text-center">
+                                <i data-lucide="alert-circle" class="w-6 h-6 mx-auto mb-1 text-orange-600"></i>
+                                <div class="text-xs font-medium text-orange-800">错误</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 属性面板 -->
+            <div class="flex-1 p-4">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i data-lucide="settings" class="w-5 h-5 mr-2 text-purple-600"></i>
+                    属性配置
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-sm text-gray-600 mb-2">选中节点</div>
+                        <div class="text-lg font-medium text-gray-800">审批节点</div>
+                        
+                        <div class="mt-4 space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">节点名称</label>
+                                <input type="text" value="部门经理审批" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">审批人</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                    <option>直接上级</option>
+                                    <option>部门经理</option>
+                                    <option>指定人员</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">超时时间</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" value="24" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                    <select class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                        <option>小时</option>
+                                        <option>天</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="required" class="mr-2">
+                                <label for="required" class="text-sm text-gray-700">必须审批</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间画布区域 -->
+        <div class="flex-1 flex flex-col">
+            <!-- 画布工具栏 -->
+            <div class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="mouse-pointer" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="hand" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                        <div class="w-px h-6 bg-gray-300"></div>
+                        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="undo" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="redo" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">缩放:</span>
+                        <button class="p-1 hover:bg-gray-100 rounded">
+                            <i data-lucide="minus" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                        <span class="text-sm font-medium text-gray-800 min-w-12 text-center">100%</span>
+                        <button class="p-1 hover:bg-gray-100 rounded">
+                            <i data-lucide="plus" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                        <span>已保存</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 画布 -->
+            <div class="flex-1 relative overflow-hidden canvas-grid bg-gray-50">
+                <!-- 工作流节点 -->
+                <div class="workflow-node" style="top: 100px; left: 200px;">
+                    <div class="bg-white rounded-lg shadow-lg border-2 border-green-400 p-4 min-w-32">
+                        <div class="flex items-center justify-center mb-2">
+                            <i data-lucide="play-circle" class="w-8 h-8 text-green-600"></i>
+                        </div>
+                        <div class="text-center text-sm font-medium text-gray-800">开始</div>
+                        <div class="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                    </div>
+                </div>
+
+                <div class="workflow-node" style="top: 100px; left: 400px;">
+                    <div class="bg-white rounded-lg shadow-lg border-2 border-purple-400 p-4 min-w-32">
+                        <div class="flex items-center justify-center mb-2">
+                            <i data-lucide="check-circle" class="w-8 h-8 text-purple-600"></i>
+                        </div>
+                        <div class="text-center text-sm font-medium text-gray-800">部门审批</div>
+                        <div class="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                        <div class="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                    </div>
+                </div>
+
+                <div class="workflow-node" style="top: 100px; left: 600px;">
+                    <div class="bg-white rounded-lg shadow-lg border-2 border-yellow-400 p-4 min-w-32">
+                        <div class="flex items-center justify-center mb-2">
+                            <i data-lucide="mail" class="w-8 h-8 text-yellow-600"></i>
+                        </div>
+                        <div class="text-center text-sm font-medium text-gray-800">发送通知</div>
+                        <div class="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                        <div class="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                    </div>
+                </div>
+
+                <div class="workflow-node" style="top: 100px; left: 800px;">
+                    <div class="bg-white rounded-lg shadow-lg border-2 border-gray-400 p-4 min-w-32">
+                        <div class="flex items-center justify-center mb-2">
+                            <i data-lucide="stop-circle" class="w-8 h-8 text-gray-600"></i>
+                        </div>
+                        <div class="text-center text-sm font-medium text-gray-800">结束</div>
+                        <div class="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                    </div>
+                </div>
+
+                <!-- 连接线 -->
+                <div class="connection-line" style="top: 132px; left: 264px; width: 120px;"></div>
+                <div class="connection-line" style="top: 132px; left: 464px; width: 120px;"></div>
+                <div class="connection-line" style="top: 132px; left: 664px; width: 120px;"></div>
+
+                <!-- 执行状态指示器 -->
+                <div class="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full pulse"></div>
+                        <span class="text-sm font-medium text-gray-800">执行中: 部门审批</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="w-80 bg-white border-l border-gray-200 flex flex-col">
+            <!-- 版本管理 -->
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i data-lucide="git-branch" class="w-5 h-5 mr-2 text-green-600"></i>
+                    版本管理
+                </h3>
+                
+                <div class="space-y-2">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-blue-800">v1.2.3 (当前)</span>
+                            <span class="text-xs text-blue-600">2024-01-15</span>
+                        </div>
+                        <div class="text-xs text-blue-700">添加通知节点，优化审批流程</div>
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-800">v1.2.2</span>
+                            <span class="text-xs text-gray-600">2024-01-10</span>
+                        </div>
+                        <div class="text-xs text-gray-700">修复条件判断逻辑</div>
+                        <div class="mt-2 flex space-x-2">
+                            <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">回滚</button>
+                            <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">对比</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-800">v1.2.1</span>
+                            <span class="text-xs text-gray-600">2024-01-05</span>
+                        </div>
+                        <div class="text-xs text-gray-700">初始版本发布</div>
+                        <div class="mt-2 flex space-x-2">
+                            <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">回滚</button>
+                            <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">对比</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="w-full mt-3 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                    创建新版本
+                </button>
+            </div>
+
+            <!-- 测试面板 -->
+            <div class="flex-1 p-4">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i data-lucide="play" class="w-5 h-5 mr-2 text-orange-600"></i>
+                    测试执行
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- 测试配置 -->
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <h4 class="text-sm font-medium text-gray-800 mb-2">测试数据</h4>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">申请人</label>
+                                <input type="text" value="张三" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">申请类型</label>
+                                <select class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                    <option>请假申请</option>
+                                    <option>报销申请</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 执行控制 -->
+                    <div class="flex space-x-2">
+                        <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium">
+                            开始测试
+                        </button>
+                        <button class="px-3 py-2 border border-gray-300 hover:bg-gray-50 rounded text-sm">
+                            <i data-lucide="square" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 执行日志 -->
+                    <div class="bg-gray-900 text-green-400 rounded-lg p-3 text-xs font-mono h-48 overflow-y-auto">
+                        <div>[2024-01-15 10:30:01] 工作流开始执行</div>
+                        <div>[2024-01-15 10:30:01] 触发器: 开始节点 ✓</div>
+                        <div>[2024-01-15 10:30:02] 处理器: 部门审批节点 ⏳</div>
+                        <div>[2024-01-15 10:30:02] 等待审批人响应...</div>
+                        <div class="text-yellow-400">[2024-01-15 10:30:03] 模拟审批通过 ✓</div>
+                        <div>[2024-01-15 10:30:03] 处理器: 发送通知节点 ⏳</div>
+                        <div>[2024-01-15 10:30:04] 通知已发送 ✓</div>
+                        <div>[2024-01-15 10:30:04] 结束器: 流程完成 ✓</div>
+                        <div class="text-green-300">[2024-01-15 10:30:04] 工作流执行成功</div>
+                    </div>
+                    
+                    <!-- 性能统计 -->
+                    <div class="bg-blue-50 rounded-lg p-3">
+                        <h4 class="text-sm font-medium text-blue-800 mb-2">执行统计</h4>
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">执行时间:</span>
+                                <span class="font-medium text-blue-800">3.2秒</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">节点数量:</span>
+                                <span class="font-medium text-blue-800">4个</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">成功率:</span>
+                                <span class="font-medium text-green-600">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 简单的拖拽功能演示
+        let isDragging = false;
+        let currentNode = null;
+        let offset = { x: 0, y: 0 };
+        
+        document.querySelectorAll('.workflow-node').forEach(node => {
+            node.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                currentNode = node;
+                const rect = node.getBoundingClientRect();
+                offset.x = e.clientX - rect.left;
+                offset.y = e.clientY - rect.top;
+                node.style.zIndex = '1000';
+            });
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && currentNode) {
+                const canvas = document.querySelector('.canvas-grid');
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                const x = e.clientX - canvasRect.left - offset.x;
+                const y = e.clientY - canvasRect.top - offset.y;
+                
+                currentNode.style.left = Math.max(0, x) + 'px';
+                currentNode.style.top = Math.max(0, y) + 'px';
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (currentNode) {
+                currentNode.style.zIndex = 'auto';
+            }
+            isDragging = false;
+            currentNode = null;
+        });
+        
+        // 模拟实时状态更新
+        setInterval(() => {
+            const statusIndicator = document.querySelector('.pulse');
+            if (statusIndicator) {
+                const colors = ['bg-green-400', 'bg-blue-400', 'bg-yellow-400'];
+                const currentColor = colors[Math.floor(Math.random() * colors.length)];
+                statusIndicator.className = `w-3 h-3 ${currentColor} rounded-full pulse`;
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

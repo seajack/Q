@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能分析仪表板 - 组织架构中台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-500: #0ea5e9;
+            --primary-600: #0284c7;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-900: #0f172a;
+            --success-500: #10b981;
+            --warning-500: #f59e0b;
+            --error-500: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, #e0f2fe 100%);
+            color: var(--gray-900);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-transform: uppercase;
+        }
+
+        .metric-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-change {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--success-500);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .suggestion-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-500);
+        }
+
+        .suggestion-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            background: linear-gradient(135deg, var(--warning-500), #d97706);
+        }
+
+        .suggestion-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .suggestion-desc {
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header-content { flex-direction: column; gap: 1rem; }
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+
+        .loading-animation {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--gray-200);
+            border-radius: 50%;
+            border-top-color: var(--primary-500);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <header class="page-header fade-in">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div>
+                        <h1 class="header-title">智能分析仪表板</h1>
+                        <p style="color: var(--gray-600);">AI驱动的组织架构深度分析</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button style="padding: 0.75rem 1.5rem; border: 1px solid var(--gray-300); background: white; border-radius: 0.5rem; cursor: pointer;">
+                        <i class="fas fa-download"></i> 导出报告
+                    </button>
+                    <button style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+                        <i class="fas fa-sync"></i> 刷新数据
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 关键指标 -->
+        <div class="metrics-grid fade-in">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">组织健康度</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                </div>
+                <div class="metric-value">85分</div>
+                <div class="metric-change">
+                    <i class="fas fa-arrow-up"></i>
+                    +5% 本月
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">效率指数</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                </div>
+                <div class="metric-value">92分</div>
+                <div class="metric-change">
+                    <i class="fas fa-arrow-up"></i>
+                    +8% 本月
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">风险等级</div>
+                    <div class="metric-icon" style="background: linear-gradient(135deg, var(--warning-500), #d97706);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="metric-value">中等</div>
+                <div class="metric-change" style="color: var(--warning-500);">
+                    <i class="fas fa-minus"></i>
+                    持平
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">优化潜力</div>
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                </div>
+                <div class="metric-value">23%</div>
+                <div class="metric-change">
+                    <i class="fas fa-arrow-down"></i>
+                    -3% 本月
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="charts-grid fade-in">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">组织效率趋势</h3>
+                    <select style="padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.375rem;">
+                        <option>最近30天</option>
+                        <option>最近90天</option>
+                        <option>最近一年</option>
+                    </select>
+                </div>
+                <canvas id="efficiencyChart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">部门分布</h3>
+                </div>
+                <canvas id="departmentChart" width="300" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- 智能建议 -->
+        <div class="suggestions-grid fade-in">
+            <div class="suggestion-card">
+                <div class="suggestion-header">
+                    <div class="suggestion-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h4 class="suggestion-title">组织结构优化</h4>
+                </div>
+                <p class="suggestion-desc">
+                    建议将技术部门下的前端团队和后端团队合并为产品研发部，可提升协作效率15%，减少沟通成本。
+                </p>
+            </div>
+
+            <div class="suggestion-card">
+                <div class="suggestion-header">
+                    <div class="suggestion-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4 class="suggestion-title">人员配置建议</h4>
+                </div>
+                <p class="suggestion-desc">
+                    市场部人员配置相对不足，建议增加2-3名市场专员，以支撑业务快速增长的需求。
+                </p>
+            </div>
+
+            <div class="suggestion-card">
+                <div class="suggestion-header">
+                    <div class="suggestion-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4 class="suggestion-title">流程优化机会</h4>
+                </div>
+                <p class="suggestion-desc">
+                    审批流程存在冗余环节，建议简化采购审批流程，预计可缩短审批时间40%。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 效率趋势图
+        const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+        new Chart(efficiencyCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [{
+                    label: '组织效率',
+                    data: [78, 82, 85, 88, 90, 92],
+                    borderColor: '#0ea5e9',
+                    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                }
+            }
+        });
+
+        // 部门分布图
+        const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+        new Chart(departmentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['技术部', '市场部', '销售部', '人事部', '财务部'],
+                datasets: [{
+                    data: [35, 25, 20, 12, 8],
+                    backgroundColor: [
+                        '#0ea5e9',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#8b5cf6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 添加动画效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.fade-in');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

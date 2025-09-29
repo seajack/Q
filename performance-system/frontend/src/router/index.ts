@@ -136,6 +136,18 @@ const routes = [
     name: 'Permissions',
     component: () => import('@/views/PermissionsNew.vue'),
     meta: { title: '权限管理', layout: 'topnav' }
+  },
+  {
+    path: '/multidimensional-evaluation',
+    name: 'MultidimensionalEvaluation',
+    component: () => import('@/views/MultidimensionalEvaluation.vue'),
+    meta: { title: '多维度评估', layout: 'topnav' }
+  },
+  {
+    path: '/evaluation-dimensions',
+    name: 'EvaluationDimensions',
+    component: () => import('@/views/EvaluationDimensions.vue'),
+    meta: { title: '评估维度管理', layout: 'topnav' }
   }
 ]
 

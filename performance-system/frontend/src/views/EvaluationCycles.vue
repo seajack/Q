@@ -9,7 +9,7 @@
       <div class="card-header-modern">
         <div class="header-left">
           <div class="header-icon">
-            <el-icon><Calendar /></el-icon>
+            <el-icon><component :is="Icons.Calendar" /></el-icon>
           </div>
           <div class="header-content">
             <h3>考核周期列表</h3>
@@ -24,7 +24,7 @@
             @click="debugData"
             size="small"
           >
-            <el-icon><InfoFilled /></el-icon>
+            <el-icon><component :is="Icons.InfoFilled" /></el-icon>
             调试数据
           </el-button>
           <el-button 
@@ -32,7 +32,7 @@
             type="primary" 
             @click="showCreateDialog"
           >
-            <el-icon><Plus /></el-icon>
+            <el-icon><component :is="Icons.Plus" /></el-icon>
             新建考核周期
           </el-button>
         </div>
@@ -52,11 +52,11 @@
       >
         <template #empty>
           <div class="empty-state">
-            <el-icon class="empty-icon"><DocumentRemove /></el-icon>
+            <el-icon class="empty-icon"><component :is="Icons.DocumentRemove" /></el-icon>
             <h4>暂无考核周期数据</h4>
             <p>您可以点击"新建考核周期"按钮创建第一个考核周期</p>
             <el-button type="primary" @click="showCreateDialog" class="empty-action">
-              <el-icon><Plus /></el-icon>
+              <el-icon><component :is="Icons.Plus" /></el-icon>
               创建考核周期
             </el-button>
           </div>
@@ -66,12 +66,12 @@
           <template #default="{ row }">
             <div class="date-range">
               <div class="date-item">
-                <el-icon><Calendar /></el-icon>
+                <el-icon><component :is="Icons.Calendar" /></el-icon>
                 <span>{{ row.start_date }}</span>
               </div>
               <div class="date-separator">至</div>
               <div class="date-item">
-                <el-icon><Calendar /></el-icon>
+                <el-icon><component :is="Icons.Calendar" /></el-icon>
                 <span>{{ row.end_date }}</span>
               </div>
             </div>
@@ -85,10 +85,10 @@
                 :effect="row.status === 'active' ? 'dark' : 'light'"
                 class="status-tag"
               >
-                <el-icon v-if="row.status === 'active'"><Loading /></el-icon>
-                <el-icon v-else-if="row.status === 'completed'"><SuccessFilled /></el-icon>
-                <el-icon v-else-if="row.status === 'cancelled'"><CloseBold /></el-icon>
-                <el-icon v-else><Edit /></el-icon>
+                <el-icon v-if="row.status === 'active'"><component :is="Icons.Loading" /></el-icon>
+                <el-icon v-else-if="row.status === 'completed'"><component :is="Icons.SuccessFilled" /></el-icon>
+                <el-icon v-else-if="row.status === 'cancelled'"><component :is="Icons.CloseBold" /></el-icon>
+                <el-icon v-else><component :is="Icons.Edit" /></el-icon>
                 {{ getStatusText(row.status) }}
               </el-tag>
             </div>
@@ -99,25 +99,25 @@
             <div class="action-buttons">
               <el-tooltip content="编辑周期" placement="top" :hide-after="1000">
                 <el-button size="small" @click="editCycle(row)" class="action-btn">
-                  <el-icon><Edit /></el-icon>
+                  <el-icon><component :is="Icons.Edit" /></el-icon>
                   编辑
                 </el-button>
               </el-tooltip>
               <el-tooltip content="生成考核任务" placement="top" :hide-after="1000">
                 <el-button size="small" type="success" @click="generateTasks(row)" class="action-btn">
-                  <el-icon><DocumentAdd /></el-icon>
+                  <el-icon><component :is="Icons.DocumentAdd" /></el-icon>
                   生成任务
                 </el-button>
               </el-tooltip>
               <el-tooltip content="查看任务列表" placement="top" :hide-after="1000">
                 <el-button size="small" type="info" @click="viewTasks(row)" class="action-btn">
-                  <el-icon><View /></el-icon>
+                  <el-icon><component :is="Icons.View" /></el-icon>
                   查看任务
                 </el-button>
               </el-tooltip>
               <el-tooltip content="删除周期" placement="top" :hide-after="1000">
                 <el-button size="small" type="danger" @click="deleteCycle(row)" class="action-btn">
-                  <el-icon><Delete /></el-icon>
+                  <el-icon><component :is="Icons.Delete" /></el-icon>
                   删除
                 </el-button>
               </el-tooltip>
@@ -136,10 +136,10 @@
       class="modern-dialog"
     >
       <div class="dialog-header-icon" v-if="!isEdit">
-        <el-icon class="dialog-icon"><Calendar /></el-icon>
+        <el-icon class="dialog-icon"><component :is="Icons.Calendar" /></el-icon>
       </div>
       <div class="dialog-header-icon edit-icon" v-else>
-        <el-icon class="dialog-icon"><EditPen /></el-icon>
+        <el-icon class="dialog-icon"><component :is="Icons.EditPen" /></el-icon>
       </div>
       
       <el-form :model="formData" :rules="rules" ref="formRef" label-width="100px" class="modern-form">
@@ -193,7 +193,7 @@
             </el-option>
           </el-select>
           <div class="form-tip">
-            <el-icon><InfoFilled /></el-icon>
+            <el-icon><component :is="Icons.InfoFilled" /></el-icon>
             选择用于该考核周期的规则，将根据规则自动生成考核任务
           </div>
         </el-form-item>
@@ -202,7 +202,7 @@
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false" class="cancel-btn">取消</el-button>
           <el-button type="primary" @click="submitForm" :loading="submitting" class="submit-btn">
-            <el-icon v-if="!submitting"><Check /></el-icon>
+            <el-icon v-if="!submitting"><component :is="Icons.Check" /></el-icon>
             <span>{{ isEdit ? '保存修改' : '创建周期' }}</span>
           </el-button>
         </div>
@@ -212,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, markRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Plus, 
@@ -231,6 +231,26 @@ import {
   Document,
   Setting
 } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Plus,
+  Calendar,
+  InfoFilled,
+  Edit,
+  Delete,
+  View,
+  DocumentAdd,
+  DocumentRemove,
+  Loading,
+  SuccessFilled,
+  CloseBold,
+  Check,
+  EditPen,
+  Document,
+  Setting
+})
+
 import { useEvaluationStore } from '@/stores/evaluation'
 import type { EvaluationCycle } from '@/types'
 

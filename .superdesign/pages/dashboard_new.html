@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绩效考核系统 - 仪表板</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../components/base.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- 侧边栏容器 -->
+        <div id="sidebar-container"></div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 页面头部容器 -->
+            <div id="header-container"></div>
+            
+            <!-- 页面内容 -->
+            <main class="page-content">
+                <!-- 欢迎卡片 -->
+                <div class="welcome-section">
+                    <div class="welcome-card">
+                        <div class="welcome-content">
+                            <h2 class="welcome-title">2024年Q4季度考核进行中</h2>
+                            <p class="welcome-subtitle">当前有 1,247 名员工参与考核，完成率达到 68%</p>
+                            <div class="welcome-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">892</div>
+                                    <div class="stat-label">已完成</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">355</div>
+                                    <div class="stat-label">进行中</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">4.3</div>
+                                    <div class="stat-label">平均分</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 指标卡片容器 -->
+                <div id="metrics-container"></div>
+                
+                <!-- 图表区域 -->
+                <div class="charts-section">
+                    <div class="charts-grid">
+                        <!-- 考核进度图表 -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">本周考核完成情况</h3>
+                                <select class="select">
+                                    <option>最近7天</option>
+                                    <option>最近30天</option>
+                                    <option>最近90天</option>
+                                </select>
+                            </div>
+                            <div class="chart-content">
+                                <div class="bar-chart">
+                                    <div class="bar-item">
+                                        <div class="bar" style="height: 60%"></div>
+                                        <span class="bar-label">周一</span>
+                                        <span class="bar-value">45</span>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="bar" style="height: 80%"></div>
+                                        <span class="bar-label">周二</span>
+                                        <span class="bar-value">62</span>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="bar" style="height: 45%"></div>
+                                        <span class="bar-label">周三</span>
+                                        <span class="bar-value">38</span>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="bar" style="height: 90%"></div>
+                                        <span class="bar-label">周四</span>
+                                        <span class="bar-value">71</span>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="bar" style="height: 70%"></div>
+                                        <span class="bar-label">周五</span>
+                                        <span class="bar-value">56</span>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="bar inactive" style="height: 35%"></div>
+                                        <span class="bar-label">周六</span>
+                                        <span class="bar-value">28</span>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="bar inactive" style="height: 25%"></div>
+                                        <span class="bar-label">周日</span>
+                                        <span class="bar-value">20</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 快速统计 -->
+                        <div class="quick-stats-card">
+                            <h3 class="card-title">快速统计</h3>
+                            <div class="quick-stats">
+                                <div class="quick-stat-item">
+                                    <span class="stat-label">优秀员工</span>
+                                    <span class="stat-value">156</span>
+                                </div>
+                                <div class="quick-stat-item">
+                                    <span class="stat-label">待审核</span>
+                                    <span class="stat-value">23</span>
+                                </div>
+                                <div class="quick-stat-item">
+                                    <span class="stat-label">逾期任务</span>
+                                    <span class="stat-value">8</span>
+                                </div>
+                                <div class="quick-stat-item">
+                                    <span class="stat-label">本月新增</span>
+                                    <span class="stat-value">42</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">查看详细报告</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 活动和操作区域 -->
+                <div class="bottom-section">
+                    <div class="bottom-grid">
+                        <!-- 最近活动 -->
+                        <div class="activity-card">
+                            <div class="card-header">
+                                <h3 class="card-title">最近活动</h3>
+                                <button class="btn-link">查看全部</button>
+                            </div>
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon success">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p class="activity-text"><strong>张三</strong> 完成了对 <strong>李四</strong> 的绩效评价</p>
+                                        <p class="activity-meta">技术部 • 2分钟前</p>
+                                    </div>
+                                    <span class="badge badge-success">已完成</span>
+                                </div>
+                                
+                                <div class="activity-item">
+                                    <div class="activity-icon info">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p class="activity-text">系统自动生成了 <strong>Q4季度考核</strong> 的评价任务</p>
+                                        <p class="activity-meta">系统 • 15分钟前</p>
+                                    </div>
+                                    <span class="badge badge-info">新任务</span>
+                                </div>
+                                
+                                <div class="activity-item">
+                                    <div class="activity-icon warning">
+                                        <i class="fas fa-exclamation"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p class="activity-text"><strong>王五</strong> 的考核任务即将到期</p>
+                                        <p class="activity-meta">销售部 • 1小时前</p>
+                                    </div>
+                                    <span class="badge badge-warning">待处理</span>
+                                </div>
+                                
+                                <div class="activity-item">
+                                    <div class="activity-icon success">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p class="activity-text"><strong>赵六</strong> 获得了本月最高评分</p>
+                                        <p class="activity-meta">市场部 • 2小时前</p>
+                                    </div>
+                                    <span class="badge badge-success">优秀</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 快速操作 -->
+                        <div class="quick-actions-card">
+                            <h3 class="card-title">快速操作</h3>
+                            <div class="quick-actions">
+                                <button class="quick-action-btn primary">
+                                    <div class="action-icon">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <p class="action-title">创建考核周期</p>
+                                        <p class="action-subtitle">设置新的考核周期</p>
+                                    </div>
+                                </button>
+                                
+                                <button class="quick-action-btn success">
+                                    <div class="action-icon">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <p class="action-title">分配任务</p>
+                                        <p class="action-subtitle">手动分配考核任务</p>
+                                    </div>
+                                </button>
+                                
+                                <button class="quick-action-btn warning">
+                                    <div class="action-icon">
+                                        <i class="fas fa-download"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <p class="action-title">导出报告</p>
+                                        <p class="action-subtitle">生成考核结果报告</p>
+                                    </div>
+                                </button>
+                                
+                                <button class="quick-action-btn info">
+                                    <div class="action-icon">
+                                        <i class="fas fa-cog"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <p class="action-title">系统设置</p>
+                                        <p class="action-subtitle">配置考核规则</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- 引入组件 -->
+    <script src="../components/sidebar.js"></script>
+    <script src="../components/header.js"></script>
+    <script src="../components/metrics.js"></script>
+    
+    <!-- 页面样式 -->
+    <style>
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--gray-50);
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        /* 欢迎区域 */
+        .welcome-section {
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: -2rem;
+            right: -2rem;
+            width: 16rem;
+            height: 16rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .welcome-card::after {
+            content: '';
+            position: absolute;
+            bottom: -1.5rem;
+            left: -1.5rem;
+            width: 12rem;
+            height: 12rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+        
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-subtitle {
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+        
+        .welcome-stats {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        /* 图表区域 */
+        .charts-section {
+            margin-bottom: 2rem;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .chart-card, .quick-stats-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-title, .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            height: 16rem;
+            gap: 0.5rem;
+        }
+        
+        .bar-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .bar {
+            width: 100%;
+            background-color: var(--primary);
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            min-height: 20px;
+        }
+        
+        .bar:hover {
+            background-color: var(--primary-dark);
+            transform: scaleY(1.05);
+        }
+        
+        .bar.inactive {
+            background-color: var(--gray-300);
+        }
+        
+        .bar-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+        
+        .bar-value {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        
+        /* 快速统计 */
+        .quick-stats-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .quick-stats-card .card-title {
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .quick-stats {
+            margin-bottom: 1.5rem;
+        }
+        
+        .quick-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .quick-stat-item .stat-label {
+            opacity: 0.9;
+        }
+        
+        .quick-stat-item .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        /* 底部区域 */
+        .bottom-section {
+            margin-bottom: 2rem;
+        }
+        
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .activity-card, .quick-actions-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* 活动列表 */
+        .activity-list {
+            max-height: 25rem;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: var(--radius);
+            transition: background-color 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background-color: var(--gray-50);
+        }
+        
+        .activity-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.success {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+        
+        .activity-icon.info {
+            background-color: var(--info-light);
+            color: var(--info);
+        }
+        
+        .activity-icon.warning {
+            background-color: var(--warning-light);
+            color: var(--warning);
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-text {
+            font-size: 0.875rem;
+            color: var(--gray-900);
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .activity-meta {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+        
+        /* 快速操作 */
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .quick-action-btn.primary:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-50);
+        }
+        
+        .quick-action-btn.success:hover {
+            border-color: var(--success);
+            background-color: var(--success-light);
+        }
+        
+        .quick-action-btn.warning:hover {
+            border-color: var(--warning);
+            background-color: var(--warning-light);
+        }
+        
+        .quick-action-btn.info:hover {
+            border-color: var(--info);
+            background-color: var(--info-light);
+        }
+        
+        .action-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .quick-action-btn.primary .action-icon {
+            background-color: var(--primary-100);
+            color: var(--primary);
+        }
+        
+        .quick-action-btn.success .action-icon {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+        
+        .quick-action-btn.warning .action-icon {
+            background-color: var(--warning-light);
+            color: var(--warning);
+        }
+        
+        .quick-action-btn.info .action-icon {
+            background-color: var(--info-light);
+            color: var(--info);
+        }
+        
+        .action-content {
+            flex: 1;
+        }
+        
+        .action-title {
+            font-weight: 500;
+            color: var(--gray-900);
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .action-subtitle {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .charts-grid, .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .welcome-stats {
+                gap: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-content {
+                padding: 1rem;
+            }
+            
+            .welcome-card {
+                padding: 1.5rem;
+            }
+            
+            .welcome-title {
+                font-size: 1.25rem;
+            }
+            
+            .welcome-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .bar-chart {
+                height: 12rem;
+            }
+        }
+    </style>
+    
+    <!-- 页面脚本 -->
+    <script>
+        // 初始化侧边栏
+        document.head.insertAdjacentHTML('beforeend', sidebarStyles);
+        const sidebar = new Sidebar({
+            onMenuClick: (menuId) => {
+                console.log('菜单点击:', menuId);
+                // 这里可以添加路由逻辑
+            }
+        });
+        sidebar.mount('#sidebar-container');
+        
+        // 初始化页面头部
+        document.head.insertAdjacentHTML('beforeend', headerStyles);
+        const header = new PageHeader({
+            title: '欢迎回来，管理员',
+            subtitle: '今天是 2024年9月30日，让我们查看最新的考核数据',
+            notifications: 3,
+            actions: [
+                {
+                    id: 'new-evaluation',
+                    label: '新建考核',
+                    icon: 'fas fa-plus',
+                    type: 'btn-primary'
+                }
+            ]
+        });
+        header.mount('#header-container');
+        
+        // 初始化指标卡片
+        document.head.insertAdjacentHTML('beforeend', metricsStyles);
+        const metricsGrid = new MetricsGrid({
+            columns: 4,
+            metrics: [
+                {
+                    title: '参与员工总数',
+                    value: '1,247',
+                    icon: 'fas fa-users',
+                    iconColor: 'primary',
+                    emoji: '👥',
+                    trend: { value: '+12%', direction: 'up', label: '较上月' }
+                },
+                {
+                    title: '已完成考核',
+                    value: '892',
+                    icon: 'fas fa-check-circle',
+                    iconColor: 'success',
+                    emoji: '✅',
+                    progress: { value: 71.5, label: '完成率' }
+                },
+                {
+                    title: '待处理任务',
+                    value: '355',
+                    icon: 'fas fa-clock',
+                    iconColor: 'warning',
+                    emoji: '⏳',
+                    trend: { value: '需要关注', direction: 'neutral' }
+                },
+                {
+                    title: '平均评分',
+                    value: '4.3',
+                    icon: 'fas fa-star',
+                    iconColor: 'info',
+                    emoji: '⭐',
+                    trend: { value: '+0.2', direction: 'up', label: '较上期' }
+                }
+            ]
+        });
+        metricsGrid.mount('#metrics-container');
+        
+        // 监听头部操作事件
+        document.addEventListener('headerAction', (event) => {
+            const { action } = event.detail;
+            console.log('头部操作:', action);
+            
+            if (action === 'new-evaluation') {
+                alert('创建新考核');
+            }
+        });
+        
+        // 模拟数据更新
+        setInterval(() => {
+            // 更新通知数量
+            const newNotifications = Math.floor(Math.random() * 10);
+            header.updateNotifications(newNotifications);
+            
+            // 更新指标数据
+            const randomMetric = Math.floor(Math.random() * 4);
+            const newValue = Math.floor(Math.random() * 1000) + 500;
+            metricsGrid.updateMetric(randomMetric, { value: newValue.toLocaleString() });
+        }, 10000);
+    </script>
+</body>
+</html>

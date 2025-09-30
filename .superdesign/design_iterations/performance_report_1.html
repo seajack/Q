@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考核报告详情 - 绩效考核系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif !important; background: #f8fafc !important; }
+        .card { background: white !important; border-radius: 12px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; border: 1px solid #e2e8f0 !important; }
+        .btn-primary { background: #2563eb !important; color: white !important; transition: all 0.2s ease !important; }
+        .btn-primary:hover { background: #1d4ed8 !important; }
+        .score-excellent { color: #10b981; background: #dcfce7; }
+        .score-good { color: #3b82f6; background: #dbeafe; }
+        .score-average { color: #f59e0b; background: #fef3c7; }
+        .score-poor { color: #ef4444; background: #fee2e2; }
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring-circle { transition: stroke-dasharray 0.35s; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- 顶部导航 -->
+    <header class="bg-white border-b border-gray-200 p-6 no-print">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center">
+                <button onclick="history.back()" class="mr-4 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">考核报告详情</h1>
+                    <p class="text-gray-600 mt-1">张工程师 - 2024年Q4季度考核</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-share-alt mr-2"></i>分享
+                </button>
+                <button onclick="window.print()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-print mr-2"></i>打印
+                </button>
+                <button class="btn-primary px-4 py-2 rounded-lg">
+                    <i class="fas fa-download mr-2"></i>导出PDF
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="max-w-6xl mx-auto p-6">
+        <!-- 员工基本信息 -->
+        <div class="card p-6 mb-6">
+            <div class="flex items-start justify-between">
+                <div class="flex items-center">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mr-6">
+                        <i class="fas fa-user text-blue-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">张工程师</h2>
+                        <p class="text-gray-600 mt-1">技术部 • 高级工程师 • 员工编号: EMP001</p>
+                        <div class="flex items-center mt-3 space-x-6">
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-calendar mr-1"></i>
+                                入职时间: 2020-03-15
+                            </span>
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-briefcase mr-1"></i>
+                                工作年限: 4年
+                            </span>
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-award mr-1"></i>
+                                职级权重: 1.2x
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500 mb-1">考核周期</div>
+                    <div class="text-lg font-bold text-gray-900">2024年Q4</div>
+                    <div class="text-sm text-gray-500 mt-1">2024-10-01 至 2024-12-31</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 总体评分 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 card p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">总体评分</h3>
+                <div class="flex items-center justify-center">
+                    <div class="relative w-48 h-48">
+                        <svg class="w-48 h-48 progress-ring">
+                            <circle cx="96" cy="96" r="88" stroke="#e5e7eb" stroke-width="8" fill="transparent"></circle>
+                            <circle cx="96" cy="96" r="88" stroke="#10b981" stroke-width="8" fill="transparent" 
+                                    stroke-dasharray="553" stroke-dashoffset="110" class="progress-ring-circle"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center flex-col">
+                            <div class="text-4xl font-bold text-gray-900">4.6</div>
+                            <div class="text-sm text-gray-600">总分 5.0</div>
+                            <div class="text-xs text-green-600 mt-1">优秀</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <div class="text-sm text-gray-600 mb-2">加权后得分</div>
+                    <div class="text-2xl font-bold text-green-600">5.52</div>
+                    <div class="text-xs text-gray-500 mt-1">职级权重: 1.2x</div>
+                </div>
+            </div>
+            
+            <div class="card p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">评分等级</h3>
+                <div class="space-y-4">
+                    <div class="score-excellent px-4 py-3 rounded-lg text-center">
+                        <div class="font-bold">优秀</div>
+                        <div class="text-sm">4.5 - 5.0</div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div class="flex justify-between mb-2">
+                            <span>本次得分:</span>
+                            <span class="font-medium">4.6</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>部门排名:</span>
+                            <span class="font-medium">2/156</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>全公司排名:</span>
+                            <span class="font-medium">8/1247</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>超越比例:</span>
+                            <span class="font-medium text-green-600">99.4%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 各维度评分 -->
+        <div class="card p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">各维度评分详情</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-24 h-24 mx-auto mb-4">
+                        <canvas id="performanceChart" width="96" height="96"></canvas>
+                    </div>
+                    <h4 class="font-medium text-gray-900">工作业绩</h4>
+                    <div class="text-2xl font-bold text-green-600 mt-1">4.8</div>
+                    <div class="text-sm text-gray-600">权重 40%</div>
+                    <div class="text-xs text-green-600 mt-1">优秀</div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-24 h-24 mx-auto mb-4">
+                        <canvas id="abilityChart" width="96" height="96"></canvas>
+                    </div>
+                    <h4 class="font-medium text-gray-900">工作能力</h4>
+                    <div class="text-2xl font-bold text-blue-600 mt-1">4.5</div>
+                    <div class="text-sm text-gray-600">权重 30%</div>
+                    <div class="text-xs text-blue-600 mt-1">优秀</div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-24 h-24 mx-auto mb-4">
+                        <canvas id="attitudeChart" width="96" height="96"></canvas>
+                    </div>
+                    <h4 class="font-medium text-gray-900">工作态度</h4>
+                    <div class="text-2xl font-bold text-blue-600 mt-1">4.4</div>
+                    <div class="text-sm text-gray-600">权重 20%</div>
+                    <div class="text-xs text-blue-600 mt-1">良好</div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-24 h-24 mx-auto mb-4">
+                        <canvas id="teamworkChart" width="96" height="96"></canvas>
+                    </div>
+                    <h4 class="font-medium text-gray-900">团队协作</h4>
+                    <div class="text-2xl font-bold text-green-600 mt-1">4.7</div>
+                    <div class="text-sm text-gray-600">权重 10%</div>
+                    <div class="text-xs text-green-600 mt-1">优秀</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评价详情 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="card p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">评价人反馈</h3>
+                <div class="space-y-4">
+                    <div class="border-l-4 border-blue-500 pl-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-900">李经理 (直属上级)</span>
+                            <span class="text-sm text-gray-500">2024-09-28</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">
+                            张工程师在本季度表现优异，技术能力突出，能够独立解决复杂问题。在团队协作方面表现积极，经常主动帮助同事。建议在项目管理方面进一步提升。
+                        </p>
+                        <div class="mt-2 text-sm text-blue-600">评分: 4.7</div>
+                    </div>
+                    
+                    <div class="border-l-4 border-green-500 pl-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-900">王总监 (上级领导)</span>
+                            <span class="text-sm text-gray-500">2024-09-25</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">
+                            技术实力强，工作态度认真负责。在关键项目中发挥了重要作用，代码质量高，文档规范。希望能在技术分享和团队建设方面发挥更大作用。
+                        </p>
+                        <div class="mt-2 text-sm text-green-600">评分: 4.8</div>
+                    </div>
+                    
+                    <div class="border-l-4 border-purple-500 pl-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-900">赵同事 (同级评价)</span>
+                            <span class="text-sm text-gray-500">2024-09-20</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">
+                            合作愉快，技术水平高，乐于助人。在项目协作中沟通顺畅，能够及时响应需求。是值得信赖的团队成员。
+                        </p>
+                        <div class="mt-2 text-sm text-purple-600">评分: 4.5</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">改进建议</h3>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-blue-900 mb-2">
+                            <i class="fas fa-lightbulb mr-2"></i>发展建议
+                        </h4>
+                        <ul class="text-sm text-blue-800 space-y-1">
+                            <li>• 加强项目管理技能培训</li>
+                            <li>• 参与跨部门协作项目</li>
+                            <li>• 提升技术分享和培训能力</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-green-900 mb-2">
+                            <i class="fas fa-star mr-2"></i>优势保持
+                        </h4>
+                        <ul class="text-sm text-green-800 space-y-1">
+                            <li>• 继续保持高质量的代码标准</li>
+                            <li>• 发挥技术专长，承担更多挑战</li>
+                            <li>• 保持积极的团队协作态度</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-yellow-900 mb-2">
+                            <i class="fas fa-target mr-2"></i>下期目标
+                        </h4>
+                        <ul class="text-sm text-yellow-800 space-y-1">
+                            <li>• 主导至少一个重要技术项目</li>
+                            <li>• 完成项目管理相关培训</li>
+                            <li>• 指导1-2名初级工程师</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 历史趋势 -->
+        <div class="card p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">历史评分趋势</h3>
+            <div class="h-64">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- 签名确认 -->
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">签名确认</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-3">
+                        <i class="fas fa-signature text-gray-400 text-2xl mb-2"></i>
+                        <div class="text-sm text-gray-600">被评价人签名</div>
+                    </div>
+                    <div class="text-sm text-gray-900 font-medium">张工程师</div>
+                    <div class="text-xs text-gray-500">2024-09-30</div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-3">
+                        <i class="fas fa-signature text-gray-400 text-2xl mb-2"></i>
+                        <div class="text-sm text-gray-600">直属上级签名</div>
+                    </div>
+                    <div class="text-sm text-gray-900 font-medium">李经理</div>
+                    <div class="text-xs text-gray-500">2024-09-28</div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-3">
+                        <i class="fas fa-signature text-gray-400 text-2xl mb-2"></i>
+                        <div class="text-sm text-gray-600">HR确认签名</div>
+                    </div>
+                    <div class="text-sm text-gray-900 font-medium">人事部</div>
+                    <div class="text-xs text-gray-500">2024-09-30</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 创建小型圆环图
+        function createMiniChart(canvasId, score, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const percentage = (score / 5) * 100;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [percentage, 100 - percentage],
+                        backgroundColor: [color, '#e5e7eb'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+        }
+        
+        // 创建各维度图表
+        createMiniChart('performanceChart', 4.8, '#10b981');
+        createMiniChart('abilityChart', 4.5, '#3b82f6');
+        createMiniChart('attitudeChart', 4.4, '#3b82f6');
+        createMiniChart('teamworkChart', 4.7, '#10b981');
+        
+        // 历史趋势图
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['2023 Q1', '2023 Q2', '2023 Q3', '2023 Q4', '2024 Q1', '2024 Q2', '2024 Q3', '2024 Q4'],
+                datasets: [{
+                    label: '总体评分',
+                    data: [4.1, 4.2, 4.3, 4.4, 4.3, 4.5, 4.4, 4.6],
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 3.5,
+                        max: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

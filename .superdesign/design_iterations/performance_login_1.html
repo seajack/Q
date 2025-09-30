@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 绩效考核系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif !important; }
+        .login-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .login-card { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.95); }
+        .btn-primary { background: #2563eb !important; transition: all 0.3s ease !important; }
+        .btn-primary:hover { background: #1d4ed8 !important; transform: translateY(-2px) !important; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3) !important; }
+        .input-field { transition: all 0.3s ease !important; }
+        .input-field:focus { transform: translateY(-2px) !important; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15) !important; }
+        .floating-shape { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        .logo-glow { box-shadow: 0 0 30px rgba(37, 99, 235, 0.3); }
+    </style>
+</head>
+<body class="min-h-screen login-bg flex items-center justify-center p-4">
+    <!-- 背景装饰 -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="floating-shape absolute top-20 left-20 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="floating-shape absolute top-40 right-32 w-24 h-24 bg-white opacity-5 rounded-full" style="animation-delay: -2s;"></div>
+        <div class="floating-shape absolute bottom-32 left-1/4 w-40 h-40 bg-white opacity-5 rounded-full" style="animation-delay: -4s;"></div>
+        <div class="floating-shape absolute bottom-20 right-20 w-28 h-28 bg-white opacity-10 rounded-full" style="animation-delay: -1s;"></div>
+    </div>
+    
+    <div class="w-full max-w-md relative z-10">
+        <!-- 登录卡片 -->
+        <div class="login-card rounded-2xl shadow-2xl p-8 border border-white/20">
+            <!-- Logo和标题 -->
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 logo-glow">
+                    <i class="fas fa-chart-line text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">绩效考核系统</h1>
+                <p class="text-gray-600">Performance Management System</p>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               class="input-field w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="请输入用户名"
+                               required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" 
+                               class="input-field w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="请输入密码"
+                               required>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button" class="text-gray-400 hover:text-gray-600" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="password-toggle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-700">记住我</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800">忘记密码？</a>
+                </div>
+                
+                <button type="submit" class="btn-primary w-full py-3 px-4 rounded-lg text-white font-medium">
+                    <i class="fas fa-sign-in-alt mr-2"></i>登录
+                </button>
+            </form>
+            
+            <!-- 其他登录方式 -->
+            <div class="mt-8">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">或者使用</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 grid grid-cols-2 gap-3">
+                    <button class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-qrcode text-lg"></i>
+                        <span class="ml-2">扫码登录</span>
+                    </button>
+                    <button class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-mobile-alt text-lg"></i>
+                        <span class="ml-2">短信登录</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 版权信息 -->
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-500">
+                    © 2024 中煤内蒙古能源有限公司. 保留所有权利.
+                </p>
+            </div>
+        </div>
+        
+        <!-- 系统信息 -->
+        <div class="mt-6 text-center text-white/80">
+            <p class="text-sm">系统版本: v1.0.0 | 最后更新: 2024-09-30</p>
+            <p class="text-xs mt-2">建议使用Chrome、Firefox或Edge浏览器</p>
+        </div>
+    </div>
+    
+    <script>
+        function togglePassword() {
+            const passwordInput = document.querySelector('input[type="password"]');
+            const toggleIcon = document.getElementById('password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+        
+        // 表单提交处理
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 模拟登录过程
+            const button = document.querySelector('.btn-primary');
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>登录中...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                alert('登录成功！即将跳转到系统首页...');
+                // 这里可以跳转到仪表板页面
+                // window.location.href = 'performance_dashboard_light.html';
+            }, 2000);
+        });
+        
+        // 输入框焦点效果
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('scale-105');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('scale-105');
+            });
+        });
+    </script>
+</body>
+</html>

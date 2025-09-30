@@ -6,7 +6,7 @@
         <h3>选择报表模板</h3>
         <div class="template-actions">
           <el-button type="success" @click="showCustomBuilder = true" class="action-btn">
-            <el-icon><Edit /></el-icon>
+            <el-icon><component :is="Icons.Edit" /></el-icon>
             自定义报表
           </el-button>
           <ReportExporter />
@@ -97,7 +97,7 @@
               <div class="preview-chart-card">
                 <h4>评分分布分析</h4>
                 <div class="chart-placeholder">
-                  <el-icon :size="48" color="#409eff"><PieChart /></el-icon>
+                  <el-icon :size="48" color="#409eff"><component :is="Icons.PieChart" /></el-icon>
                   <p>评分分布饼图</p>
                 </div>
               </div>
@@ -105,7 +105,7 @@
               <div class="preview-chart-card">
                 <h4>部门绩效对比</h4>
                 <div class="chart-placeholder">
-                  <el-icon :size="48" color="#67c23a"><Histogram /></el-icon>
+                  <el-icon :size="48" color="#67c23a"><component :is="Icons.Histogram" /></el-icon>
                   <p>部门对比柱状图</p>
                 </div>
               </div>
@@ -117,7 +117,7 @@
             <div class="preview-chart-large">
               <h4>绩效完成趋势</h4>
               <div class="chart-placeholder large">
-                <el-icon :size="64" color="#e6a23c"><TrendCharts /></el-icon>
+                <el-icon :size="64" color="#e6a23c"><component :is="Icons.TrendCharts" /></el-icon>
                 <p>趋势分析折线图</p>
               </div>
             </div>
@@ -156,7 +156,7 @@
               <div class="radar-chart">
                 <h4>360度评估雷达图</h4>
                 <div class="chart-placeholder">
-                  <el-icon :size="48" color="#f56c6c"><Radar /></el-icon>
+                  <el-icon :size="48" color="#f56c6c"><component :is="Icons.DataAnalysis" /></el-icon>
                   <p>多维度评估雷达图</p>
                 </div>
               </div>
@@ -179,7 +179,7 @@
               <div class="comparison-chart">
                 <h4>同期对比分析</h4>
                 <div class="chart-placeholder">
-                  <el-icon :size="48" color="#909399"><DataAnalysis /></el-icon>
+                  <el-icon :size="48" color="#909399"><component :is="Icons.DataAnalysis" /></el-icon>
                   <p>同期对比柱状图</p>
                 </div>
               </div>
@@ -187,7 +187,7 @@
               <div class="comparison-chart">
                 <h4>目标达成率</h4>
                 <div class="chart-placeholder">
-                  <el-icon :size="48" color="#67c23a"><PieChart /></el-icon>
+                  <el-icon :size="48" color="#67c23a"><component :is="Icons.PieChart" /></el-icon>
                   <p>目标达成饼图</p>
                 </div>
               </div>
@@ -262,7 +262,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, markRaw } from 'vue'
 import { 
   DataAnalysis, 
   PieChart, 
@@ -271,6 +271,16 @@ import {
   Histogram,
   Edit
 } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  DataAnalysis,
+  PieChart,
+  TrendCharts,
+  Document,
+  Histogram,
+  Edit
+})
 import { ElMessage } from 'element-plus'
 import ReportExporter from './ReportExporter.vue'
 
@@ -295,7 +305,7 @@ const reportTemplates = ref([
     id: 'overview',
     name: '概览报表',
     description: '包含KPI指标、完成率、平均评分等核心指标的概览报表',
-    icon: DataAnalysis,
+    icon: Icons.DataAnalysis,
     color: '#409eff',
     tags: ['KPI', '概览', '核心指标'],
     components: ['kpi', 'charts'],
@@ -306,7 +316,7 @@ const reportTemplates = ref([
     id: 'performance',
     name: '绩效分析报表',
     description: '详细的绩效分析，包含评分分布、部门对比等深度分析',
-    icon: PieChart,
+    icon: Icons.PieChart,
     color: '#67c23a',
     tags: ['绩效', '分析', '分布'],
     components: ['charts', 'tables'],
@@ -317,7 +327,7 @@ const reportTemplates = ref([
     id: 'trend',
     name: '趋势分析报表',
     description: '展示绩效完成趋势、月度对比等时间序列分析',
-    icon: TrendCharts,
+    icon: Icons.TrendCharts,
     color: '#e6a23c',
     tags: ['趋势', '时间序列', '对比'],
     components: ['trends', 'charts'],
@@ -328,7 +338,7 @@ const reportTemplates = ref([
     id: 'detailed',
     name: '详细数据报表',
     description: '包含所有详细数据的表格形式报表，支持筛选和排序',
-    icon: Document,
+    icon: Icons.Document,
     color: '#909399',
     tags: ['详细', '数据', '表格'],
     components: ['tables'],
@@ -339,7 +349,7 @@ const reportTemplates = ref([
     id: '360',
     name: '360度评估报表',
     description: '多维度评估分析，包含雷达图、评估矩阵等',
-    icon: DataAnalysis,
+    icon: Icons.DataAnalysis,
     color: '#f56c6c',
     tags: ['360度', '多维度', '评估'],
     components: ['charts', 'tables'],
@@ -350,7 +360,7 @@ const reportTemplates = ref([
     id: 'comparison',
     name: '对比分析报表',
     description: '同期对比、目标达成率等对比分析报表',
-    icon: Histogram,
+    icon: Icons.Histogram,
     color: '#8b5cf6',
     tags: ['对比', '同期', '目标'],
     components: ['comparison', 'charts'],
@@ -410,7 +420,7 @@ const saveCustomTemplate = () => {
     id: `custom_${Date.now()}`,
     name: customizeForm.name,
     description: customizeForm.description,
-    icon: DataAnalysis,
+    icon: Icons.DataAnalysis,
     color: '#8b5cf6',
     tags: ['自定义'],
     components: customizeForm.components,

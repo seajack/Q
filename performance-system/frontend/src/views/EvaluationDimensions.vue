@@ -4,7 +4,7 @@
       <h1>评估维度管理</h1>
       <div class="header-actions">
         <el-button type="primary" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
+          <el-icon><component :is="Icons.Plus" /></el-icon>
           新建维度
         </el-button>
       </div>
@@ -188,9 +188,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, markRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Plus
+})
 import { formatDateTime } from '@/utils/dateUtils'
 import { multidimensionalApi } from '@/utils/api'
 

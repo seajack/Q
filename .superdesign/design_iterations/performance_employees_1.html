@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工管理 - 绩效考核系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif !important; background: #f8fafc !important; }
+        .card { background: white !important; border-radius: 12px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; border: 1px solid #e2e8f0 !important; }
+        .btn-primary { background: #2563eb !important; color: white !important; transition: all 0.2s ease !important; }
+        .btn-primary:hover { background: #1d4ed8 !important; }
+        .employee-row:hover { background: #f8fafc !important; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #fee2e2; color: #dc2626; }
+        .level-high { background: #fef3c7; color: #92400e; }
+        .level-medium { background: #dbeafe; color: #1e40af; }
+        .level-low { background: #f3e8ff; color: #7c3aed; }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏 -->
+        <div class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-chart-line text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">绩效考核系统</h1>
+                    <p class="text-sm text-gray-500">Performance System</p>
+                </div>
+            </div>
+            
+            <nav class="flex-1">
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-tachometer-alt mr-3"></i><span>仪表板</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-calendar-alt mr-3"></i><span>考核周期</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-tasks mr-3"></i><span>考核任务</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-star mr-3"></i><span>评分管理</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-chart-bar mr-3"></i><span>结果统计</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer bg-blue-50 text-blue-700 rounded-lg mb-1">
+                    <i class="fas fa-users mr-3"></i><span>员工管理</span>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航 -->
+            <header class="bg-white border-b border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">员工管理</h2>
+                        <p class="text-gray-600 mt-1">管理员工信息和考核权限</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" placeholder="搜索员工..." class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64">
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <option>全部部门</option>
+                                <option>技术部</option>
+                                <option>销售部</option>
+                                <option>市场部</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <option>全部职级</option>
+                                <option>高层</option>
+                                <option>中层</option>
+                                <option>基层</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary px-4 py-2 rounded-lg">
+                            <i class="fas fa-plus mr-2"></i>添加员工
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 统计卡片 -->
+            <div class="p-6 bg-gray-50">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-gray-900">1,247</div>
+                        <div class="text-sm text-gray-600">总员工数</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">1,198</div>
+                        <div class="text-sm text-gray-600">在职员工</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">156</div>
+                        <div class="text-sm text-gray-600">管理人员</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-600">8</div>
+                        <div class="text-sm text-gray-600">部门数量</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 员工列表 -->
+            <main class="flex-1 overflow-auto p-6 bg-gray-50">
+                <div class="card">
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">员工信息</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">部门</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">职位</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">职级</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">权重</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">状态</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">最近考核</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="employee-row border-b border-gray-100 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-blue-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">张工程师</div>
+                                                    <div class="text-sm text-gray-600">zhang@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-900">技术部</td>
+                                        <td class="py-4 px-4 text-gray-900">高级工程师</td>
+                                        <td class="py-4 px-4">
+                                            <span class="level-medium px-2 py-1 rounded-full text-xs font-medium">中层正职</span>
+                                        </td>
+                                        <td class="py-4 px-4 font-medium text-gray-900">1.2</td>
+                                        <td class="py-4 px-4">
+                                            <span class="status-active px-2 py-1 rounded-full text-xs font-medium">在职</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-600">2024-09-28</td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                                                <button class="text-green-600 hover:text-green-800 text-sm">考核</button>
+                                                <button class="text-gray-600 hover:text-gray-800 text-sm">详情</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr class="employee-row border-b border-gray-100 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-green-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">李经理</div>
+                                                    <div class="text-sm text-gray-600">li@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-900">销售部</td>
+                                        <td class="py-4 px-4 text-gray-900">销售经理</td>
+                                        <td class="py-4 px-4">
+                                            <span class="level-high px-2 py-1 rounded-full text-xs font-medium">高层副职</span>
+                                        </td>
+                                        <td class="py-4 px-4 font-medium text-gray-900">1.6</td>
+                                        <td class="py-4 px-4">
+                                            <span class="status-active px-2 py-1 rounded-full text-xs font-medium">在职</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-600">2024-09-25</td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                                                <button class="text-green-600 hover:text-green-800 text-sm">考核</button>
+                                                <button class="text-gray-600 hover:text-gray-800 text-sm">详情</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr class="employee-row border-b border-gray-100 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-purple-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">王主管</div>
+                                                    <div class="text-sm text-gray-600">wang@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-900">市场部</td>
+                                        <td class="py-4 px-4 text-gray-900">市场主管</td>
+                                        <td class="py-4 px-4">
+                                            <span class="level-low px-2 py-1 rounded-full text-xs font-medium">基层正职</span>
+                                        </td>
+                                        <td class="py-4 px-4 font-medium text-gray-900">1.0</td>
+                                        <td class="py-4 px-4">
+                                            <span class="status-active px-2 py-1 rounded-full text-xs font-medium">在职</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-600">2024-09-20</td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                                                <button class="text-green-600 hover:text-green-800 text-sm">考核</button>
+                                                <button class="text-gray-600 hover:text-gray-800 text-sm">详情</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr class="employee-row border-b border-gray-100 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-yellow-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">赵专员</div>
+                                                    <div class="text-sm text-gray-600">zhao@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-900">人事部</td>
+                                        <td class="py-4 px-4 text-gray-900">人事专员</td>
+                                        <td class="py-4 px-4">
+                                            <span class="level-low px-2 py-1 rounded-full text-xs font-medium">普通员工</span>
+                                        </td>
+                                        <td class="py-4 px-4 font-medium text-gray-900">0.9</td>
+                                        <td class="py-4 px-4">
+                                            <span class="status-active px-2 py-1 rounded-full text-xs font-medium">在职</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-600">2024-09-15</td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                                                <button class="text-green-600 hover:text-green-800 text-sm">考核</button>
+                                                <button class="text-gray-600 hover:text-gray-800 text-sm">详情</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr class="employee-row border-b border-gray-100 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-red-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">孙会计</div>
+                                                    <div class="text-sm text-gray-600">sun@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-900">财务部</td>
+                                        <td class="py-4 px-4 text-gray-900">会计</td>
+                                        <td class="py-4 px-4">
+                                            <span class="level-low px-2 py-1 rounded-full text-xs font-medium">普通员工</span>
+                                        </td>
+                                        <td class="py-4 px-4 font-medium text-gray-900">0.9</td>
+                                        <td class="py-4 px-4">
+                                            <span class="status-inactive px-2 py-1 rounded-full text-xs font-medium">离职</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-600">2024-08-30</td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                                                <button class="text-gray-400 text-sm cursor-not-allowed">考核</button>
+                                                <button class="text-gray-600 hover:text-gray-800 text-sm">详情</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr class="employee-row border-b border-gray-100 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-indigo-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">周总监</div>
+                                                    <div class="text-sm text-gray-600">zhou@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-900">研发部</td>
+                                        <td class="py-4 px-4 text-gray-900">技术总监</td>
+                                        <td class="py-4 px-4">
+                                            <span class="level-high px-2 py-1 rounded-full text-xs font-medium">高层正职</span>
+                                        </td>
+                                        <td class="py-4 px-4 font-medium text-gray-900">1.8</td>
+                                        <td class="py-4 px-4">
+                                            <span class="status-active px-2 py-1 rounded-full text-xs font-medium">在职</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-600">2024-09-30</td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                                                <button class="text-green-600 hover:text-green-800 text-sm">考核</button>
+                                                <button class="text-gray-600 hover:text-gray-800 text-sm">详情</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页 -->
+                        <div class="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+                            <div class="text-sm text-gray-600">
+                                显示 1-6 条，共 1,247 条记录
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">上一页</button>
+                                <button class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">1</button>
+                                <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">2</button>
+                                <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">3</button>
+                                <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

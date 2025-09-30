@@ -17,7 +17,7 @@
     >
       <!-- 拖拽手柄 -->
       <div v-if="showHandle" class="drag-handle">
-        <el-icon><Rank /></el-icon>
+        <el-icon><component :is="Icons.Rank" /></el-icon>
       </div>
       
       <!-- 内容插槽 -->
@@ -51,8 +51,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, markRaw } from 'vue'
 import { Rank } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Rank
+})
 import { ElMessage } from 'element-plus'
 
 // Props

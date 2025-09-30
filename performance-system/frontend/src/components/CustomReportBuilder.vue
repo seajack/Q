@@ -83,7 +83,7 @@
           @dragenter="onDragEnter"
         >
           <div v-if="reportComponents.length === 0" class="empty-canvas">
-            <el-icon :size="48" color="#c0c4cc"><DocumentAdd /></el-icon>
+            <el-icon :size="48" color="#c0c4cc"><component :is="Icons.DocumentAdd" /></el-icon>
             <p>拖拽组件到这里开始构建报表</p>
           </div>
           
@@ -98,13 +98,13 @@
               <span class="component-title">{{ component.name }}</span>
               <div class="component-actions">
                 <el-button size="small" type="text" @click="configureComponent(component)">
-                  <el-icon><Setting /></el-icon>
+                  <el-icon><component :is="Icons.Setting" /></el-icon>
                 </el-button>
                 <el-button size="small" type="text" @click="duplicateComponent(component)">
-                  <el-icon><CopyDocument /></el-icon>
+                  <el-icon><component :is="Icons.CopyDocument" /></el-icon>
                 </el-button>
                 <el-button size="small" type="text" @click="removeComponent(index)">
-                  <el-icon><Delete /></el-icon>
+                  <el-icon><component :is="Icons.Delete" /></el-icon>
                 </el-button>
               </div>
             </div>
@@ -151,7 +151,7 @@
               <!-- 图片组件 -->
               <div v-else-if="component.type === 'image'" class="image-preview">
                 <div class="image-placeholder">
-                  <el-icon :size="32" color="#c0c4cc"><Picture /></el-icon>
+                  <el-icon :size="32" color="#c0c4cc"><component :is="Icons.Picture" /></el-icon>
                   <p>图片组件</p>
                 </div>
               </div>
@@ -347,7 +347,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, markRaw } from 'vue'
 import { 
   DocumentAdd, 
   Setting, 
@@ -360,6 +360,20 @@ import {
   Document,
   Histogram
 } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  DocumentAdd,
+  Setting,
+  CopyDocument,
+  Delete,
+  Picture,
+  DataAnalysis,
+  PieChart,
+  TrendCharts,
+  Document,
+  Histogram
+})
 import { ElMessage } from 'element-plus'
 
 // 响应式数据
@@ -374,22 +388,22 @@ const reportDescription = ref('通过拖拽组件构建的个性化报表')
 
 // 组件库数据
 const basicComponents = ref([
-  { type: 'kpi-card', name: 'KPI卡片', icon: DataAnalysis },
-  { type: 'text', name: '文本', icon: Document },
-  { type: 'image', name: '图片', icon: Picture }
+  { type: 'kpi-card', name: 'KPI卡片', icon: Icons.DataAnalysis },
+  { type: 'text', name: '文本', icon: Icons.Document },
+  { type: 'image', name: '图片', icon: Icons.Picture }
 ])
 
 const chartComponents = ref([
-  { type: 'chart-bar', name: '柱状图', icon: Histogram },
-  { type: 'chart-line', name: '折线图', icon: TrendCharts },
-  { type: 'chart-pie', name: '饼图', icon: PieChart },
-  { type: 'chart-radar', name: '雷达图', icon: DataAnalysis },
-  { type: 'chart-histogram', name: '直方图', icon: Histogram }
+  { type: 'chart-bar', name: '柱状图', icon: Icons.Histogram },
+  { type: 'chart-line', name: '折线图', icon: Icons.TrendCharts },
+  { type: 'chart-pie', name: '饼图', icon: Icons.PieChart },
+  { type: 'chart-radar', name: '雷达图', icon: Icons.DataAnalysis },
+  { type: 'chart-histogram', name: '直方图', icon: Icons.Histogram }
 ])
 
 const dataComponents = ref([
-  { type: 'data-table', name: '数据表格', icon: Document },
-  { type: 'data-list', name: '数据列表', icon: Document }
+  { type: 'data-table', name: '数据表格', icon: Icons.Document },
+  { type: 'data-list', name: '数据列表', icon: Icons.Document }
 ])
 
 // 方法

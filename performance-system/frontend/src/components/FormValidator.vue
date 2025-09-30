@@ -17,7 +17,7 @@
     <!-- 错误提示面板 -->
     <div v-if="showErrorPanel && errors.length > 0" class="error-panel">
       <div class="error-header">
-        <el-icon><Warning /></el-icon>
+        <el-icon><component :is="Icons.Warning" /></el-icon>
         <span>请修正以下错误：</span>
         <button class="close-btn" @click="closeErrorPanel">×</button>
       </div>
@@ -28,7 +28,7 @@
           class="error-item"
           @click="scrollToField(error.field)"
         >
-          <el-icon class="error-icon"><CircleClose /></el-icon>
+          <el-icon class="error-icon"><component :is="Icons.CircleClose" /></el-icon>
           <span class="error-text">{{ error.message }}</span>
           <span class="error-field">{{ error.field }}</span>
         </div>
@@ -38,8 +38,8 @@
     <!-- 实时验证提示 -->
     <div v-if="showRealtimeValidation" class="realtime-validation">
       <div class="validation-status">
-        <el-icon v-if="isValid" class="status-icon success"><Check /></el-icon>
-        <el-icon v-else class="status-icon error"><Close /></el-icon>
+        <el-icon v-if="isValid" class="status-icon success"><component :is="Icons.Check" /></el-icon>
+        <el-icon v-else class="status-icon error"><component :is="Icons.Close" /></el-icon>
         <span class="status-text">
           {{ isValid ? '表单验证通过' : `${errors.length} 个错误需要修正` }}
         </span>
@@ -54,7 +54,7 @@
         class="field-error"
         :data-field="fieldError.field"
       >
-        <el-icon><Warning /></el-icon>
+        <el-icon><component :is="Icons.Warning" /></el-icon>
         <span>{{ fieldError.message }}</span>
       </div>
     </div>
@@ -62,8 +62,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, markRaw } from 'vue'
 import { Warning, CircleClose, Check, Close } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Warning,
+  CircleClose,
+  Check,
+  Close
+})
 import { ElMessage, ElForm } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 

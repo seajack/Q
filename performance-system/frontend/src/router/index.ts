@@ -23,6 +23,12 @@ const routes = [
     meta: { title: '考核看板（新UI）', layout: 'topnav' }
   },
   {
+    path: '/dashboard-refactored',
+    name: 'DashboardRefactored',
+    component: () => import('@/views/DashboardRefactored.vue'),
+    meta: { title: '仪表板（重构版）', layout: 'topnav' }
+  },
+  {
     path: '/test-dashboard',
     name: 'TestDashboard',
     component: () => import('@/views/TestDashboard.vue'),
@@ -35,10 +41,28 @@ const routes = [
     meta: { title: '考核周期管理', layout: 'topnav' }
   },
   {
+    path: '/cycles-refactored',
+    name: 'CyclesRefactored',
+    component: () => import('@/views/CyclesRefactored.vue'),
+    meta: { title: '考核周期管理（重构版）', layout: 'topnav' }
+  },
+  {
+    path: '/cycles-elementplus',
+    name: 'CyclesElementPlus',
+    component: () => import('@/views/CyclesRefactoredElementPlus.vue'),
+    meta: { title: '考核周期管理（Element Plus版）', layout: 'topnav' }
+  },
+  {
     path: '/indicators',
     name: 'EvaluationIndicators',
     component: () => import('@/views/IndicatorsNew.vue'),
     meta: { title: '考核指标管理', layout: 'topnav' }
+  },
+  {
+    path: '/indicators-refactored',
+    name: 'IndicatorsRefactored',
+    component: () => import('@/views/IndicatorsRefactored.vue'),
+    meta: { title: '考核指标管理（重构版）', layout: 'topnav' }
   },
   {
     path: '/rules',
@@ -51,6 +75,12 @@ const routes = [
     name: 'Employees',
     component: () => import('@/views/EmployeesNew.vue'),
     meta: { title: '员工管理', layout: 'topnav' }
+  },
+  {
+    path: '/employees-refactored',
+    name: 'EmployeesRefactored',
+    component: () => import('@/views/EmployeesRefactored.vue'),
+    meta: { title: '员工管理（重构版）', layout: 'topnav' }
   },
   {
     path: '/employee-onboarding',
@@ -69,6 +99,12 @@ const routes = [
     name: 'EvaluationTasks',
     component: () => import('@/views/TasksNew.vue'),
     meta: { title: '考核任务', layout: 'topnav' }
+  },
+  {
+    path: '/tasks-refactored',
+    name: 'TasksRefactored',
+    component: () => import('@/views/TasksRefactored.vue'),
+    meta: { title: '考核任务（重构版）', layout: 'topnav' }
   },
   {
     path: '/evaluation-entry',
@@ -126,6 +162,12 @@ const routes = [
     meta: { title: '考核结果', layout: 'topnav' }
   },
   {
+    path: '/results-refactored',
+    name: 'ResultsRefactored',
+    component: () => import('@/views/ResultsRefactored.vue'),
+    meta: { title: '考核结果（重构版）', layout: 'topnav' }
+  },
+  {
     path: '/organization',
     name: 'OrganizationView',
     component: () => import('@/views/OrganizationNew.vue'),
@@ -136,6 +178,12 @@ const routes = [
     name: 'Settings',
     component: () => import('@/views/SettingsNew.vue'),
     meta: { title: '系统设置', layout: 'topnav' }
+  },
+  {
+    path: '/settings-refactored',
+    name: 'SettingsRefactored',
+    component: () => import('@/views/SettingsRefactored.vue'),
+    meta: { title: '系统设置（重构版）', layout: 'topnav' }
   },
   {
     path: '/integration',
@@ -154,6 +202,12 @@ const routes = [
     name: 'MultidimensionalEvaluation',
     component: () => import('@/views/MultidimensionalEvaluation.vue'),
     meta: { title: '多维度评估', layout: 'topnav' }
+  },
+  {
+    path: '/multidimensional-refactored',
+    name: 'MultidimensionalRefactored',
+    component: () => import('@/views/MultidimensionalRefactored.vue'),
+    meta: { title: '多维度评估（重构版）', layout: 'topnav' }
   },
   {
     path: '/evaluation-dimensions',

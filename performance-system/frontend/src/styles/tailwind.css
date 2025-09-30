@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义样式 - 匹配原始HTML模板设计 */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.1450 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1450 0 0);
+  --primary: oklch(0.6489 0.2370 26.9728);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9700 0 0);
+  --secondary-foreground: oklch(0.2050 0 0);
+  --muted: oklch(0.9700 0 0);
+  --muted-foreground: oklch(0.5560 0 0);
+  --border: oklch(0.9220 0 0);
+  --ring: oklch(0.6489 0.2370 26.9728);
+}
+
+body {
+  font-family: 'Inter', sans-serif !important;
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+/* 卡片样式 */
+.card {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+  background: var(--card) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+.nav-item {
+  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  margin: 4px 0 !important;
+}
+
+.nav-item:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.nav-item.active {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+/* 指标卡片样式 */
+.metric-card {
+  background: linear-gradient(135deg, var(--card) 0%, oklch(0.98 0 0) 100%) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* 进度条样式 */
+.progress-bar {
+  background: var(--muted) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, var(--primary), oklch(0.7489 0.2370 26.9728)) !important;
+  transition: width 0.5s ease !important;
+}
+
+/* 图表容器样式 */
+.chart-container {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+/* 状态徽章样式 */
+.status-badge {
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+}
+
+.status-active {
+  background: rgba(34, 197, 94, 0.1) !important;
+  color: rgb(21, 128, 61) !important;
+}
+
+.status-pending {
+  background: rgba(251, 191, 36, 0.1) !important;
+  color: rgb(180, 83, 9) !important;
+}
+
+.status-completed {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: rgb(29, 78, 216) !important;
+}
+
+/* 员工行悬停效果 */
+.employee-row:hover {
+  background: #f8fafc !important;
+}
+
+/* 权重标签样式 */
+.weight-high {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.weight-medium {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.weight-low {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+/* 等级样式 */
+.level-high {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.level-medium {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.level-low {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+/* 指标卡片类型样式 */
+.type-quantitative {
+  border-left: 4px solid #10b981;
+}
+
+.type-qualitative {
+  border-left: 4px solid #3b82f6;
+}
+
+.type-behavioral {
+  border-left: 4px solid #8b5cf6;
+}
+
+/* 角色卡片样式 */
+.role-admin {
+  border-left: 4px solid #ef4444;
+}
+
+.role-manager {
+  border-left: 4px solid #f59e0b;
+}
+
+.role-hr {
+  border-left: 4px solid #10b981;
+}
+
+.role-employee {
+  border-left: 4px solid #6b7280;
+}
+
+/* 权限切换开关样式 */
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-switch.active {
+  background: #2563eb;
+}
+
+.toggle-knob {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(20px);
+}
+
+/* 等级分布样式 */
+.grade-excellent {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.grade-good {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.grade-average {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.grade-poor {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* 排行榜徽章样式 */
+.ranking-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.rank-1 {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+}
+
+.rank-2 {
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  color: white;
+}
+
+.rank-3 {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: white;
+}
+
+.rank-other {
+  background: #f3f4f6;
+  color: #6b7280;
+}

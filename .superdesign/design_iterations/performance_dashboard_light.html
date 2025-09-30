@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绩效考核系统 - 浅色主题</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --background: oklch(1 0 0);
+            --foreground: oklch(0.1450 0 0);
+            --card: oklch(1 0 0);
+            --card-foreground: oklch(0.1450 0 0);
+            --primary: oklch(0.6489 0.2370 26.9728);
+            --primary-foreground: oklch(1 0 0);
+            --secondary: oklch(0.9700 0 0);
+            --secondary-foreground: oklch(0.2050 0 0);
+            --muted: oklch(0.9700 0 0);
+            --muted-foreground: oklch(0.5560 0 0);
+            --border: oklch(0.9220 0 0);
+            --ring: oklch(0.6489 0.2370 26.9728);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background: var(--background) !important;
+            color: var(--foreground) !important;
+        }
+        
+        .card {
+            background: var(--card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        }
+        
+        .btn-primary {
+            background: var(--primary) !important;
+            color: var(--primary-foreground) !important;
+            border: none !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9 !important;
+            transform: translateY(-1px) !important;
+        }
+        
+        .sidebar {
+            background: var(--card) !important;
+            border-right: 1px solid var(--border) !important;
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease !important;
+            border-radius: 8px !important;
+            margin: 4px 0 !important;
+        }
+        
+        .nav-item:hover {
+            background: rgba(37, 99, 235, 0.1) !important;
+        }
+        
+        .nav-item.active {
+            background: var(--primary) !important;
+            color: var(--primary-foreground) !important;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--card) 0%, oklch(0.98 0 0) 100%) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 16px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px) !important;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        .progress-bar {
+            background: var(--muted) !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary), oklch(0.7489 0.2370 26.9728)) !important;
+            transition: width 0.5s ease !important;
+        }
+        
+        .chart-container {
+            background: var(--card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+        }
+        
+        .status-badge {
+            border-radius: 20px !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            padding: 4px 12px !important;
+        }
+        
+        .status-active {
+            background: rgba(34, 197, 94, 0.1) !important;
+            color: rgb(21, 128, 61) !important;
+        }
+        
+        .status-pending {
+            background: rgba(251, 191, 36, 0.1) !important;
+            color: rgb(180, 83, 9) !important;
+        }
+        
+        .status-completed {
+            background: rgba(59, 130, 246, 0.1) !important;
+            color: rgb(29, 78, 216) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏 -->
+        <div class="sidebar w-64 p-6 flex flex-col" style="background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 p-1">
+                    <img src="../logo.jpg" alt="Logo" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">绩效考核系统</h1>
+                    <p class="text-sm text-gray-500">Performance System</p>
+                </div>
+            </div>
+            
+            <nav class="flex-1">
+                <div class="nav-item active px-4 py-3 flex items-center cursor-pointer text-white">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    <span>仪表板</span>
+                </div>
+                <div class="nav-item px-4 py-3 flex items-center cursor-pointer text-gray-700">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    <span>考核周期</span>
+                </div>
+                <div class="nav-item px-4 py-3 flex items-center cursor-pointer text-gray-700">
+                    <i class="fas fa-tasks mr-3"></i>
+                    <span>考核任务</span>
+                </div>
+                <div class="nav-item px-4 py-3 flex items-center cursor-pointer text-gray-700">
+                    <i class="fas fa-star mr-3"></i>
+                    <span>评分管理</span>
+                </div>
+                <div class="nav-item px-4 py-3 flex items-center cursor-pointer text-gray-700">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    <span>结果统计</span>
+                </div>
+                <div class="nav-item px-4 py-3 flex items-center cursor-pointer text-gray-700">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span>系统设置</span>
+                </div>
+            </nav>
+            
+            <div class="mt-auto">
+                <div class="flex items-center p-3 rounded-lg bg-gray-200">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">管理员</p>
+                        <p class="text-xs text-gray-500">admin@company.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
+            <!-- 顶部导航 -->
+            <header class="border-b border-gray-200 p-6 bg-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">绩效考核仪表板</h2>
+                        <p class="text-gray-600 mt-1">实时监控考核进度和数据统计</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-bell text-gray-500"></i>
+                        </button>
+                        <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-search text-gray-500"></i>
+                        </button>
+                        <button class="btn-primary px-4 py-2">
+                            <i class="fas fa-plus mr-2"></i>新建考核
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 主要内容 -->
+            <main class="flex-1 overflow-auto p-6">
+                <!-- 关键指标卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="metric-card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="text-2xl">📈</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-1 text-gray-900">1,247</h3>
+                        <p class="text-gray-600 text-sm">参与员工总数</p>
+                        <div class="mt-3 flex items-center text-green-600 text-sm">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>+12% 较上月</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-2xl">✅</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-1 text-gray-900">892</h3>
+                        <p class="text-gray-600 text-sm">已完成考核</p>
+                        <div class="mt-3">
+                            <div class="progress-bar h-2">
+                                <div class="progress-fill h-full" style="width: 71.5%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">71.5% 完成率</p>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                            <span class="text-2xl">⏳</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-1 text-gray-900">355</h3>
+                        <p class="text-gray-600 text-sm">待处理任务</p>
+                        <div class="mt-3 flex items-center text-yellow-600 text-sm">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            <span>需要关注</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-2xl">⭐</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-1 text-gray-900">4.2</h3>
+                        <p class="text-gray-600 text-sm">平均评分</p>
+                        <div class="mt-3 flex items-center text-purple-600 text-sm">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>+0.3 较上期</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图表和数据展示 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- 考核进度图表 -->
+                    <div class="chart-container p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">考核进度趋势</h3>
+                            <select class="bg-white border border-gray-300 rounded-lg px-3 py-1 text-sm text-gray-700">
+                                <option>最近7天</option>
+                                <option>最近30天</option>
+                                <option>最近90天</option>
+                            </select>
+                        </div>
+                        <div class="h-64 flex items-end justify-between space-x-2">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 60%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周一</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 80%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周二</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 45%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周三</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 90%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周四</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 70%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周五</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 35%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周六</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 bg-blue-500 rounded-t" style="height: 25%"></div>
+                                <span class="text-xs text-gray-500 mt-2">周日</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 部门评分分布 -->
+                    <div class="chart-container p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">部门评分分布</h3>
+                            <button class="text-blue-600 text-sm hover:text-blue-700">查看详情</button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">技术部</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-32 progress-bar h-2">
+                                        <div class="progress-fill h-full bg-green-500" style="width: 92%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.6</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">销售部</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-32 progress-bar h-2">
+                                        <div class="progress-fill h-full bg-blue-500" style="width: 85%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.3</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">市场部</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-32 progress-bar h-2">
+                                        <div class="progress-fill h-full bg-purple-500" style="width: 78%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">3.9</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">人事部</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-32 progress-bar h-2">
+                                        <div class="progress-fill h-full bg-yellow-500" style="width: 82%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.1</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">财务部</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-32 progress-bar h-2">
+                                        <div class="progress-fill h-full bg-red-500" style="width: 88%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.4</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 最近活动和任务列表 -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 最近活动 -->
+                    <div class="lg:col-span-2 chart-container p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">最近活动</h3>
+                            <button class="text-blue-600 text-sm hover:text-blue-700">查看全部</button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-check text-green-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900"><strong>张三</strong> 完成了对 <strong>李四</strong> 的绩效评价</p>
+                                    <p class="text-xs text-gray-500 mt-1">技术部 • 2分钟前</p>
+                                </div>
+                                <span class="status-badge status-completed">已完成</span>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-plus text-blue-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">系统自动生成了 <strong>Q4季度考核</strong> 的评价任务</p>
+                                    <p class="text-xs text-gray-500 mt-1">系统 • 15分钟前</p>
+                                </div>
+                                <span class="status-badge status-active">新任务</span>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-exclamation text-yellow-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900"><strong>王五</strong> 的考核任务即将到期</p>
+                                    <p class="text-xs text-gray-500 mt-1">销售部 • 1小时前</p>
+                                </div>
+                                <span class="status-badge status-pending">待处理</span>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-star text-purple-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900"><strong>赵六</strong> 获得了本月最高评分</p>
+                                    <p class="text-xs text-gray-500 mt-1">市场部 • 2小时前</p>
+                                </div>
+                                <span class="status-badge status-completed">优秀</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 快速操作 -->
+                    <div class="chart-container p-6">
+                        <h3 class="text-lg font-semibold mb-6 text-gray-900">快速操作</h3>
+                        <div class="space-y-3">
+                            <button class="w-full p-4 text-left rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200">
+                                        <i class="fas fa-plus text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">创建考核周期</p>
+                                        <p class="text-xs text-gray-500">设置新的考核周期</p>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full p-4 text-left rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all group">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-green-200">
+                                        <i class="fas fa-tasks text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">分配任务</p>
+                                        <p class="text-xs text-gray-500">手动分配考核任务</p>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full p-4 text-left rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all group">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-200">
+                                        <i class="fas fa-download text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">导出报告</p>
+                                        <p class="text-xs text-gray-500">生成考核结果报告</p>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full p-4 text-left rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200">
+                                        <i class="fas fa-cog text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">系统设置</p>
+                                        <p class="text-xs text-gray-500">配置考核规则</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        // 简单的交互效果
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                    nav.classList.add('text-gray-700');
+                    nav.classList.remove('text-white');
+                });
+                this.classList.add('active');
+                this.classList.remove('text-gray-700');
+                this.classList.add('text-white');
+            });
+        });
+        
+        // 模拟数据更新
+        setInterval(() => {
+            const metrics = document.querySelectorAll('.metric-card h3');
+            metrics.forEach(metric => {
+                const currentValue = parseInt(metric.textContent.replace(/,/g, ''));
+                const change = Math.floor(Math.random() * 10) - 5;
+                const newValue = Math.max(0, currentValue + change);
+                metric.textContent = newValue.toLocaleString();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

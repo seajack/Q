@@ -29,7 +29,7 @@
         </el-select>
         <el-button type="primary" @click="reload">查询</el-button>
         <el-button type="success" @click="exportToExcel" :loading="exportLoading">
-          <el-icon><Download /></el-icon>
+          <el-icon><component :is="Icons.Download" /></el-icon>
           导出Excel
         </el-button>
         <!-- 批量操作按钮 -->
@@ -38,7 +38,7 @@
           :disabled="selectedTasks.length === 0"
           @click="showBatchDialog = true"
         >
-          <el-icon><Operation /></el-icon>
+          <el-icon><component :is="Icons.Operation" /></el-icon>
           批量操作 ({{ selectedTasks.length }})
         </el-button>
         <!-- 申诉反馈系统 -->
@@ -48,7 +48,7 @@
           :type="dragSortEnabled ? 'primary' : 'default'"
           @click="toggleDragSort"
         >
-          <el-icon><Rank /></el-icon>
+          <el-icon><component :is="Icons.Rank" /></el-icon>
           {{ dragSortEnabled ? '退出排序' : '拖拽排序' }}
         </el-button>
       </div>
@@ -259,10 +259,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, nextTick } from 'vue'
+import { computed, onMounted, ref, nextTick, markRaw } from 'vue'
 import { useRoute } from 'vue-router'
 import { useEvaluationStore } from '@/stores/evaluation'
 import { Download, Operation, Rank } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Download,
+  Operation,
+  Rank
+})
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { formatDateTime as formatDateTimeUtil } from '@/utils/dateUtils'
 import * as XLSX from 'xlsx'

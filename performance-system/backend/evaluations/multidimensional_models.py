@@ -93,9 +93,9 @@ class EvaluationCycleType(models.Model):
 
 class MultidimensionalEvaluation(models.Model):
     """多维度评估模型"""
-    cycle = models.ForeignKey('EvaluationCycle', verbose_name='考核周期', on_delete=models.CASCADE)
-    evaluator = models.ForeignKey('Employee', verbose_name='评价人', on_delete=models.CASCADE, related_name='multidimensional_evaluations')
-    evaluatee = models.ForeignKey('Employee', verbose_name='被评价人', on_delete=models.CASCADE, related_name='multidimensional_evaluated')
+    cycle = models.ForeignKey('evaluations.EvaluationCycle', verbose_name='考核周期', on_delete=models.CASCADE)
+    evaluator = models.ForeignKey('evaluations.Employee', verbose_name='评价人', on_delete=models.CASCADE, related_name='multidimensional_evaluations')
+    evaluatee = models.ForeignKey('evaluations.Employee', verbose_name='被评价人', on_delete=models.CASCADE, related_name='multidimensional_evaluated')
     evaluation_method = models.ForeignKey(EvaluationMethod, verbose_name='评估方法', on_delete=models.CASCADE)
     dimensions = models.JSONField('维度评分', default=dict, help_text='各维度的评分结果')
     total_score = models.DecimalField('总分', max_digits=5, decimal_places=2, null=True, blank=True)

@@ -14,7 +14,7 @@
           @click="goToStep(index)"
         >
           <div class="step-number">
-            <el-icon v-if="index < currentStep"><Check /></el-icon>
+            <el-icon v-if="index < currentStep"><component :is="Icons.Check" /></el-icon>
             <span v-else>{{ index + 1 }}</span>
           </div>
           <div class="step-content">
@@ -101,8 +101,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, markRaw } from 'vue'
 import { Check } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Check
+})
 import { ElMessage } from 'element-plus'
 
 // 响应式数据

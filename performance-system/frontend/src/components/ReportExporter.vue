@@ -6,7 +6,7 @@
       @click="showExportDialog = true"
       :loading="exporting"
     >
-      <el-icon><Download /></el-icon>
+      <el-icon><component :is="Icons.Download" /></el-icon>
       导出报表
     </el-button>
 
@@ -216,7 +216,7 @@
       <div class="export-complete">
         <div class="complete-icon">
           <el-icon :size="48" color="#67c23a">
-            <CircleCheck />
+            <component :is="Icons.CircleCheck" />
           </el-icon>
         </div>
         <div class="complete-info">
@@ -261,7 +261,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, markRaw } from 'vue'
 import { 
   Download, 
   Document, 
@@ -272,6 +272,18 @@ import {
   Check,
   Close
 } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Download,
+  Document,
+  Picture,
+  DataAnalysis,
+  CircleCheck,
+  Loading,
+  Check,
+  Close
+})
 import { ElMessage } from 'element-plus'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'

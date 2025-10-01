@@ -8,7 +8,7 @@
         class="notification-trigger"
       >
         <el-icon size="20">
-          <Bell />
+          <component :is="Icons.Bell" />
         </el-icon>
       </el-button>
     </el-badge>
@@ -103,8 +103,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, markRaw } from 'vue'
 import { Bell, Warning, Clock, InfoFilled, Check } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Bell,
+  Warning,
+  Clock,
+  InfoFilled,
+  Check
+})
 import { ElMessage } from 'element-plus'
 
 // 响应式数据

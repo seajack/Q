@@ -36,7 +36,7 @@ class EvaluationDimensionViewSet(viewsets.ModelViewSet):
         """获取维度的指标列表"""
         dimension = self.get_object()
         indicators = dimension.indicators.filter(is_active=True)
-        serializer = EvaluationIndicatorSerializer(indicators, many=True)
+        serializer = MultidimensionalIndicatorSerializer(indicators, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])

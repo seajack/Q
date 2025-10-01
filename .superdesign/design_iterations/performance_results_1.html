@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考核结果统计 - 绩效考核系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background: #f8fafc !important;
+        }
+        
+        .card {
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        
+        .metric-card {
+            transition: all 0.3s ease !important;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15) !important;
+        }
+        
+        .btn-primary {
+            background: #2563eb !important;
+            color: white !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8 !important;
+            transform: translateY(-1px) !important;
+        }
+        
+        .grade-excellent { background: linear-gradient(135deg, #10b981, #059669); }
+        .grade-good { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .grade-average { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .grade-poor { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        
+        .employee-row:hover {
+            background: #f8fafc !important;
+        }
+        
+        .ranking-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .rank-1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #d97706, #b45309); color: white; }
+        .rank-other { background: #f3f4f6; color: #6b7280; }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏 -->
+        <div class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-chart-line text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">绩效考核系统</h1>
+                    <p class="text-sm text-gray-500">Performance System</p>
+                </div>
+            </div>
+            
+            <nav class="flex-1">
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    <span>仪表板</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    <span>考核周期</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-tasks mr-3"></i>
+                    <span>考核任务</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer text-gray-700 hover:bg-gray-100 rounded-lg mb-1">
+                    <i class="fas fa-star mr-3"></i>
+                    <span>评分管理</span>
+                </div>
+                <div class="px-4 py-3 flex items-center cursor-pointer bg-blue-50 text-blue-700 rounded-lg mb-1">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    <span>结果统计</span>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航 -->
+            <header class="bg-white border-b border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">考核结果统计</h2>
+                        <p class="text-gray-600 mt-1">Q4季度考核结果分析与统计</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option>Q4 2024</option>
+                            <option>Q3 2024</option>
+                            <option>Q2 2024</option>
+                        </select>
+                        <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option>全部部门</option>
+                            <option>技术部</option>
+                            <option>销售部</option>
+                            <option>市场部</option>
+                        </select>
+                        <button class="btn-primary px-4 py-2 rounded-lg">
+                            <i class="fas fa-download mr-2"></i>导出报告
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 主要内容 -->
+            <main class="flex-1 overflow-auto p-6">
+                <!-- 统计概览 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="metric-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">1,247</div>
+                                <div class="text-sm text-gray-600">参与人数</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            较上季度 +8.5%
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">98.2%</div>
+                                <div class="text-sm text-gray-600">完成率</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            较上季度 +2.1%
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">4.3</div>
+                                <div class="text-sm text-gray-600">平均分</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            较上季度 +0.2
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-trophy text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">156</div>
+                                <div class="text-sm text-gray-600">优秀人数</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            较上季度 +12
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图表区域 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- 评分分布图 -->
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">评分分布</h3>
+                            <button class="text-blue-600 text-sm hover:text-blue-700">查看详情</button>
+                        </div>
+                        <canvas id="scoreDistributionChart" width="400" height="300"></canvas>
+                    </div>
+                    
+                    <!-- 部门对比图 -->
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">部门平均分对比</h3>
+                            <button class="text-blue-600 text-sm hover:text-blue-700">查看详情</button>
+                        </div>
+                        <canvas id="departmentChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <!-- 等级分布 -->
+                <div class="card p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">考核等级分布</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="grade-excellent text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold">156</div>
+                            <div class="text-sm opacity-90">优秀 (4.5-5.0)</div>
+                            <div class="text-xs opacity-75 mt-1">12.5%</div>
+                        </div>
+                        <div class="grade-good text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold">687</div>
+                            <div class="text-sm opacity-90">良好 (3.5-4.4)</div>
+                            <div class="text-xs opacity-75 mt-1">55.1%</div>
+                        </div>
+                        <div class="grade-average text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold">342</div>
+                            <div class="text-sm opacity-90">一般 (2.5-3.4)</div>
+                            <div class="text-xs opacity-75 mt-1">27.4%</div>
+                        </div>
+                        <div class="grade-poor text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold">62</div>
+                            <div class="text-sm opacity-90">待改进 (<2.5)</div>
+                            <div class="text-xs opacity-75 mt-1">5.0%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 排行榜 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 个人排行榜 -->
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">个人排行榜 TOP 10</h3>
+                            <button class="text-blue-600 text-sm hover:text-blue-700">查看完整榜单</button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="employee-row flex items-center justify-between p-3 rounded-lg transition-colors">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-1 mr-3">1</div>
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-blue-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">张工程师</div>
+                                        <div class="text-sm text-gray-600">技术部</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.9</div>
+                                    <div class="text-xs text-gray-500">加权后: 5.88</div>
+                                </div>
+                            </div>
+                            
+                            <div class="employee-row flex items-center justify-between p-3 rounded-lg transition-colors">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-2 mr-3">2</div>
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-green-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">李经理</div>
+                                        <div class="text-sm text-gray-600">销售部</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.8</div>
+                                    <div class="text-xs text-gray-500">加权后: 5.76</div>
+                                </div>
+                            </div>
+                            
+                            <div class="employee-row flex items-center justify-between p-3 rounded-lg transition-colors">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-3 mr-3">3</div>
+                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-purple-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">王主管</div>
+                                        <div class="text-sm text-gray-600">市场部</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.7</div>
+                                    <div class="text-xs text-gray-500">加权后: 5.17</div>
+                                </div>
+                            </div>
+                            
+                            <div class="employee-row flex items-center justify-between p-3 rounded-lg transition-colors">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-other mr-3">4</div>
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-yellow-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">赵专员</div>
+                                        <div class="text-sm text-gray-600">人事部</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.6</div>
+                                    <div class="text-xs text-gray-500">加权后: 4.14</div>
+                                </div>
+                            </div>
+                            
+                            <div class="employee-row flex items-center justify-between p-3 rounded-lg transition-colors">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-other mr-3">5</div>
+                                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-red-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">孙会计</div>
+                                        <div class="text-sm text-gray-600">财务部</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.5</div>
+                                    <div class="text-xs text-gray-500">加权后: 4.05</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 部门排行榜 -->
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">部门排行榜</h3>
+                            <button class="text-blue-600 text-sm hover:text-blue-700">查看详细数据</button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-1 mr-3">1</div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">技术部</div>
+                                        <div class="text-sm text-gray-600">156人参与</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.6</div>
+                                    <div class="text-xs text-gray-500">完成率: 100%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-2 mr-3">2</div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">销售部</div>
+                                        <div class="text-sm text-gray-600">89人参与</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.3</div>
+                                    <div class="text-xs text-gray-500">完成率: 98%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-3 mr-3">3</div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">市场部</div>
+                                        <div class="text-sm text-gray-600">67人参与</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">4.1</div>
+                                    <div class="text-xs text-gray-500">完成率: 96%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-other mr-3">4</div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">人事部</div>
+                                        <div class="text-sm text-gray-600">34人参与</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">3.9</div>
+                                    <div class="text-xs text-gray-500">完成率: 94%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="ranking-badge rank-other mr-3">5</div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">财务部</div>
+                                        <div class="text-sm text-gray-600">28人参与</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900">3.8</div>
+                                    <div class="text-xs text-gray-500">完成率: 92%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        // 评分分布图
+        const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+        new Chart(scoreCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['优秀 (4.5-5.0)', '良好 (3.5-4.4)', '一般 (2.5-3.4)', '待改进 (<2.5)'],
+                datasets: [{
+                    data: [156, 687, 342, 62],
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // 部门对比图
+        const deptCtx = document.getElementById('departmentChart').getContext('2d');
+        new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: ['技术部', '销售部', '市场部', '人事部', '财务部'],
+                datasets: [{
+                    label: '平均分',
+                    data: [4.6, 4.3, 4.1, 3.9, 3.8],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

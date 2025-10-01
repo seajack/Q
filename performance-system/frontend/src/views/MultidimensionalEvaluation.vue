@@ -4,7 +4,7 @@
       <h1>多维度评估管理</h1>
       <div class="header-actions">
         <el-button type="primary" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
+          <el-icon><component :is="Icons.Plus" /></el-icon>
           新建评估
         </el-button>
       </div>
@@ -233,11 +233,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, markRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Plus
+})
 import { formatDateTime } from '@/utils/dateUtils'
-import { multidimensionalApi, orgPlatformApi } from '@/utils/api'
+import { multidimensionalApi, orgPlatformApi, cycleApi } from '@/utils/api'
 import api from '@/utils/api'
 
 // 响应式数据
@@ -296,10 +301,12 @@ const loadEvaluations = async () => {
       ...filters
     }
     const response = await multidimensionalApi.evaluations.list(params)
-    evaluations.value = response.results
-    pagination.total = response.count
+    evaluations.value = response.data.results || []
+    pagination.total = response.data.count || 0
   } catch (error) {
     ElMessage.error('加载评估列表失败')
+    evaluations.value = []
+    pagination.total = 0
   } finally {
     loading.value = false
   }
@@ -308,10 +315,10 @@ const loadEvaluations = async () => {
 const loadCycles = async () => {
   try {
     console.log('开始加载考核周期...')
-    const response = await api.get('/cycles/')
+    const response = await cycleApi.list()
     console.log('考核周期API响应:', response)
-    console.log('响应结果:', response.results)
-    cycles.value = response.results || []
+    console.log('响应结果:', response.data.results)
+    cycles.value = response.data.results || []
     console.log('考核周期数据已设置:', cycles.value)
     console.log('考核周期数量:', cycles.value.length)
   } catch (error) {
@@ -323,18 +330,20 @@ const loadCycles = async () => {
 const loadMethods = async () => {
   try {
     const response = await multidimensionalApi.methods.list()
-    methods.value = response.results
+    methods.value = response.data.results || []
   } catch (error) {
     console.error('加载评估方法失败:', error)
+    methods.value = []
   }
 }
 
 const loadEmployees = async () => {
   try {
     const response = await orgPlatformApi.employees.list()
-    employees.value = response.results
+    employees.value = response.data.results || []
   } catch (error) {
     console.error('加载员工列表失败:', error)
+    employees.value = []
   }
 }
 

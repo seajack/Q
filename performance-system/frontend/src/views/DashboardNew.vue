@@ -1,97 +1,7 @@
 <template>
   <div class="app-layout">
-    <!-- 侧边菜单 -->
-    <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
-      <div class="sidebar-header">
-        <div class="logo-container">
-          <div class="logo-svg">
-            <img src="/logo.svg" alt="企业Logo" class="logo">
-          </div>
-          <span class="logo-text" v-show="!isCollapsed">绩效考核</span>
-        </div>
-        <div class="collapse-btn" @click="toggleSidebar">
-          <i :class="isCollapsed ? 'el-icon-s-unfold' : 'el-icon-s-fold'"></i>
-        </div>
-      </div>
-      
-      <div class="menu-container">
-        <el-menu
-          :default-active="activeMenu"
-          :collapse="isCollapsed"
-          :collapse-transition="false"
-          class="sidebar-menu"
-          background-color="#001529"
-          text-color="#b7c0cd"
-          active-text-color="#ffffff"
-          @select="handleMenuSelect"
-        >
-          <el-menu-item index="dashboard">
-            <i class="el-icon-s-home"></i>
-            <span slot="title">首页概览</span>
-          </el-menu-item>
-          
-          <el-submenu index="org">
-            <template slot="title">
-              <i class="el-icon-office-building"></i>
-              <span>组织管理</span>
-            </template>
-            <el-menu-item index="org-structure">组织架构</el-menu-item>
-            <el-menu-item index="org-department">部门管理</el-menu-item>
-            <el-menu-item index="org-position">岗位管理</el-menu-item>
-          </el-submenu>
-          
-          <el-submenu index="employee">
-            <template slot="title">
-              <i class="el-icon-user"></i>
-              <span>人员管理</span>
-            </template>
-            <el-menu-item index="employee-list">员工列表</el-menu-item>
-            <el-menu-item index="employee-onboarding">入职管理</el-menu-item>
-            <el-menu-item index="employee-offboarding">离职管理</el-menu-item>
-          </el-submenu>
-          
-          <el-submenu index="performance">
-            <template slot="title">
-              <i class="el-icon-s-data"></i>
-              <span>绩效管理</span>
-            </template>
-            <el-menu-item index="performance-cycle">考核周期</el-menu-item>
-            <el-menu-item index="performance-review">绩效评审</el-menu-item>
-            <el-menu-item index="performance-dashboard">绩效看板</el-menu-item>
-          </el-submenu>
-          
-          <el-submenu index="talent">
-            <template slot="title">
-              <i class="el-icon-medal"></i>
-              <span>人才发展</span>
-            </template>
-            <el-menu-item index="talent-plan">发展计划</el-menu-item>
-            <el-menu-item index="talent-training">培训管理</el-menu-item>
-            <el-menu-item index="talent-promotion">晋升管理</el-menu-item>
-          </el-submenu>
-          
-          <el-submenu index="system">
-            <template slot="title">
-              <i class="el-icon-setting"></i>
-              <span>系统设置</span>
-            </template>
-            <el-menu-item index="system-user">用户管理</el-menu-item>
-            <el-menu-item index="system-role">角色权限</el-menu-item>
-            <el-menu-item index="system-log">操作日志</el-menu-item>
-          </el-submenu>
-        </el-menu>
-      </div>
-      
-      <div class="sidebar-footer" v-show="!isCollapsed">
-        <div class="environment-tag">
-          <el-tag size="mini" type="success">生产环境</el-tag>
-        </div>
-        <div class="version-info">v2.5.0</div>
-      </div>
-    </div>
-    
     <!-- 主内容区 -->
-    <div class="main-content" :class="{ 'content-expanded': isCollapsed }">
+    <div class="main-content full-width">
       <!-- 顶部导航栏 -->
       <div class="top-navbar">
         <div class="navbar-left">
@@ -124,7 +34,7 @@
             <el-dropdown trigger="click" @command="handleCommand">
               <div class="user-profile">
                 <div class="avatar-circle">AD</div>
-                <div class="user-info" v-show="!isCollapsed">
+                <div class="user-info">
                   <div class="username">Admin</div>
                   <div class="role">系统管理员</div>
                 </div>
@@ -385,7 +295,6 @@ const brand400 = () => getComputedStyle(document.documentElement).getPropertyVal
 const brand700 = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-700').trim() || '#115f96'
 
 // 菜单相关
-const isCollapsed = ref(false)
 const activeMenu = ref('performance-dashboard')
 const breadcrumbs = ref(['绩效管理', '绩效看板'])
 
@@ -431,10 +340,6 @@ const pendingTrend = computed(() => {
 })
 
 // 菜单事件处理
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value
-  localStorage.setItem('sidebarCollapsed', isCollapsed.value.toString())
-}
 
 const handleMenuSelect = (index: string) => {
   activeMenu.value = index
@@ -1109,10 +1014,6 @@ const initCharts = () => {
 
 onMounted(async () => {
   // 从本地存储恢复侧边栏状态
-  const savedState = localStorage.getItem('sidebarCollapsed')
-  if (savedState !== null) {
-    isCollapsed.value = savedState === 'true'
-  }
   
   initCharts()
   await loadData()
@@ -1142,206 +1043,22 @@ const getStatusText = (status: string) => {
   overflow: hidden;
 }
 
-/* 侧边栏样式 */
-.sidebar {
-  width: 240px;
-  height: 100%;
-  background-color: #001529;
-  color: #b7c0cd;
-  transition: width 0.3s;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-}
-
-.sidebar-collapsed {
-  width: 64px;
-}
-
-.sidebar-header {
-  height: 64px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-
-.logo-svg {
-  width: 32px;
-  height: 32px;
-  margin-right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border-radius: 6px;
-  transition: all 0.3s;
-}
-
-.logo {
-  width: 20px;
-  height: 20px;
-  transition: all 0.3s;
-  filter: brightness(1.1) contrast(1.1);
-  border-radius: 4px;
-}
-
-.sidebar-collapsed .logo {
-  width: 16px;
-  height: 16px;
-}
-
-/* 暗色主题下的logo优化 */
-.dark-theme .logo {
-  filter: brightness(1.2) contrast(1.2);
-}
-
-.logo-text {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-}
-
-.collapse-btn {
-  cursor: pointer;
-  font-size: 18px;
-  color: #b7c0cd;
-  transition: color 0.3s;
-}
-
-.collapse-btn:hover {
-  color: #ffffff;
-}
-
-.menu-container {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.sidebar-menu {
-  border-right: none;
-}
-
-/* 次级菜单样式修复 - 颜色反转 + 缩进和图标 */
-.sidebar-menu :deep(.el-submenu .el-menu-item) {
-  height: 45px;
-  line-height: 45px;
-  color: #001529; /* 使用侧边栏背景色作为文字颜色 */
-  background-color: #b7c0cd; /* 使用侧边栏文字颜色作为背景色 */
-  padding-left: 60px; /* 增加更多缩进 */
-  border-left: 3px solid transparent;
-  transition: all 0.3s;
-  font-weight: 500;
-  position: relative;
-}
-
-/* 为二级菜单添加更美观的图标 */
-.sidebar-menu :deep(.el-submenu .el-menu-item::before) {
-  content: "•";
-  position: absolute;
-  left: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  color: #001529;
-  transition: all 0.3s;
-  font-weight: bold;
-}
-
-.sidebar-menu :deep(.el-submenu .el-menu-item:hover) {
-  color: #001529; /* 保持侧边栏背景色 */
-  background-color: #a0a8b5; /* 悬停时背景色稍深 */
-  border-left-color: #001529; /* 边框使用侧边栏背景色 */
-  font-weight: 600;
-}
-
-.sidebar-menu :deep(.el-submenu .el-menu-item:hover::before) {
-  content: "▶";
-  transform: translateY(-50%) translateX(3px); /* 悬停时图标向右移动 */
-  color: #001529;
-  font-size: 10px;
-}
-
-.sidebar-menu :deep(.el-submenu .el-menu-item.is-active) {
-  color: #001529; /* 保持侧边栏背景色 */
-  background-color: #8a919d; /* 激活时背景色更深 */
-  border-left-color: #001529; /* 边框使用侧边栏背景色 */
-  font-weight: 600;
-  box-shadow: inset 0 0 8px rgba(0, 21, 41, 0.1); /* 内阴影使用侧边栏背景色 */
-}
-
-.sidebar-menu :deep(.el-submenu .el-menu-item.is-active::before) {
-  content: "◆"; /* 激活时显示菱形 */
-  transform: translateY(-50%);
-  color: #001529;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-/* 暗色主题下的次级菜单 - 颜色反转 */
-.dark-theme .sidebar-menu :deep(.el-submenu .el-menu-item) {
-  color: #001529; /* 使用侧边栏背景色作为文字颜色 */
-  background-color: #b7c0cd; /* 使用侧边栏文字颜色作为背景色 */
-  font-weight: 500;
-}
-
-.dark-theme .sidebar-menu :deep(.el-submenu .el-menu-item:hover) {
-  color: #001529; /* 保持侧边栏背景色 */
-  background-color: #a0a8b5; /* 悬停时背景色稍深 */
-  border-left-color: #001529; /* 边框使用侧边栏背景色 */
-  font-weight: 600;
-}
-
-.dark-theme .sidebar-menu :deep(.el-submenu .el-menu-item.is-active) {
-  color: #001529; /* 保持侧边栏背景色 */
-  background-color: #8a919d; /* 激活时背景色更深 */
-  border-left-color: #001529; /* 边框使用侧边栏背景色 */
-  font-weight: 600;
-  box-shadow: inset 0 0 12px rgba(0, 21, 41, 0.15); /* 内阴影使用侧边栏背景色 */
-}
-
-.sidebar-footer {
-  height: 40px;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.environment-tag {
-  font-size: 12px;
-}
-
-.version-info {
-  font-size: 12px;
-  color: #8c8c8c;
-}
-
 /* 主内容区样式 */
 .main-content {
   flex: 1;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s;
-  background-color: #f0f2f5;
-  font-size: 13px;
-  overflow: hidden;
+  background: #f5f5f5;
+  width: 100%;
 }
 
-.content-expanded {
-  margin-left: -176px;
+.main-content.full-width {
+  width: 100%;
+  margin-left: 0;
 }
+
+
 
 /* 顶部导航栏样式 */
 .top-navbar {
@@ -1784,16 +1501,6 @@ const getStatusText = (status: string) => {
 }
 
 @media (max-width: 992px) {
-  .sidebar {
-    position: fixed;
-    z-index: 1001;
-    height: 100%;
-  }
-  
-  .sidebar-collapsed {
-    transform: translateX(-100%);
-  }
-  
   .main-content {
     margin-left: 0 !important;
   }

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绩效评价 - 绩效考核系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background: #f8fafc !important;
+        }
+        
+        .evaluation-form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .dimension-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .dimension-card:hover {
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .rating-star {
+            font-size: 24px;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .rating-star:hover,
+        .rating-star.active {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+        
+        .progress-indicator {
+            background: #e5e7eb;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- 顶部进度条 -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between mb-2">
+                <h1 class="text-lg font-semibold text-gray-900">绩效评价进度</h1>
+                <span class="text-sm text-gray-600">第 3 步，共 5 步</span>
+            </div>
+            <div class="progress-indicator">
+                <div class="progress-fill" style="width: 60%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- 评价信息卡片 -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex items-start justify-between">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-user text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">李工程师 - Q4季度考核</h2>
+                        <p class="text-gray-600 mt-1">技术部 • 高级工程师 • 考核编号: PF-2024-001</p>
+                        <div class="flex items-center mt-2 space-x-4">
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-calendar mr-1"></i>
+                                考核周期: 2024年第4季度
+                            </span>
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                截止时间: 2024-10-15
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500 mb-1">职级权重</div>
+                    <div class="text-lg font-bold text-blue-600">1.2x</div>
+                    <div class="text-xs text-gray-400">中层正职</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评价表单 -->
+        <div class="evaluation-form space-y-6">
+            <!-- 工作业绩 -->
+            <div class="dimension-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-line text-green-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">工作业绩</h3>
+                            <p class="text-sm text-gray-600">评估工作完成质量和效率</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">权重</div>
+                        <div class="text-lg font-bold text-gray-900">40%</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">整体评分</label>
+                        <div class="rating-stars" data-dimension="performance">
+                            <i class="fas fa-star rating-star" data-rating="1"></i>
+                            <i class="fas fa-star rating-star" data-rating="2"></i>
+                            <i class="fas fa-star rating-star" data-rating="3"></i>
+                            <i class="fas fa-star rating-star" data-rating="4"></i>
+                            <i class="fas fa-star rating-star" data-rating="5"></i>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            当前评分: <span id="performance-score" class="font-medium">未评分</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">具体评价</label>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            rows="3" 
+                            placeholder="请详细描述该员工在工作业绩方面的表现...">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 工作能力 -->
+            <div class="dimension-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-cogs text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">工作能力</h3>
+                            <p class="text-sm text-gray-600">评估专业技能和解决问题能力</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">权重</div>
+                        <div class="text-lg font-bold text-gray-900">30%</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">整体评分</label>
+                        <div class="rating-stars" data-dimension="ability">
+                            <i class="fas fa-star rating-star" data-rating="1"></i>
+                            <i class="fas fa-star rating-star" data-rating="2"></i>
+                            <i class="fas fa-star rating-star" data-rating="3"></i>
+                            <i class="fas fa-star rating-star" data-rating="4"></i>
+                            <i class="fas fa-star rating-star" data-rating="5"></i>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            当前评分: <span id="ability-score" class="font-medium">未评分</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">具体评价</label>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            rows="3" 
+                            placeholder="请详细描述该员工在工作能力方面的表现...">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 工作态度 -->
+            <div class="dimension-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-heart text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">工作态度</h3>
+                            <p class="text-sm text-gray-600">评估工作积极性和责任心</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">权重</div>
+                        <div class="text-lg font-bold text-gray-900">20%</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">整体评分</label>
+                        <div class="rating-stars" data-dimension="attitude">
+                            <i class="fas fa-star rating-star" data-rating="1"></i>
+                            <i class="fas fa-star rating-star" data-rating="2"></i>
+                            <i class="fas fa-star rating-star" data-rating="3"></i>
+                            <i class="fas fa-star rating-star" data-rating="4"></i>
+                            <i class="fas fa-star rating-star" data-rating="5"></i>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            当前评分: <span id="attitude-score" class="font-medium">未评分</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">具体评价</label>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            rows="3" 
+                            placeholder="请详细描述该员工在工作态度方面的表现...">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 团队协作 -->
+            <div class="dimension-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-orange-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">团队协作</h3>
+                            <p class="text-sm text-gray-600">评估团队合作和沟通能力</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">权重</div>
+                        <div class="text-lg font-bold text-gray-900">10%</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">整体评分</label>
+                        <div class="rating-stars" data-dimension="teamwork">
+                            <i class="fas fa-star rating-star" data-rating="1"></i>
+                            <i class="fas fa-star rating-star" data-rating="2"></i>
+                            <i class="fas fa-star rating-star" data-rating="3"></i>
+                            <i class="fas fa-star rating-star" data-rating="4"></i>
+                            <i class="fas fa-star rating-star" data-rating="5"></i>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            当前评分: <span id="teamwork-score" class="font-medium">未评分</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">具体评价</label>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            rows="3" 
+                            placeholder="请详细描述该员工在团队协作方面的表现...">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 综合评价 -->
+            <div class="dimension-card p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-clipboard-list text-gray-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">综合评价</h3>
+                        <p class="text-sm text-gray-600">总结性评价和改进建议</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">总体表现评价</label>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            rows="4" 
+                            placeholder="请对该员工的总体表现进行综合评价...">
+                        </textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">改进建议</label>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            rows="3" 
+                            placeholder="请提出具体的改进建议和发展方向...">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 评分汇总 -->
+            <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">评分汇总</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600">工作业绩</div>
+                        <div class="text-xl font-bold text-gray-900" id="performance-display">-</div>
+                        <div class="text-xs text-gray-500">权重 40%</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600">工作能力</div>
+                        <div class="text-xl font-bold text-gray-900" id="ability-display">-</div>
+                        <div class="text-xs text-gray-500">权重 30%</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600">工作态度</div>
+                        <div class="text-xl font-bold text-gray-900" id="attitude-display">-</div>
+                        <div class="text-xs text-gray-500">权重 20%</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600">团队协作</div>
+                        <div class="text-xl font-bold text-gray-900" id="teamwork-display">-</div>
+                        <div class="text-xs text-gray-500">权重 10%</div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-blue-200 pt-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm text-gray-600">加权总分</div>
+                            <div class="text-2xl font-bold text-blue-600" id="total-score">0.0</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-600">职级权重后</div>
+                            <div class="text-2xl font-bold text-green-600" id="weighted-score">0.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="flex justify-between items-center pt-6">
+                <button class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>上一步
+                </button>
+                
+                <div class="flex space-x-3">
+                    <button class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-save mr-2"></i>保存草稿
+                    </button>
+                    <button class="btn-primary px-6 py-3 rounded-lg" id="submit-evaluation">
+                        <i class="fas fa-check mr-2"></i>提交评价
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 评分系统
+        const ratings = {
+            performance: 0,
+            ability: 0,
+            attitude: 0,
+            teamwork: 0
+        };
+        
+        const weights = {
+            performance: 0.4,
+            ability: 0.3,
+            attitude: 0.2,
+            teamwork: 0.1
+        };
+        
+        // 星级评分交互
+        document.querySelectorAll('.rating-stars').forEach(container => {
+            const dimension = container.dataset.dimension;
+            const stars = container.querySelectorAll('.rating-star');
+            
+            stars.forEach((star, index) => {
+                star.addEventListener('click', () => {
+                    const rating = index + 1;
+                    ratings[dimension] = rating;
+                    
+                    // 更新星级显示
+                    stars.forEach((s, i) => {
+                        if (i < rating) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                    
+                    // 更新评分显示
+                    document.getElementById(`${dimension}-score`).textContent = `${rating}.0 分`;
+                    document.getElementById(`${dimension}-display`).textContent = `${rating}.0`;
+                    
+                    // 计算总分
+                    calculateTotalScore();
+                });
+                
+                star.addEventListener('mouseenter', () => {
+                    const rating = index + 1;
+                    stars.forEach((s, i) => {
+                        if (i < rating) {
+                            s.style.color = '#fbbf24';
+                        } else {
+                            s.style.color = '#d1d5db';
+                        }
+                    });
+                });
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                const currentRating = ratings[dimension];
+                stars.forEach((s, i) => {
+                    if (i < currentRating) {
+                        s.style.color = '#fbbf24';
+                    } else {
+                        s.style.color = '#d1d5db';
+                    }
+                });
+            });
+        });
+        
+        // 计算总分
+        function calculateTotalScore() {
+            let totalScore = 0;
+            let hasAllRatings = true;
+            
+            for (const dimension in ratings) {
+                if (ratings[dimension] === 0) {
+                    hasAllRatings = false;
+                    break;
+                }
+                totalScore += ratings[dimension] * weights[dimension];
+            }
+            
+            if (hasAllRatings) {
+                const weightedScore = totalScore * 1.2; // 职级权重
+                document.getElementById('total-score').textContent = totalScore.toFixed(1);
+                document.getElementById('weighted-score').textContent = weightedScore.toFixed(1);
+            }
+        }
+        
+        // 提交评价
+        document.getElementById('submit-evaluation').addEventListener('click', () => {
+            let hasAllRatings = true;
+            for (const dimension in ratings) {
+                if (ratings[dimension] === 0) {
+                    hasAllRatings = false;
+                    break;
+                }
+            }
+            
+            if (!hasAllRatings) {
+                alert('请完成所有维度的评分');
+                return;
+            }
+            
+            if (confirm('确认提交评价？提交后将无法修改。')) {
+                alert('评价提交成功！');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -11,7 +11,8 @@
 
     <div class="card">
       <div class="table-wrap">
-        <el-table :data="rows" v-loading="loading" border stripe>
+        <div v-loading="loading">
+          <el-table :data="rows" border stripe>
           <el-table-column prop="position_name" label="职位名称" min-width="200" />
           <el-table-column prop="position_level" label="职位级别" width="120">
             <template #default="{ row }">
@@ -85,6 +86,7 @@
             </template>
           </el-table-column>
         </el-table>
+        </div>
       </div>
       
       <div class="row" style="padding:12px 16px">

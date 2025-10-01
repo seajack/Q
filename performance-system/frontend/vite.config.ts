@@ -23,5 +23,18 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/org-api/, '/api')
       }
     }
+  },
+  optimizeDeps: {
+    include: ['element-plus', '@element-plus/icons-vue']
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'element-plus': ['element-plus'],
+          'element-icons': ['@element-plus/icons-vue']
+        }
+      }
+    }
   }
 })

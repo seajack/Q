@@ -6,7 +6,7 @@
       @click="showFeedbackDialog = true"
       class="feedback-trigger"
     >
-      <el-icon><ChatDotRound /></el-icon>
+      <el-icon><component :is="Icons.ChatDotRound" /></el-icon>
       申诉反馈
     </el-button>
 
@@ -63,7 +63,7 @@
             accept=".pdf,.doc,.docx,.jpg,.png"
           >
             <el-button type="primary" plain>
-              <el-icon><Upload /></el-icon>
+              <el-icon><component :is="Icons.Upload" /></el-icon>
               选择文件
             </el-button>
             <template #tip>
@@ -198,7 +198,7 @@
             <h4>附件</h4>
             <div class="attachments">
               <div v-for="file in currentFeedback.attachments" :key="file.id" class="attachment-item">
-                <el-icon><Document /></el-icon>
+                <el-icon><component :is="Icons.Document" /></el-icon>
                 <span>{{ file.name }}</span>
                 <el-button type="text" size="small">下载</el-button>
               </div>
@@ -224,8 +224,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, markRaw } from 'vue'
 import { ChatDotRound, Upload, Document } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  ChatDotRound,
+  Upload,
+  Document
+})
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, UploadFile } from 'element-plus'
 

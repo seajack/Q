@@ -6,7 +6,7 @@
         <div class="header-info">
           <div class="title-section">
             <h1 class="main-title">
-              <el-icon class="title-icon"><DataAnalysis /></el-icon>
+              <el-icon class="title-icon"><component :is="Icons.DataAnalysis" /></el-icon>
               报表中心
             </h1>
             <p class="subtitle">智能数据分析与可视化报表生成平台</p>
@@ -42,11 +42,11 @@
           
           <div class="action-buttons">
             <el-button type="primary" @click="generateReport" class="action-btn">
-              <el-icon><Refresh /></el-icon>
+              <el-icon><component :is="Icons.Refresh" /></el-icon>
               生成报表
             </el-button>
             <el-button @click="refreshData" class="action-btn">
-              <el-icon><RefreshRight /></el-icon>
+              <el-icon><component :is="Icons.RefreshRight" /></el-icon>
               刷新数据
             </el-button>
           </div>
@@ -68,14 +68,14 @@
         <div class="dashboard-header">
           <div class="header-info">
             <h2 class="dashboard-title">
-              <el-icon class="title-icon"><DataAnalysis /></el-icon>
+              <el-icon class="title-icon"><component :is="Icons.DataAnalysis" /></el-icon>
               概览报表
             </h2>
             <p class="dashboard-desc">核心指标概览与数据洞察</p>
           </div>
           <div class="header-actions">
             <el-button type="primary" @click="exportOverview" class="export-btn">
-              <el-icon><Download /></el-icon>
+              <el-icon><component :is="Icons.Download" /></el-icon>
               导出概览
             </el-button>
           </div>
@@ -86,7 +86,7 @@
           <div class="kpi-card modern-card completion">
             <div class="card-header">
               <div class="card-icon completion-icon">
-                <el-icon><TrendCharts /></el-icon>
+                <el-icon><component :is="Icons.TrendCharts" /></el-icon>
               </div>
               <div class="card-info">
                 <h3 class="card-title">完成率</h3>
@@ -110,7 +110,7 @@
           <div class="kpi-card modern-card score">
             <div class="card-header">
               <div class="card-icon score-icon">
-                <el-icon><PieChart /></el-icon>
+                <el-icon><component :is="Icons.PieChart" /></el-icon>
               </div>
               <div class="card-info">
                 <h3 class="card-title">平均评分</h3>
@@ -131,7 +131,7 @@
           <div class="kpi-card modern-card tasks">
             <div class="card-header">
               <div class="card-icon tasks-icon">
-                <el-icon><Document /></el-icon>
+                <el-icon><component :is="Icons.Document" /></el-icon>
               </div>
               <div class="card-info">
                 <h3 class="card-title">已完成任务</h3>
@@ -152,7 +152,7 @@
           <div class="kpi-card modern-card cycles">
             <div class="card-header">
               <div class="card-icon cycles-icon">
-                <el-icon><Refresh /></el-icon>
+                <el-icon><component :is="Icons.Refresh" /></el-icon>
               </div>
               <div class="card-info">
                 <h3 class="card-title">活跃周期</h3>
@@ -177,14 +177,14 @@
         <div class="dashboard-header">
           <div class="header-info">
             <h2 class="dashboard-title">
-              <el-icon class="title-icon"><PieChart /></el-icon>
+              <el-icon class="title-icon"><component :is="Icons.PieChart" /></el-icon>
               绩效分析报表
             </h2>
             <p class="dashboard-desc">详细的绩效分析，包含评分分布、部门对比等深度分析</p>
           </div>
           <div class="header-actions">
             <el-button type="primary" @click="exportPerformance" class="export-btn">
-              <el-icon><Download /></el-icon>
+              <el-icon><component :is="Icons.Download" /></el-icon>
               导出绩效分析
             </el-button>
           </div>
@@ -212,14 +212,14 @@
         <div class="dashboard-header">
           <div class="header-info">
             <h2 class="dashboard-title">
-              <el-icon class="title-icon"><TrendCharts /></el-icon>
+              <el-icon class="title-icon"><component :is="Icons.TrendCharts" /></el-icon>
               趋势分析报表
             </h2>
             <p class="dashboard-desc">展示绩效完成趋势、月度对比等时间序列分析</p>
           </div>
           <div class="header-actions">
             <el-button type="primary" @click="exportTrend" class="export-btn">
-              <el-icon><Download /></el-icon>
+              <el-icon><component :is="Icons.Download" /></el-icon>
               导出趋势分析
             </el-button>
           </div>
@@ -247,7 +247,7 @@
         <div class="dashboard-header">
           <div class="header-info">
             <h2 class="dashboard-title">
-              <el-icon class="title-icon"><Document /></el-icon>
+              <el-icon class="title-icon"><component :is="Icons.Document" /></el-icon>
               详细数据报表
             </h2>
             <p class="dashboard-desc">包含所有详细数据的表格形式报表，支持筛选和排序</p>
@@ -264,7 +264,7 @@
               <el-button @click="loadDetailedData" class="search-btn">搜索</el-button>
             </div>
             <el-button type="primary" @click="exportDetailed" class="export-btn">
-              <el-icon><Download /></el-icon>
+              <el-icon><component :is="Icons.Download" /></el-icon>
               导出详细数据
             </el-button>
           </div>
@@ -319,11 +319,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, markRaw } from 'vue'
 import * as echarts from 'echarts'
 import { cycleApi, taskApi, statsApi } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import { Edit, DataAnalysis, Refresh, RefreshRight, PieChart, TrendCharts, Document, Download } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Edit,
+  DataAnalysis,
+  Refresh,
+  RefreshRight,
+  PieChart,
+  TrendCharts,
+  Document,
+  Download
+})
 import ReportTemplates from '@/components/ReportTemplates.vue'
 import CustomReportBuilder from '@/components/CustomReportBuilder.vue'
 import ReportExporter from '@/components/ReportExporter.vue'

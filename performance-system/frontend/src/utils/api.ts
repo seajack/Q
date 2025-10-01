@@ -141,12 +141,63 @@ export const resultApi = {
   }),
 }
 
+// 考核结果API (别名，用于重构组件)
+export const resultsApi = resultApi
+
 // 统计API
 export const statsApi = {
   overview: () => api.get<EvaluationStats>('/stats/overview/'),
   cycleStats: (cycleId: number) => api.get(`/stats/cycle/${cycleId}/`),
   listEmployees: () => api.get('/employees/'),
   getEmployeeSkills: (employeeId: number) => api.get(`/employees/${employeeId}/skills/`),
+}
+
+// 系统设置API
+export const settingsApi = {
+  // 系统配置
+  config: {
+    get: () => api.get('/settings/config/'),
+    update: (data: any) => api.put('/settings/config/', data),
+  },
+  
+  // 用户管理
+  users: {
+    list: (params?: any) => api.get('/settings/users/', { params }),
+    create: (data: any) => api.post('/settings/users/', data),
+    get: (id: number) => api.get(`/settings/users/${id}/`),
+    update: (id: number, data: any) => api.put(`/settings/users/${id}/`, data),
+    delete: (id: number) => api.delete(`/settings/users/${id}/`),
+    changePassword: (id: number, data: any) => api.post(`/settings/users/${id}/change_password/`, data),
+  },
+  
+  // 角色权限
+  roles: {
+    list: (params?: any) => api.get('/settings/roles/', { params }),
+    create: (data: any) => api.post('/settings/roles/', data),
+    get: (id: number) => api.get(`/settings/roles/${id}/`),
+    update: (id: number, data: any) => api.put(`/settings/roles/${id}/`, data),
+    delete: (id: number) => api.delete(`/settings/roles/${id}/`),
+    permissions: (id: number) => api.get(`/settings/roles/${id}/permissions/`),
+    updatePermissions: (id: number, data: any) => api.put(`/settings/roles/${id}/permissions/`, data),
+  },
+  
+  // 系统日志
+  logs: {
+    list: (params?: any) => api.get('/settings/logs/', { params }),
+    get: (id: number) => api.get(`/settings/logs/${id}/`),
+    export: (params?: any) => api.get('/settings/logs/export/', { 
+      params,
+      responseType: 'blob'
+    }),
+  },
+  
+  // 数据备份
+  backup: {
+    list: () => api.get('/settings/backup/'),
+    create: () => api.post('/settings/backup/'),
+    restore: (id: number) => api.post(`/settings/backup/${id}/restore/`),
+    delete: (id: number) => api.delete(`/settings/backup/${id}/`),
+  },
 }
 
 // 组织架构中台API

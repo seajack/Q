@@ -5,7 +5,7 @@
       <template #header>
         <div class="card-header">
           <el-icon color="#F56C6C" size="20">
-            <Warning />
+            <component :is="Icons.Warning" />
           </el-icon>
           <span class="card-title">截止日期提醒</span>
           <el-badge :value="upcomingDeadlines.length" type="danger" />
@@ -96,8 +96,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, markRaw } from 'vue'
 import { Warning } from '@element-plus/icons-vue'
+
+// 使用 markRaw 防止图标组件被转换为响应式对象
+const Icons = markRaw({
+  Warning
+})
 import { ElMessage } from 'element-plus'
 
 // 响应式数据

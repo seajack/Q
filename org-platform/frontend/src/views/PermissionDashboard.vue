@@ -1,365 +1,162 @@
 <template>
   <div class="permission-dashboard">
-    <div class="page-header">
-      <h1>权限仪表板</h1>
-      <el-button @click="refreshData">
-        <el-icon><Refresh /></el-icon>
-        刷新数据
-      </el-button>
+    <div class="dashboard-header">
+      <h2>权限仪表板</h2>
+      <p>查看权限统计和操作日志</p>
     </div>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stats-cards">
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon permissions">
-              <el-icon><Key /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.permissions?.total || 0 }}</div>
-              <div class="stat-label">总权限数</div>
-              <div class="stat-detail">
-                <span class="active">{{ overview.permissions?.active || 0 }} 启用</span>
-                <span class="inactive">{{ overview.permissions?.inactive || 0 }} 禁用</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon roles">
-              <el-icon><UserFilled /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.roles?.total || 0 }}</div>
-              <div class="stat-label">总角色数</div>
-              <div class="stat-detail">
-                <span class="active">{{ overview.roles?.active || 0 }} 启用</span>
-                <span class="inactive">{{ overview.roles?.inactive || 0 }} 禁用</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon users">
-              <el-icon><User /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.users?.total || 0 }}</div>
-              <div class="stat-label">总用户数</div>
-              <div class="stat-detail">
-                <span class="with-roles">{{ overview.users?.with_roles || 0 }} 有角色</span>
-                <span class="without-roles">{{ overview.users?.without_roles || 0 }} 无角色</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon logs">
-              <el-icon><Document /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.logs || 0 }}</div>
-              <div class="stat-label">操作日志</div>
-              <div class="stat-detail">
-                <span class="recent">最近24小时</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 图表区域 -->
-    <el-row :gutter="20" class="charts-section">
-      <el-col :span="12">
-        <el-card class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span>权限类型分布</span>
-            </div>
-          </template>
-          <div ref="permissionTypeChart" class="chart-container"></div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="12">
-        <el-card class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span>角色类型分布</span>
-            </div>
-          </template>
-          <div ref="roleTypeChart" class="chart-container"></div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 最近权限操作 -->
-    <el-card class="recent-logs">
-      <template #header>
-        <div class="card-header">
-          <span>最近权限操作</span>
-          <el-button size="small" @click="loadRecentLogs">刷新</el-button>
+    <!-- 权限统计 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <el-icon><Key /></el-icon>
         </div>
-      </template>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.totalPermissions }}</div>
+          <div class="stat-label">总权限数</div>
+        </div>
+      </div>
       
+      <div class="stat-card">
+        <div class="stat-icon">
+          <el-icon><UserFilled /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.activeRoles }}</div>
+          <div class="stat-label">活跃角色</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <el-icon><User /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.totalUsers }}</div>
+          <div class="stat-label">用户总数</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <el-icon><Document /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.todayLogs }}</div>
+          <div class="stat-label">今日日志</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 权限操作日志 -->
+    <div class="logs-section">
+      <h3>最近权限操作</h3>
       <el-table :data="recentLogs" stripe>
         <el-table-column prop="user_name" label="用户" width="120" />
-        <el-table-column prop="action_type_display" label="操作类型" width="120" />
+        <el-table-column prop="action_type" label="操作类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getActionType(row.action_type)">
+              {{ getActionText(row.action_type) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="resource_type" label="资源类型" width="120" />
         <el-table-column prop="resource_id" label="资源ID" width="100" />
-        <el-table-column prop="result_display" label="结果" width="100">
+        <el-table-column prop="result" label="结果" width="100">
           <template #default="{ row }">
-            <el-tag :type="getResultType(row.result)" size="small">
+            <el-tag :type="getResultType(row.result)">
               {{ row.result_display }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="ip_address" label="IP地址" width="120" />
-        <el-table-column prop="created_at" label="操作时间" width="150" />
+        <el-table-column prop="created_at" label="时间" width="180" />
       </el-table>
-    </el-card>
-
-    <!-- 权限检查工具 -->
-    <el-card class="permission-checker">
-      <template #header>
-        <div class="card-header">
-          <span>权限检查工具</span>
-        </div>
-      </template>
-      
-      <div class="checker-form">
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-select v-model="checkUser" placeholder="选择用户" filterable>
-              <el-option
-                v-for="user in users"
-                :key="user.id"
-                :label="user.username"
-                :value="user.id"
-              />
-            </el-select>
-          </el-col>
-          <el-col :span="8">
-            <el-input v-model="checkPermission" placeholder="输入权限编码" />
-          </el-col>
-          <el-col :span="8">
-            <el-button type="primary" @click="checkUserPermission" :loading="checking">
-              检查权限
-            </el-button>
-          </el-col>
-        </el-row>
-        
-        <div v-if="checkResult" class="check-result">
-          <el-alert
-            :title="checkResult.has_permission ? '用户拥有该权限' : '用户没有该权限'"
-            :type="checkResult.has_permission ? 'success' : 'warning'"
-            :description="`用户ID: ${checkResult.user_id}, 权限编码: ${checkResult.permission_code}`"
-            show-icon
-          />
-        </div>
-      </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Refresh, Key, UserFilled, User, Document } from '@element-plus/icons-vue'
+import { ref, reactive, onMounted } from 'vue'
+import { Key, UserFilled, User, Document } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import * as echarts from 'echarts'
+import { permissionApi } from '@/utils/api'
 
-// 响应式数据
-const overview = reactive({
-  permissions: { total: 0, active: 0, inactive: 0 },
-  roles: { total: 0, active: 0, inactive: 0 },
-  users: { total: 0, with_roles: 0, without_roles: 0 },
-  logs: 0
+const stats = reactive({
+  totalPermissions: 0,
+  activeRoles: 0,
+  totalUsers: 0,
+  todayLogs: 0
 })
 
 const recentLogs = ref([])
-const users = ref([])
-const checkUser = ref('')
-const checkPermission = ref('')
-const checkResult = ref(null)
-const checking = ref(false)
 
-// 图表实例
-const permissionTypeChart = ref()
-const roleTypeChart = ref()
-let permissionTypeChartInstance: echarts.ECharts | null = null
-let roleTypeChartInstance: echarts.ECharts | null = null
-
-// 方法
-const loadOverview = async () => {
+const loadStats = async () => {
   try {
-    const response = await api.get('/permission/dashboard/overview/')
-    Object.assign(overview, response.data)
-  } catch (error) {
-    ElMessage.error('加载概览数据失败')
-  }
-}
-
-const loadRecentLogs = async () => {
-  try {
-    const response = await api.get('/permission/permission-logs/', {
-      params: { page_size: 10 }
-    })
-    recentLogs.value = response.results
-  } catch (error) {
-    ElMessage.error('加载操作日志失败')
-  }
-}
-
-const loadUsers = async () => {
-  try {
-    const response = await api.get('/simple-permission/users/')
-    users.value = response.data
-  } catch (error) {
-    console.error('加载用户列表失败:', error)
-  }
-}
-
-const refreshData = () => {
-  loadOverview()
-  loadRecentLogs()
-  ElMessage.success('数据已刷新')
-}
-
-const initCharts = async () => {
-  await nextTick()
-  
-  // 强制所有事件监听器为passive模式
-  const originalAddEventListener = EventTarget.prototype.addEventListener
-  EventTarget.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'wheel' || type === 'mousewheel') {
-      options = { passive: true, ...options }
+    // 加载权限统计
+    try {
+      const permissionsResponse = await permissionApi.permissions.list()
+      stats.totalPermissions = Array.isArray(permissionsResponse) ? permissionsResponse.length : 0
+    } catch (error) {
+      console.warn('权限API暂未实现')
+      stats.totalPermissions = 0
     }
-    return originalAddEventListener.call(this, type, listener, options)
-  }
-  
-  // 权限类型分布图表
-  if (permissionTypeChart.value) {
-    permissionTypeChartInstance = echarts.init(permissionTypeChart.value, null, {
-      renderer: 'canvas',
-      useDirtyRect: true
-    })
-    const permissionTypeData = overview.permission_types || []
-    const option = {
-      title: {
-        text: '权限类型分布',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'item',
-        formatter: '{a} <br/>{b}: {c} ({d}%)'
-      },
-      legend: {
-        orient: 'vertical',
-        left: 'left'
-      },
-      series: [
-        {
-          name: '权限类型',
-          type: 'pie',
-          radius: '50%',
-          data: permissionTypeData.map(item => ({
-            value: item.count,
-            name: item.permission_type
-          })),
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
-          }
-        }
-      ]
+
+    // 加载角色统计
+    try {
+      const rolesResponse = await permissionApi.roles.list()
+      stats.activeRoles = Array.isArray(rolesResponse) ? rolesResponse.length : 0
+    } catch (error) {
+      console.warn('角色API暂未实现')
+      stats.activeRoles = 0
     }
-    permissionTypeChartInstance.setOption(option)
-  }
 
-  // 角色类型分布图表
-  if (roleTypeChart.value) {
-    roleTypeChartInstance = echarts.init(roleTypeChart.value, null, {
-      renderer: 'canvas',
-      useDirtyRect: true
-    })
-    const roleTypeData = overview.role_types || []
-    const option = {
-      title: {
-        text: '角色类型分布',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'item',
-        formatter: '{a} <br/>{b}: {c} ({d}%)'
-      },
-      legend: {
-        orient: 'vertical',
-        left: 'left'
-      },
-      series: [
-        {
-          name: '角色类型',
-          type: 'pie',
-          radius: '50%',
-          data: roleTypeData.map(item => ({
-            value: item.count,
-            name: item.role_type
-          })),
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
-          }
-        }
-      ]
+    // 加载用户统计
+    try {
+      const usersResponse = await permissionApi.users.list()
+      stats.totalUsers = Array.isArray(usersResponse) ? usersResponse.length : 0
+    } catch (error) {
+      console.warn('用户API暂未实现')
+      stats.totalUsers = 0
     }
-    roleTypeChartInstance.setOption(option)
-  }
 
-  // 恢复原始的addEventListener
-  EventTarget.prototype.addEventListener = originalAddEventListener
-}
-
-const checkUserPermission = async () => {
-  if (!checkUser.value || !checkPermission.value) {
-    ElMessage.warning('请选择用户并输入权限编码')
-    return
-  }
-
-  checking.value = true
-  try {
-    const response = await api.get('/permission/dashboard/check_permission/', {
-      params: {
-        user_id: checkUser.value,
-        permission_code: checkPermission.value
+    // 加载日志统计
+    try {
+      const logsResponse = await permissionApi.logs.list()
+      if (Array.isArray(logsResponse)) {
+        stats.todayLogs = logsResponse.length
+        recentLogs.value = logsResponse.slice(0, 10)
+      } else {
+        stats.todayLogs = 0
+        recentLogs.value = []
       }
-    })
-    checkResult.value = response.data
+    } catch (error) {
+      console.warn('权限日志API暂未实现')
+      stats.todayLogs = 0
+      recentLogs.value = []
+    }
   } catch (error) {
-    ElMessage.error('权限检查失败')
-  } finally {
-    checking.value = false
+    console.error('加载权限统计失败:', error)
   }
+}
+
+const getActionType = (actionType: string) => {
+  const typeMap: Record<string, string> = {
+    grant: 'success',
+    revoke: 'danger',
+    inherit: 'primary',
+    expire: 'warning'
+  }
+  return typeMap[actionType] || 'info'
+}
+
+const getActionText = (actionType: string) => {
+  const textMap: Record<string, string> = {
+    grant: '授权',
+    revoke: '撤销',
+    inherit: '继承',
+    expire: '过期'
+  }
+  return textMap[actionType] || actionType
 }
 
 const getResultType = (result: string) => {
@@ -371,21 +168,8 @@ const getResultType = (result: string) => {
   return typeMap[result] || 'info'
 }
 
-// 生命周期
-onMounted(async () => {
-  await loadOverview()
-  await loadRecentLogs()
-  await loadUsers()
-  await initCharts()
-})
-
-onUnmounted(() => {
-  if (permissionTypeChartInstance) {
-    permissionTypeChartInstance.dispose()
-  }
-  if (roleTypeChartInstance) {
-    roleTypeChartInstance.dispose()
-  }
+onMounted(() => {
+  loadStats()
 })
 </script>
 
@@ -394,53 +178,50 @@ onUnmounted(() => {
   padding: 20px;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.dashboard-header {
   margin-bottom: 30px;
 }
 
-.stats-cards {
+.dashboard-header h2 {
+  margin: 0 0 10px 0;
+  color: #303133;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: #606266;
+  font-size: 14px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
   margin-bottom: 30px;
 }
 
 .stat-card {
-  height: 120px;
-}
-
-.stat-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  height: 100%;
+  gap: 15px;
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
-  font-size: 24px;
+  font-size: 20px;
   color: white;
-}
-
-.stat-icon.permissions {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-icon.roles {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-icon.users {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-icon.logs {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
 .stat-info {
@@ -448,7 +229,7 @@ onUnmounted(() => {
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
   color: #303133;
   line-height: 1;
@@ -456,72 +237,14 @@ onUnmounted(() => {
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #606266;
-  margin-bottom: 8px;
-}
-
-.stat-detail {
   font-size: 12px;
-  color: #909399;
+  color: #606266;
 }
 
-.stat-detail .active {
-  color: #67c23a;
-  margin-right: 10px;
-}
-
-.stat-detail .inactive {
-  color: #f56c6c;
-  margin-right: 10px;
-}
-
-.stat-detail .with-roles {
-  color: #409eff;
-  margin-right: 10px;
-}
-
-.stat-detail .without-roles {
-  color: #e6a23c;
-  margin-right: 10px;
-}
-
-.stat-detail .recent {
-  color: #909399;
-}
-
-.charts-section {
-  margin-bottom: 30px;
-}
-
-.chart-card {
-  height: 400px;
-}
-
-.chart-container {
-  height: 300px;
-  width: 100%;
-}
-
-.recent-logs {
-  margin-bottom: 30px;
-}
-
-.permission-checker {
-  margin-bottom: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.checker-form {
-  padding: 20px 0;
-}
-
-.check-result {
-  margin-top: 20px;
+.logs-section h3 {
+  margin: 0 0 20px 0;
+  color: #303133;
+  font-size: 18px;
+  font-weight: 600;
 }
 </style>

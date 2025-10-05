@@ -112,7 +112,10 @@
             
             <div class="dictionary-info">
               <h4 class="dictionary-name">{{ dictionary.name }}</h4>
-              <p class="dictionary-code">{{ dictionary.code }}</p>
+              <div class="dictionary-value" v-if="dictionary.value">
+                <span class="value-label">配置值</span>
+                <span class="value-content">{{ dictionary.value }}</span>
+              </div>
               <div class="dictionary-meta">
                 <el-tag :type="getCategoryType(dictionary.category)" size="small" effect="plain">
                   {{ getCategoryName(dictionary.category) }}
@@ -121,12 +124,8 @@
               </div>
             </div>
             
-            <div class="dictionary-details">
-              <div class="detail-item" v-if="dictionary.value">
-                <span class="detail-label">值</span>
-                <span class="detail-value">{{ dictionary.value }}</span>
-              </div>
-              <div class="detail-item" v-if="dictionary.parent_name">
+            <div class="dictionary-details" v-if="dictionary.parent_name">
+              <div class="detail-item">
                 <span class="detail-label">父级</span>
                 <span class="detail-value">{{ dictionary.parent_name }}</span>
               </div>
@@ -213,7 +212,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, User, GraduationCap, Trophy, Female, OfficeBuilding, Suitcase, Operation } from '@element-plus/icons-vue'
+import { Search, User, Reading, Trophy, Female, OfficeBuilding, Suitcase, Operation } from '@element-plus/icons-vue'
 import { dictionaryApi } from '@/utils/api'
 import ModernPageHeader from '@/components/common/ModernPageHeader.vue'
 import ModernStatCard from '@/components/common/ModernStatCard.vue'
@@ -234,7 +233,7 @@ const selectedDictionary = ref<any | null>(null)
 const dictionaryCategories = [
   { value: '', name: '全部分类', icon: 'Collection', iconClass: 'icon-all' },
   { value: 'employee_status', name: '员工状态', icon: 'User', iconClass: 'icon-employee' },
-  { value: 'education_level', name: '学历层次', icon: 'GraduationCap', iconClass: 'icon-education' },
+  { value: 'education_level', name: '学历层次', icon: 'Reading', iconClass: 'icon-education' },
   { value: 'skill_level', name: '技能等级', icon: 'Trophy', iconClass: 'icon-skill' },
   { value: 'marital_status', name: '婚姻状况', icon: 'Female', iconClass: 'icon-marital' },
   { value: 'department_type', name: '部门类型', icon: 'OfficeBuilding', iconClass: 'icon-department' },
@@ -286,7 +285,7 @@ const filteredDictionaries = computed(() => {
 const getDictionaryIcon = (category: string) => {
   const iconMap = {
     employee_status: 'User',
-    education_level: 'GraduationCap',
+    education_level: 'Reading',
     skill_level: 'Trophy',
     marital_status: 'Female',
     department_type: 'OfficeBuilding',
@@ -549,7 +548,7 @@ onMounted(() => {
 
 .dictionaries-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -557,7 +556,7 @@ onMounted(() => {
 .dictionary-card {
   background: white;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.75rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border: 1px solid #e2e8f0;
   cursor: pointer;
@@ -566,15 +565,7 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.dictionary-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #6366f1, #4f46e5);
-}
+/* 移除顶部蓝色横条 */
 
 .dictionary-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -585,7 +576,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .dictionary-icon {
@@ -607,7 +598,7 @@ onMounted(() => {
 }
 
 .dictionary-info {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .dictionary-name {
@@ -617,15 +608,31 @@ onMounted(() => {
   margin: 0 0 0.25rem 0;
 }
 
-.dictionary-code {
+.dictionary-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dictionary-value .value-label {
   font-size: 0.75rem;
   color: #6b7280;
-  background: #f3f4f6;
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.dictionary-value .value-content {
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+  color: #1f2937;
+  background: #f8fafc;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  text-align: right;
+  min-width: 80px;
   display: inline-block;
-  margin: 0 0 0.75rem 0;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 .dictionary-meta {
@@ -644,8 +651,8 @@ onMounted(() => {
 }
 
 .dictionary-details {
-  margin-bottom: 1rem;
-  min-height: 2.5rem;
+  margin-bottom: 0.75rem;
+  min-height: 1.5rem;
 }
 
 .detail-item {

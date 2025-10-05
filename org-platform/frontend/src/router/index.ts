@@ -1,7 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { setupAuthGuards } from './guards'
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '登录' }
+  },
   {
     path: '/',
     component: () => import('@/layouts/SidebarLayout.vue'),
@@ -98,6 +105,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '编辑工作流' }
       },
       {
+        path: 'workflow-templates',
+        name: 'WorkflowTemplates',
+        component: () => import('@/views/WorkflowTemplates.vue'),
+        meta: { title: '流程模板' }
+      },
+      {
         path: 'intelligent-analysis',
         name: 'IntelligentAnalysis',
         component: () => import('@/views/IntelligentAnalysis.vue'),
@@ -110,33 +123,9 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '集成管理' }
       },
       {
-        path: 'integration-dashboard',
-        name: 'IntegrationDashboard',
-        component: () => import('@/views/IntegrationDashboard.vue'),
-        meta: { title: '集成仪表板' }
-      },
-      {
-        path: 'integration-systems',
-        name: 'IntegrationSystems',
-        component: () => import('@/views/IntegrationSystems.vue'),
-        meta: { title: '集成系统' }
-      },
-      {
-        path: 'api-gateways',
-        name: 'APIGateways',
-        component: () => import('@/views/APIGateways.vue'),
-        meta: { title: 'API网关' }
-      },
-      {
-        path: 'data-sync-rules',
-        name: 'DataSyncRules',
-        component: () => import('@/views/DataSyncRules.vue'),
-        meta: { title: '数据同步规则' }
-      },
-      {
         path: 'permission-management',
         name: 'PermissionManagement',
-        component: () => import('@/views/PermissionManagement.vue'),
+        component: () => import('@/views/PermissionManagementMain.vue'),
         meta: { title: '权限管理' }
       },
       {
@@ -177,5 +166,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// 设置认证守卫
+setupAuthGuards(router)
 
 export default router

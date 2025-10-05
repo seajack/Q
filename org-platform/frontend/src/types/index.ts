@@ -85,6 +85,13 @@ export interface OrganizationStats {
   active_employees: number
   department_levels: Array<{ level: number; count: number }>
   position_levels: Array<{ level: number; count: number }>
+  employee_skills?: Array<{
+    employee_name: string
+    dimensions: Array<{
+      name: string
+      value: number
+    }>
+  }>
 }
 
 // API响应类型

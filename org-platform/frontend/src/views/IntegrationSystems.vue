@@ -433,10 +433,10 @@ const save = async () => {
 const testConnection = async (row: any) => {
   try {
     const response = await api.post(`/integration/systems/${row.id}/test_connection/`)
-    if (response.data.success) {
+    if (response.success) {
       ElMessage.success('连接测试成功')
     } else {
-      ElMessage.error(`连接测试失败: ${response.data.message}`)
+      ElMessage.error(`连接测试失败: ${response.message}`)
     }
   } catch (error) {
     ElMessage.error('连接测试失败')

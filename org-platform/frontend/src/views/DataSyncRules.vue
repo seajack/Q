@@ -561,10 +561,10 @@ const executeSync = async (row: any) => {
     })
     
     const response = await api.post(`/integration/sync-rules/${row.id}/execute_sync/`)
-    if (response.data.success) {
+    if (response.success) {
       ElMessage.success('同步执行成功')
     } else {
-      ElMessage.error(`同步执行失败: ${response.data.error}`)
+      ElMessage.error(`同步执行失败: ${response.error}`)
     }
   } catch (error) {
     if (error !== 'cancel') {

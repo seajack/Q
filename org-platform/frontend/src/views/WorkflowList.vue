@@ -30,31 +30,6 @@
         </div>
       </div>
 
-      <div class="action-card" @click="goToTemplates">
-        <div class="card-icon">
-          <el-icon><Document /></el-icon>
-        </div>
-        <div class="card-content">
-          <h3>流程模板</h3>
-          <p>使用预设模板快速创建</p>
-        </div>
-        <div class="card-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
-
-      <div class="action-card" @click="goToAnalysis">
-        <div class="card-icon">
-          <el-icon><DataAnalysis /></el-icon>
-        </div>
-        <div class="card-content">
-          <h3>智能分析</h3>
-          <p>组织架构智能分析平台</p>
-        </div>
-        <div class="card-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
     </div>
 
     <!-- 工作流列表 -->
@@ -334,14 +309,6 @@ const goToDesigner = () => {
   router.push('/workflow-designer')
 }
 
-const goToTemplates = () => {
-  // 显示模板选择对话框
-  showTemplateDialog.value = true
-}
-
-const goToAnalysis = () => {
-  router.push('/intelligent-analysis')
-}
 
 const createWorkflow = () => {
   showCreateDialog.value = true

@@ -366,6 +366,7 @@ class OrganizationStatsSerializer(serializers.Serializer):
     active_employees = serializers.IntegerField()
     department_levels = serializers.ListField(child=serializers.DictField())
     position_levels = serializers.ListField(child=serializers.DictField())
+    employee_skills = serializers.ListField(child=serializers.DictField(), required=False)
 
 
 # 配置数据序列化器

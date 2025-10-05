@@ -8,9 +8,6 @@
       color="emerald"
     >
       <template #actions>
-        <ModernButton type="secondary" icon="Monitor">
-          系统监控
-        </ModernButton>
         <ModernButton type="primary" icon="Plus">
           新增集成
         </ModernButton>
@@ -21,106 +18,72 @@
     <div class="stats-grid">
       <ModernStatCard
         title="集成系统"
-        :value="stats.systems || 0"
+        :value="overview.systems?.total || 0"
+        :subtitle="`活跃: ${overview.systems?.active || 0} | 禁用: ${overview.systems?.inactive || 0}`"
         change="+2 本月"
         change-type="positive"
         icon="Monitor"
         icon-type="success"
+        card-type="systems"
+        :trend="true"
+        trend-type="up"
       />
       <ModernStatCard
         title="API网关"
-        :value="stats.gateways || 0"
+        :value="overview.systems?.total || 0"
+        :subtitle="`路由: 5 | 活跃: ${overview.systems?.active || 0}`"
         change="+1 本月"
         change-type="positive"
         icon="Connection"
         icon-type="primary"
+        card-type="gateways"
+        :trend="true"
+        trend-type="up"
       />
       <ModernStatCard
         title="同步规则"
-        :value="stats.syncRules || 0"
+        :value="overview.sync_rules?.total || 0"
+        :subtitle="`活跃: ${overview.sync_rules?.active || 0} | 禁用: ${overview.sync_rules?.inactive || 0}`"
         change="+3 本月"
         change-type="positive"
         icon="Refresh"
         icon-type="warning"
+        card-type="sync"
+        :trend="true"
+        trend-type="up"
       />
       <ModernStatCard
         title="在线系统"
-        :value="getOnlineSystems()"
+        :value="overview.recent_syncs?.total || 0"
+        :subtitle="`成功率: ${overview.recent_syncs?.success_rate?.toFixed(1) || 0}%`"
         change="100% 在线"
         change-type="positive"
         icon="CircleCheck"
         icon-type="success"
+        card-type="online"
+        :trend="true"
+        trend-type="stable"
       />
     </div>
 
     <!-- 主内容区域 -->
     <div class="main-content">
-      <!-- 功能导航 -->
-      <ModernCard title="功能导航" icon="Menu" class="feature-nav">
-        <div class="feature-grid">
-          <div class="feature-item" @click="navigateTo('/integration-dashboard')">
-            <div class="feature-icon dashboard">
-              <el-icon><DataAnalysis /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>集成仪表板</h4>
-              <p>查看系统状态和性能指标</p>
-            </div>
-          </div>
-          
-          <div class="feature-item" @click="navigateTo('/integration-systems')">
-            <div class="feature-icon systems">
-              <el-icon><Monitor /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>集成系统</h4>
-              <p>管理第三方系统连接</p>
-            </div>
-          </div>
-          
-          <div class="feature-item" @click="navigateTo('/api-gateways')">
-            <div class="feature-icon gateways">
-              <el-icon><Connection /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>API网关</h4>
-              <p>配置API路由和限流</p>
-            </div>
-          </div>
-          
-          <div class="feature-item" @click="navigateTo('/data-sync-rules')">
-            <div class="feature-icon sync">
-              <el-icon><Refresh /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>数据同步</h4>
-              <p>配置同步规则和映射</p>
-            </div>
-          </div>
-        </div>
-      </ModernCard>
-
-      <!-- 最近活动 -->
-      <ModernCard title="最近活动" icon="Clock" class="activity-card">
-        <template #actions>
-          <ModernButton type="secondary" icon="Refresh" size="small" @click="refreshActivity">
-            刷新
-          </ModernButton>
-        </template>
-        
-        <el-timeline>
-          <el-timeline-item
-            v-for="activity in recentActivities"
-            :key="activity.id"
-            :timestamp="activity.timestamp"
-            :type="activity.type"
-          >
-            <div class="activity-content">
-              <div class="activity-title">{{ activity.title }}</div>
-              <div class="activity-description">{{ activity.description }}</div>
-            </div>
-          </el-timeline-item>
-        </el-timeline>
+      <!-- 功能标签页 -->
+      <ModernCard title="集成管理" icon="Menu" class="feature-tabs">
+        <el-tabs v-model="activeTab" type="card" class="integration-tabs">
+          <el-tab-pane label="系统监控" name="dashboard">
+            <IntegrationDashboard />
+          </el-tab-pane>
+          <el-tab-pane label="集成系统" name="systems">
+            <IntegrationSystems />
+          </el-tab-pane>
+          <el-tab-pane label="API网关" name="gateways">
+            <APIGateways />
+          </el-tab-pane>
+          <el-tab-pane label="数据同步" name="sync">
+            <DataSyncRules />
+          </el-tab-pane>
+        </el-tabs>
       </ModernCard>
     </div>
 
@@ -137,14 +100,28 @@ import ModernPageHeader from '@/components/common/ModernPageHeader.vue'
 import ModernStatCard from '@/components/common/ModernStatCard.vue'
 import ModernCard from '@/components/common/ModernCard.vue'
 import ModernButton from '@/components/common/ModernButton.vue'
+// 导入集成管理相关组件
+import IntegrationDashboard from './IntegrationDashboard.vue'
+import IntegrationSystems from './IntegrationSystems.vue'
+import APIGateways from './APIGateways.vue'
+import DataSyncRules from './DataSyncRules.vue'
 
 const router = useRouter()
 
 // 响应式数据
+const activeTab = ref('dashboard')
 const stats = reactive({
   systems: 0,
   gateways: 0,
   syncRules: 0
+})
+
+// 概览数据
+const overview = reactive({
+  systems: { total: 0, active: 0, inactive: 0 },
+  sync_rules: { total: 0, active: 0, inactive: 0 },
+  api_requests: { total: 0, success_rate: 0 },
+  recent_syncs: { total: 0, success_rate: 0 }
 })
 
 // 统计方法
@@ -184,12 +161,17 @@ const recentActivities = ref([
 ])
 
 // 方法
-const navigateTo = (path: string) => {
-  router.push(path)
-}
-
 const loadStats = async () => {
   try {
+    // 加载概览数据
+    try {
+      const overviewResponse = await api.get('/integration/dashboard/overview/')
+      Object.assign(overview, overviewResponse)
+    } catch (error) {
+      console.warn('概览数据API暂未实现，使用默认值')
+      // 使用默认值
+    }
+
     // 加载系统统计
     try {
       const systemsResponse = await api.get('/simple-integration/systems/')
@@ -221,10 +203,6 @@ const loadStats = async () => {
   }
 }
 
-const refreshActivity = () => {
-  ElMessage.success('活动列表已刷新')
-}
-
 // 生命周期
 onMounted(() => {
   loadStats()
@@ -250,112 +228,30 @@ onMounted(() => {
 
 /* 主内容区域 */
 .main-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  display: block;
 }
 
-/* 功能导航 */
-.feature-nav {
+/* 功能标签页 */
+.feature-tabs {
   height: fit-content;
 }
 
-.feature-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+.integration-tabs {
   margin-top: 1rem;
 }
 
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
-  background: white;
+.integration-tabs .el-tabs__content {
+  padding: 1rem 0;
 }
 
-.feature-item:hover {
-  background: #f8fafc;
-  border-color: #10b981;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-}
-
-.feature-icon.dashboard {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.feature-icon.systems {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-}
-
-.feature-icon.gateways {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-}
-
-.feature-icon.sync {
-  background: linear-gradient(135deg, #43e97b, #38f9d7);
-}
-
-.feature-info h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.feature-info p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
-/* 活动卡片 */
-.activity-card {
-  height: fit-content;
-}
-
-.activity-content {
-  padding-left: 10px;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
-  font-size: 0.875rem;
-}
-
-.activity-description {
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.4;
+.integration-tabs .el-tab-pane {
+  min-height: 600px;
 }
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
   .main-content {
-    grid-template-columns: 1fr;
-  }
-  
-  .feature-grid {
-    grid-template-columns: 1fr;
+    display: block;
   }
 }
 
@@ -367,10 +263,6 @@ onMounted(() => {
   .stats-grid {
     grid-template-columns: 1fr 1fr;
   }
-  
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 480px) {
@@ -379,153 +271,4 @@ onMounted(() => {
   }
 }
 
-.page-header {
-  margin-bottom: 30px;
-}
-
-.page-header h1 {
-  margin: 0 0 10px 0;
-  color: #303133;
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.page-description {
-  margin: 0;
-  color: #606266;
-  font-size: 14px;
-}
-
-.feature-cards {
-  margin-bottom: 30px;
-}
-
-.feature-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 120px;
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.card-content {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.card-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 24px;
-  color: white;
-}
-
-.card-icon.dashboard {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.card-icon.systems {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.card-icon.gateways {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.card-icon.sync {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.card-info h3 {
-  margin: 0 0 8px 0;
-  color: #303133;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.card-info p {
-  margin: 0;
-  color: #606266;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.stats-section {
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  height: 80px;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 20px;
-  color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #303133;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #606266;
-}
-
-.recent-activity {
-  margin-bottom: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.activity-content {
-  padding-left: 10px;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 4px;
-}
-
-.activity-description {
-  font-size: 12px;
-  color: #606266;
-  line-height: 1.4;
-}
 </style>

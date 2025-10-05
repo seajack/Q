@@ -356,6 +356,49 @@ class OrganizationStatsView(viewsets.GenericViewSet):
             .annotate(count=Count('id')) \
             .order_by('level')
         
+        # 员工技能统计（模拟数据，实际项目中需要根据具体业务逻辑实现）
+        employee_skills = []
+        try:
+            # 获取前5个活跃员工作为示例
+            sample_employees = Employee.objects.filter(status='active')[:5]
+            for i, employee in enumerate(sample_employees):
+                # 模拟技能数据
+                skills_data = {
+                    'employee_name': employee.name,
+                    'dimensions': [
+                        {'name': '技术能力', 'value': 70 + (i * 5)},
+                        {'name': '沟通能力', 'value': 80 + (i * 3)},
+                        {'name': '领导力', 'value': 60 + (i * 8)},
+                        {'name': '学习能力', 'value': 85 + (i * 2)},
+                        {'name': '创新能力', 'value': 75 + (i * 4)}
+                    ]
+                }
+                employee_skills.append(skills_data)
+        except Exception as e:
+            # 如果获取员工数据失败，使用默认模拟数据
+            employee_skills = [
+                {
+                    'employee_name': '张三',
+                    'dimensions': [
+                        {'name': '技术能力', 'value': 85},
+                        {'name': '沟通能力', 'value': 90},
+                        {'name': '领导力', 'value': 75},
+                        {'name': '学习能力', 'value': 95},
+                        {'name': '创新能力', 'value': 80}
+                    ]
+                },
+                {
+                    'employee_name': '李四',
+                    'dimensions': [
+                        {'name': '技术能力', 'value': 90},
+                        {'name': '沟通能力', 'value': 85},
+                        {'name': '领导力', 'value': 95},
+                        {'name': '学习能力', 'value': 80},
+                        {'name': '创新能力', 'value': 90}
+                    ]
+                }
+            ]
+        
         stats_data = {
             'total_departments': total_departments,
             'active_departments': active_departments,
@@ -365,6 +408,7 @@ class OrganizationStatsView(viewsets.GenericViewSet):
             'active_employees': active_employees,
             'department_levels': list(department_levels),
             'position_levels': list(position_levels),
+            'employee_skills': employee_skills,
         }
         
         serializer = OrganizationStatsSerializer(stats_data)

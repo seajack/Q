@@ -5,9 +5,9 @@
       <div class="sidebar-header">
         <div class="logo-container">
           <div class="logo-icon">
-            <img src="/logo.svg" alt="企业Logo" class="logo-image">
+            <img src="/logo.jpg" alt="企业Logo" class="logo-image">
           </div>
-          <div class="logo-text" v-show="!isCollapsed">组织中台</div>
+          <div class="logo-text" v-show="!isCollapsed">组织架构中台</div>
         </div>
         <div class="collapse-btn" @click="toggleSidebar">
           <el-icon><component :is="isCollapsed ? 'Expand' : 'Fold'" /></el-icon>
@@ -32,10 +32,22 @@
               <el-icon><OfficeBuilding /></el-icon>
               <span>组织管理</span>
             </template>
-            <el-menu-item index="/departments">部门管理</el-menu-item>
-            <el-menu-item index="/positions">职位管理</el-menu-item>
-            <el-menu-item index="/organization-tree">组织架构</el-menu-item>
-            <el-menu-item index="/position-templates">职位模板</el-menu-item>
+            <el-menu-item index="/departments">
+              <el-icon><OfficeBuilding /></el-icon>
+              <template #title>部门管理</template>
+            </el-menu-item>
+            <el-menu-item index="/positions">
+              <el-icon><OfficeBuilding /></el-icon>
+              <template #title>职位管理</template>
+            </el-menu-item>
+            <el-menu-item index="/organization-tree">
+              <el-icon><Share /></el-icon>
+              <template #title>组织架构</template>
+            </el-menu-item>
+            <el-menu-item index="/position-templates">
+              <el-icon><Document /></el-icon>
+              <template #title>职位模板</template>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="employee">
@@ -43,9 +55,18 @@
               <el-icon><User /></el-icon>
               <span>人员管理</span>
             </template>
-            <el-menu-item index="/employees">员工列表</el-menu-item>
-            <el-menu-item index="/employee-onboarding">入职管理</el-menu-item>
-            <el-menu-item index="/employee-offboarding">离职管理</el-menu-item>
+            <el-menu-item index="/employees">
+              <el-icon><UserFilled /></el-icon>
+              <template #title>员工列表</template>
+            </el-menu-item>
+            <el-menu-item index="/employee-onboarding">
+              <el-icon><Plus /></el-icon>
+              <template #title>入职管理</template>
+            </el-menu-item>
+            <el-menu-item index="/employee-offboarding">
+              <el-icon><Minus /></el-icon>
+              <template #title>离职管理</template>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="workflow">
@@ -53,9 +74,18 @@
               <el-icon><Connection /></el-icon>
               <span>工作流管理</span>
             </template>
-            <el-menu-item index="/workflow-rules">工作流规则</el-menu-item>
-            <el-menu-item index="/workflow-list">工作流列表</el-menu-item>
-            <el-menu-item index="/workflow-templates">流程模板</el-menu-item>
+            <el-menu-item index="/workflow-rules">
+              <el-icon><Operation /></el-icon>
+              <template #title>工作流规则</template>
+            </el-menu-item>
+            <el-menu-item index="/workflow-list">
+              <el-icon><List /></el-icon>
+              <template #title>工作流列表</template>
+            </el-menu-item>
+            <el-menu-item index="/workflow-templates">
+              <el-icon><Files /></el-icon>
+              <template #title>流程模板</template>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-menu-item index="/intelligent-analysis">
@@ -68,11 +98,26 @@
               <el-icon><Setting /></el-icon>
               <span>系统设置</span>
             </template>
-            <el-menu-item index="/dictionaries">数据字典</el-menu-item>
-            <el-menu-item index="/configs">系统配置</el-menu-item>
-            <el-menu-item index="/integration-management">集成管理</el-menu-item>
-            <el-menu-item index="/permission-management">权限管理</el-menu-item>
-            <el-menu-item index="/tenant-management">多租户管理</el-menu-item>
+            <el-menu-item index="/dictionaries">
+              <el-icon><Collection /></el-icon>
+              <template #title>数据字典</template>
+            </el-menu-item>
+            <el-menu-item index="/configs">
+              <el-icon><Tools /></el-icon>
+              <template #title>系统配置</template>
+            </el-menu-item>
+            <el-menu-item index="/integration-management">
+              <el-icon><Link /></el-icon>
+              <template #title>集成管理</template>
+            </el-menu-item>
+            <el-menu-item index="/permission-management">
+              <el-icon><Lock /></el-icon>
+              <template #title>权限管理</template>
+            </el-menu-item>
+            <el-menu-item index="/tenant-management">
+              <el-icon><House /></el-icon>
+              <template #title>多租户管理</template>
+            </el-menu-item>
           </el-sub-menu>
         </el-menu>
       </el-scrollbar>
@@ -226,11 +271,15 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import api from '@/utils/request'
+import { handleLogout } from '@/router/guards'
+import { userManager } from '@/utils/auth'
 import {
   Fold, Expand, DataBoard, OfficeBuilding, User, Connection,
   TrendCharts, Setting, Bell, Search, ArrowDown, Moon, Sunny,
   QuestionFilled, SwitchButton, InfoFilled, WarningFilled, 
-  SuccessFilled, CircleCloseFilled
+  SuccessFilled, CircleCloseFilled, Share, Document, UserFilled, 
+  Plus, Minus, Operation, List, Files, Collection, Tools, 
+  Link, Lock, House
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -243,8 +292,9 @@ const activeMenu = ref('')
 const breadcrumbs = ref<string[]>([])
 
 // 用户信息
-const userName = ref('管理员')
-const userRole = ref('系统管理员')
+const userInfo = ref(userManager.getUserInfo())
+const userName = computed(() => userInfo.value?.name || '管理员')
+const userRole = computed(() => userInfo.value?.role || '系统管理员')
 const userInitials = computed(() => userName.value.slice(0, 2))
 
 // 搜索
@@ -322,8 +372,7 @@ const handleCommand = (command: string) => {
       window.open('/help', '_blank')
       break
     case 'logout':
-      // 实现登出逻辑
-      console.log('登出')
+      handleLogout(router)
       break
   }
 }
@@ -502,17 +551,8 @@ onMounted(() => {
 }
 
 /* 调试信息 */
-.sidebar::after {
-  content: "当前侧边栏背景色: #2a3a6f (灰暗色调)";
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  color: white;
-  font-size: 12px;
-  background: rgba(0,0,0,0.5);
-  padding: 5px;
-  border-radius: 3px;
-}
+/* 
+ */
 
 .app-container.sidebar-collapsed .sidebar {
   width: 64px;
@@ -546,7 +586,7 @@ onMounted(() => {
 }
 
 .logo-image {
-  height: 20px;
+  height: 30px;
   width: auto;
   background: transparent;
   filter: brightness(1.1) contrast(1.1);
@@ -602,27 +642,27 @@ onMounted(() => {
 .sidebar-menu :deep(.el-sub-menu__title) {
   height: 50px;
   line-height: 50px;
-  color: #b8c7e8;
+  color: #4a90e2;
   background-color: transparent;
 }
 
 .sidebar-menu :deep(.el-menu-item.is-active) {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(74, 144, 226, 0.3);
 }
 
 .sidebar-menu :deep(.el-menu-item:hover),
 .sidebar-menu :deep(.el-sub-menu__title:hover) {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(74, 144, 226, 0.2);
 }
 
 /* 次级菜单样式修复 - 颜色反转 + 缩进和图标 */
 .sidebar-menu :deep(.el-sub-menu .el-menu-item) {
   height: 45px;
   line-height: 45px;
-  color: #2a3a6f; /* 使用侧边栏背景色作为文字颜色 */
-  background-color: #e3e6e9; /* 使用侧边栏文字颜色作为背景色 */
+  color: #2c5aa0; /* 使用深蓝色作为文字颜色 */
+  background-color: rgba(74, 144, 226, 0.1); /* 使用浅蓝色背景 */
   padding-left: 60px; /* 增加更多缩进 */
   border-left: 3px solid transparent;
   transition: all 0.3s;
@@ -630,69 +670,122 @@ onMounted(() => {
   position: relative;
 }
 
-/* 为二级菜单添加更美观的图标 */
+/* 移除二级菜单的圆点图标 */
 .sidebar-menu :deep(.el-sub-menu .el-menu-item::before) {
-  content: "•";
+  display: none;
+}
+
+/* 显示子菜单的展开/收起箭头 */
+.sidebar-menu :deep(.el-sub-menu__icon-arrow) {
+  display: inline-block !important;
+  color: #4a90e2;
+  font-size: 12px;
+  transition: transform 0.3s ease;
   position: absolute;
-  left: 30px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.sidebar-menu :deep(.el-sub-menu__title .el-sub-menu__icon-arrow) {
+  display: inline-block !important;
+  color: #4a90e2;
   font-size: 12px;
-  color: #2a3a6f;
-  transition: all 0.3s;
-  font-weight: bold;
+  transition: transform 0.3s ease;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 悬停时箭头颜色变化 */
+.sidebar-menu :deep(.el-sub-menu__title:hover .el-sub-menu__icon-arrow) {
+  color: #ffffff;
+}
+
+/* 展开状态下的箭头旋转 */
+.sidebar-menu :deep(.el-sub-menu.is-opened .el-sub-menu__icon-arrow) {
+  transform: translateY(-50%) rotate(180deg);
+  color: #ffffff;
+}
+
+/* 为有子菜单的一级菜单添加特殊样式 */
+.sidebar-menu :deep(.el-sub-menu__title) {
+  position: relative;
+}
+
+/* 添加子菜单指示器 */
+.sidebar-menu :deep(.el-sub-menu__title::after) {
+  content: '';
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: #4a90e2;
+  border-radius: 50%;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+/* 悬停时指示器效果 */
+.sidebar-menu :deep(.el-sub-menu__title:hover::after) {
+  background-color: #ffffff;
+  opacity: 1;
+  transform: translateY(-50%) scale(1.2);
+}
+
+/* 展开状态下的指示器效果 */
+.sidebar-menu :deep(.el-sub-menu.is-opened .el-sub-menu__title::after) {
+  background-color: #ffffff;
+  opacity: 1;
+  transform: translateY(-50%) scale(1.3);
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item:hover) {
-  color: #2a3a6f; /* 保持侧边栏背景色 */
-  background-color: #b8c7e8; /* 悬停时背景色稍深 */
-  border-left-color: #2a3a6f; /* 边框使用侧边栏背景色 */
+  color: #2c5aa0; /* 保持深蓝色 */
+  background-color: rgba(74, 144, 226, 0.2); /* 悬停时背景色稍深 */
+  border-left-color: #4a90e2; /* 边框使用中蓝色 */
   font-weight: 600;
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item:hover::before) {
-  content: "▶";
-  transform: translateY(-50%) translateX(3px); /* 悬停时图标向右移动 */
-  color: #2a3a6f;
-  font-size: 10px;
+  display: none;
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) {
-  color: #2a3a6f; /* 保持侧边栏背景色 */
-  background-color: #a0b3d6; /* 激活时背景色更深 */
-  border-left-color: #2a3a6f; /* 边框使用侧边栏背景色 */
+  color: #2c5aa0; /* 保持深蓝色 */
+  background-color: rgba(74, 144, 226, 0.3); /* 激活时背景色更深 */
+  border-left-color: #4a90e2; /* 边框使用中蓝色 */
   font-weight: 600;
-  box-shadow: inset 0 0 8px rgba(42, 58, 111, 0.1); /* 内阴影使用侧边栏背景色 */
+  box-shadow: inset 0 0 8px rgba(74, 144, 226, 0.2); /* 内阴影使用蓝色 */
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active::before) {
-  content: "◆"; /* 激活时显示菱形 */
-  transform: translateY(-50%);
-  color: #2a3a6f;
-  font-size: 10px;
-  font-weight: bold;
+  display: none;
 }
 
 /* 暗色主题下的次级菜单 - 颜色反转 */
 .dark-theme .sidebar-menu :deep(.el-sub-menu .el-menu-item) {
-  color: #2a3a6f; /* 使用侧边栏背景色作为文字颜色 */
-  background-color: #b8c7e8; /* 使用侧边栏文字颜色作为背景色 */
+  color: #2c5aa0; /* 使用深蓝色作为文字颜色 */
+  background-color: rgba(74, 144, 226, 0.1); /* 使用浅蓝色背景 */
   font-weight: 500;
 }
 
 .dark-theme .sidebar-menu :deep(.el-sub-menu .el-menu-item:hover) {
-  color: #2a3a6f; /* 保持侧边栏背景色 */
-  background-color: #a0b3d6; /* 悬停时背景色稍深 */
-  border-left-color: #2a3a6f; /* 边框使用侧边栏背景色 */
+  color: #2c5aa0; /* 保持深蓝色 */
+  background-color: rgba(74, 144, 226, 0.2); /* 悬停时背景色稍深 */
+  border-left-color: #4a90e2; /* 边框使用中蓝色 */
   font-weight: 600;
 }
 
 .dark-theme .sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) {
-  color: #2a3a6f; /* 保持侧边栏背景色 */
-  background-color: #8c9bc7; /* 激活时背景色更深 */
-  border-left-color: #2a3a6f; /* 边框使用侧边栏背景色 */
+  color: #2c5aa0; /* 保持深蓝色 */
+  background-color: rgba(74, 144, 226, 0.3); /* 激活时背景色更深 */
+  border-left-color: #4a90e2; /* 边框使用中蓝色 */
   font-weight: 600;
-  box-shadow: inset 0 0 12px rgba(42, 58, 111, 0.15); /* 内阴影使用侧边栏背景色 */
+  box-shadow: inset 0 0 12px rgba(74, 144, 226, 0.2); /* 内阴影使用蓝色 */
 }
 
 .sidebar-footer {

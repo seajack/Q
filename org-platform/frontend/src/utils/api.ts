@@ -229,4 +229,57 @@ export const tenantApi = {
   inviteUser: (id: string, data: any) => api.post(`/tenants/${id}/invite_user/`, data),
 }
 
+// 权限管理API
+export const permissionApi = {
+  // 权限管理
+  permissions: {
+    list: (params?: any) => api.get('/permission/permissions/', { params }),
+    get: (id: number) => api.get(`/permission/permissions/${id}/`),
+    create: (data: any) => api.post('/permission/permissions/', data),
+    update: (id: number, data: any) => api.put(`/permission/permissions/${id}/`, data),
+    delete: (id: number) => api.delete(`/permission/permissions/${id}/`),
+  },
+  
+  // 角色管理
+  roles: {
+    list: (params?: any) => api.get('/permission/roles/', { params }),
+    get: (id: number) => api.get(`/permission/roles/${id}/`),
+    create: (data: any) => api.post('/permission/roles/', data),
+    update: (id: number, data: any) => api.put(`/permission/roles/${id}/`, data),
+    delete: (id: number) => api.delete(`/permission/roles/${id}/`),
+    permissions: (id: number) => api.get(`/permission/roles/${id}/permissions/`),
+    updatePermissions: (id: number, data: any) => api.post(`/permission/roles/${id}/permissions/`, data),
+  },
+  
+  // 用户管理
+  users: {
+    list: (params?: any) => api.get('/permission/users/', { params }),
+    get: (id: number) => api.get(`/permission/users/${id}/`),
+    create: (data: any) => api.post('/permission/users/', data),
+    update: (id: number, data: any) => api.put(`/permission/users/${id}/`, data),
+    delete: (id: number) => api.delete(`/permission/users/${id}/`),
+  },
+  
+  // 数据权限
+  dataPermissions: {
+    list: (params?: any) => api.get('/permission/data-permissions/', { params }),
+    get: (id: number) => api.get(`/permission/data-permissions/${id}/`),
+    create: (data: any) => api.post('/permission/data-permissions/', data),
+    update: (id: number, data: any) => api.put(`/permission/data-permissions/${id}/`, data),
+    delete: (id: number) => api.delete(`/permission/data-permissions/${id}/`),
+  },
+  
+  // 权限日志
+  logs: {
+    list: (params?: any) => api.get('/permission/permission-logs/', { params }),
+    get: (id: number) => api.get(`/permission/permission-logs/${id}/`),
+  },
+  
+  // 权限仪表板
+  dashboard: {
+    overview: () => api.get('/permission/dashboard/overview/'),
+    stats: () => api.get('/permission/dashboard/stats/'),
+  }
+}
+
 export default api

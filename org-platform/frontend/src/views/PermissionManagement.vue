@@ -1,585 +1,262 @@
 <template>
-  <div class="permission-management-page">
-    <!-- 现代化页面头部 -->
-    <ModernPageHeader
-      title="权限管理"
-      subtitle="系统权限、角色分配和数据权限控制管理"
-      icon="Lock"
-      color="purple"
-    >
-      <template #actions>
-        <ModernButton type="secondary" icon="Document">
-          权限报告
-        </ModernButton>
-        <ModernButton type="primary" icon="Plus">
+  <div class="permission-management">
+    <div class="management-header">
+      <h2>权限管理</h2>
+      <p>管理菜单和API权限</p>
+      <div class="header-actions">
+        <el-button type="primary" icon="Plus" @click="showAddDialog = true">
           新增权限
-        </ModernButton>
-      </template>
-    </ModernPageHeader>
-
-    <!-- 统计概览 -->
-    <div class="stats-grid">
-      <ModernStatCard
-        title="权限数量"
-        :value="stats.permissions || 0"
-        change="+5 本月"
-        change-type="positive"
-        icon="Key"
-        icon-type="primary"
-      />
-      <ModernStatCard
-        title="角色数量"
-        :value="stats.roles || 0"
-        change="+2 本月"
-        change-type="positive"
-        icon="UserFilled"
-        icon-type="success"
-      />
-      <ModernStatCard
-        title="用户数量"
-        :value="stats.users || 0"
-        change="+12 本月"
-        change-type="positive"
-        icon="User"
-        icon-type="warning"
-      />
-      <ModernStatCard
-        title="操作日志"
-        :value="stats.logs || 0"
-        change="+89 今日"
-        change-type="positive"
-        icon="Document"
-        icon-type="success"
-      />
+        </el-button>
+      </div>
     </div>
 
-    <!-- 主内容区域 -->
-    <div class="main-content">
-      <!-- 功能导航 -->
-      <ModernCard title="功能导航" icon="Menu" class="feature-nav">
-        <div class="feature-grid">
-          <div class="feature-item" @click="navigateTo('/permission-dashboard')">
-            <div class="feature-icon dashboard">
-              <el-icon><DataAnalysis /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>权限仪表板</h4>
-              <p>查看权限统计和日志</p>
-            </div>
-          </div>
-          
-          <div class="feature-item" @click="navigateTo('/permissions')">
-            <div class="feature-icon permissions">
-              <el-icon><Key /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>权限管理</h4>
-              <p>管理菜单和API权限</p>
-            </div>
-          </div>
-          
-          <div class="feature-item" @click="navigateTo('/roles')">
-            <div class="feature-icon roles">
-              <el-icon><UserFilled /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>角色管理</h4>
-              <p>定义角色和分配权限</p>
-            </div>
-          </div>
-          
-          <div class="feature-item" @click="navigateTo('/data-permissions')">
-            <div class="feature-icon data">
-              <el-icon><Lock /></el-icon>
-            </div>
-            <div class="feature-info">
-              <h4>数据权限</h4>
-              <p>控制数据访问范围</p>
-            </div>
+    <!-- 权限列表 -->
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>权限列表</span>
+          <div class="header-actions">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索权限"
+              style="width: 200px"
+              clearable
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
           </div>
         </div>
-      </ModernCard>
+      </template>
+      
+      <el-table :data="filteredPermissions" stripe v-loading="loading">
+        <el-table-column prop="name" label="权限名称" min-width="150" />
+        <el-table-column prop="code" label="权限编码" min-width="120" />
+        <el-table-column prop="permission_type" label="权限类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getPermissionType(row.permission_type)">
+              {{ getPermissionTypeText(row.permission_type) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="resource" label="资源" min-width="120" />
+        <el-table-column prop="action" label="操作" min-width="100" />
+        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+        <el-table-column label="操作" width="150">
+          <template #default="{ row }">
+            <el-button type="primary" size="small" @click="editPermission(row)">
+              编辑
+            </el-button>
+            <el-button type="danger" size="small" @click="deletePermission(row)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
-      <!-- 最近权限操作 -->
-      <ModernCard title="最近权限操作" icon="Clock" class="activity-card">
-        <template #actions>
-          <ModernButton type="secondary" icon="Refresh" size="small" @click="refreshActivity">
-            刷新
-          </ModernButton>
-        </template>
-        
-        <el-timeline>
-          <el-timeline-item
-            v-for="activity in recentActivities"
-            :key="activity.id"
-            :timestamp="activity.created_at"
-            :type="getActivityType(activity.action_type)"
-          >
-            <div class="activity-content">
-              <div class="activity-title">{{ activity.user_name }} - {{ getActivityText(activity.action_type) }}</div>
-              <div class="activity-description">
-                {{ activity.resource_type }}: {{ activity.resource_id }}
-                <el-tag :type="getResultType(activity.result)" size="small">
-                  {{ activity.result_display }}
-                </el-tag>
-              </div>
-            </div>
-          </el-timeline-item>
-        </el-timeline>
-      </ModernCard>
-    </div>
-
+    <!-- 新增/编辑权限对话框 -->
+    <el-dialog v-model="showAddDialog" :title="isEdit ? '编辑权限' : '新增权限'" width="600px">
+      <el-form :model="permissionForm" label-width="100px" :rules="permissionRules" ref="permissionFormRef">
+        <el-form-item label="权限名称" prop="name">
+          <el-input v-model="permissionForm.name" />
+        </el-form-item>
+        <el-form-item label="权限编码" prop="code">
+          <el-input v-model="permissionForm.code" :disabled="isEdit" />
+        </el-form-item>
+        <el-form-item label="权限类型" prop="permission_type">
+          <el-select v-model="permissionForm.permission_type">
+            <el-option label="菜单权限" value="menu" />
+            <el-option label="API权限" value="api" />
+            <el-option label="按钮权限" value="button" />
+            <el-option label="数据权限" value="data" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="资源" prop="resource">
+          <el-input v-model="permissionForm.resource" />
+        </el-form-item>
+        <el-form-item label="操作" prop="action">
+          <el-input v-model="permissionForm.action" />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="permissionForm.description" type="textarea" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="showAddDialog = false">取消</el-button>
+        <el-button type="primary" @click="savePermission">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { DataAnalysis, Key, UserFilled, Lock, User, Document } from '@element-plus/icons-vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import api from '@/utils/api'
-import ModernPageHeader from '@/components/common/ModernPageHeader.vue'
-import ModernStatCard from '@/components/common/ModernStatCard.vue'
-import ModernCard from '@/components/common/ModernCard.vue'
-import ModernButton from '@/components/common/ModernButton.vue'
+import { permissionApi } from '@/utils/api'
 
-const router = useRouter()
+const loading = ref(false)
+const searchKeyword = ref('')
+const showAddDialog = ref(false)
+const isEdit = ref(false)
 
-// 响应式数据
-const stats = reactive({
-  permissions: 0,
-  roles: 0,
-  users: 0,
-  logs: 0
+const permissions = ref([])
+
+const permissionForm = reactive({
+  name: '',
+  code: '',
+  permission_type: 'menu',
+  resource: '',
+  action: '',
+  description: ''
 })
 
-const recentActivities = ref([
-  {
-    id: 1,
-    user_name: 'admin',
-    action_type: 'grant',
-    resource_type: 'role',
-    resource_id: '1',
-    result: 'success',
-    result_display: '成功',
-    created_at: '2024-01-15 14:30:00'
-  },
-  {
-    id: 2,
-    user_name: 'admin',
-    action_type: 'revoke',
-    resource_type: 'permission',
-    resource_id: '2',
-    result: 'success',
-    result_display: '成功',
-    created_at: '2024-01-15 14:25:00'
-  },
-  {
-    id: 3,
-    user_name: 'admin',
-    action_type: 'inherit',
-    resource_type: 'role',
-    resource_id: '3',
-    result: 'success',
-    result_display: '成功',
-    created_at: '2024-01-15 14:20:00'
-  },
-  {
-    id: 4,
-    user_name: 'admin',
-    action_type: 'expire',
-    resource_type: 'user_role',
-    resource_id: '4',
-    result: 'success',
-    result_display: '成功',
-    created_at: '2024-01-15 14:15:00'
-  }
-])
-
-// 方法
-const navigateTo = (path: string) => {
-  router.push(path)
+const permissionRules = {
+  name: [{ required: true, message: '请输入权限名称', trigger: 'blur' }],
+  code: [{ required: true, message: '请输入权限编码', trigger: 'blur' }],
+  permission_type: [{ required: true, message: '请选择权限类型', trigger: 'change' }],
+  resource: [{ required: true, message: '请输入资源', trigger: 'blur' }],
+  action: [{ required: true, message: '请输入操作', trigger: 'blur' }]
 }
 
-const loadStats = async () => {
+const filteredPermissions = computed(() => {
+  if (!searchKeyword.value) return permissions.value
+  return permissions.value.filter((permission: any) =>
+    permission.name.includes(searchKeyword.value) ||
+    permission.code.includes(searchKeyword.value) ||
+    permission.resource.includes(searchKeyword.value)
+  )
+})
+
+const loadPermissions = async () => {
+  loading.value = true
   try {
-    // 加载权限统计
-    try {
-      const permissionsResponse = await api.get('/simple-permission/permissions/')
-      stats.permissions = permissionsResponse.length || 0
-    } catch (error) {
-      console.warn('权限API暂未实现')
-      stats.permissions = 0
-    }
-
-    // 加载角色统计
-    try {
-      const rolesResponse = await api.get('/simple-permission/roles/')
-      stats.roles = rolesResponse.length || 0
-    } catch (error) {
-      console.warn('角色API暂未实现')
-      stats.roles = 0
-    }
-
-    // 加载用户统计
-    try {
-      const usersResponse = await api.get('/simple-permission/users/')
-      stats.users = usersResponse.length || 0
-    } catch (error) {
-      console.warn('用户API暂未实现')
-      stats.users = 0
-    }
-
-    // 加载日志统计
-    try {
-      const logsResponse = await api.get('/simple-permission/permission_logs/')
-      stats.logs = logsResponse.length || 0
-    } catch (error) {
-      console.warn('权限日志API暂未实现')
-      stats.logs = 0
-    }
+    const response = await permissionApi.permissions.list()
+    permissions.value = Array.isArray(response) ? response : []
   } catch (error) {
-    console.error('加载统计信息失败:', error)
+    console.warn('权限API暂未实现，使用模拟数据')
+    // 使用模拟数据
+    permissions.value = [
+      {
+        id: 1,
+        name: '用户管理',
+        code: 'user_manage',
+        permission_type: 'menu',
+        resource: 'user',
+        action: 'read',
+        description: '查看用户列表'
+      },
+      {
+        id: 2,
+        name: '部门管理',
+        code: 'department_manage',
+        permission_type: 'menu',
+        resource: 'department',
+        action: 'read',
+        description: '查看部门列表'
+      }
+    ]
+  } finally {
+    loading.value = false
   }
 }
 
-const refreshActivity = () => {
-  ElMessage.success('活动列表已刷新')
+const editPermission = (permission: any) => {
+  isEdit.value = true
+  Object.assign(permissionForm, permission)
+  showAddDialog.value = true
 }
 
-const getActivityType = (actionType: string) => {
+const deletePermission = async (permission: any) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个权限吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await permissionApi.permissions.delete(permission.id)
+    ElMessage.success('删除成功')
+    loadPermissions()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+const savePermission = async () => {
+  try {
+    if (isEdit.value) {
+      await permissionApi.permissions.update(permissionForm.id, permissionForm)
+    } else {
+      await permissionApi.permissions.create(permissionForm)
+    }
+    ElMessage.success('保存成功')
+    showAddDialog.value = false
+    loadPermissions()
+  } catch (error) {
+    ElMessage.error('保存失败')
+  }
+}
+
+const getPermissionType = (type: string) => {
   const typeMap: Record<string, string> = {
-    grant: 'success',
-    revoke: 'danger',
-    inherit: 'primary',
-    expire: 'warning'
+    menu: 'primary',
+    api: 'success',
+    button: 'warning',
+    data: 'info'
   }
-  return typeMap[actionType] || 'info'
+  return typeMap[type] || 'default'
 }
 
-const getActivityText = (actionType: string) => {
+const getPermissionTypeText = (type: string) => {
   const textMap: Record<string, string> = {
-    grant: '授权',
-    revoke: '撤销',
-    inherit: '继承',
-    expire: '过期'
+    menu: '菜单',
+    api: 'API',
+    button: '按钮',
+    data: '数据'
   }
-  return textMap[actionType] || actionType
+  return textMap[type] || type
 }
 
-const getResultType = (result: string) => {
-  const typeMap: Record<string, string> = {
-    success: 'success',
-    failed: 'danger',
-    denied: 'warning'
-  }
-  return typeMap[result] || 'info'
-}
-
-// 生命周期
 onMounted(() => {
-  loadStats()
+  loadPermissions()
 })
 </script>
 
 <style scoped>
-.permission-management-page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f3e8ff 100%);
-  min-height: 100vh;
+.permission-management {
+  padding: 20px;
 }
 
-/* 统计卡片网格 */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-/* 主内容区域 */
-.main-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-/* 功能导航 */
-.feature-nav {
-  height: fit-content;
-}
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.feature-item {
+.management-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
-  background: white;
+  margin-bottom: 20px;
 }
 
-.feature-item:hover {
-  background: #f8fafc;
-  border-color: #8b5cf6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-}
-
-.feature-icon.dashboard {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.feature-icon.permissions {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-}
-
-.feature-icon.roles {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-}
-
-.feature-icon.data {
-  background: linear-gradient(135deg, #43e97b, #38f9d7);
-}
-
-.feature-info h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.feature-info p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
-/* 活动卡片 */
-.activity-card {
-  height: fit-content;
-}
-
-.activity-content {
-  padding-left: 10px;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
-  font-size: 0.875rem;
-}
-
-.activity-description {
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .main-content {
-    grid-template-columns: 1fr;
-  }
-  
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .permission-management-page {
-    padding: 1rem;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.page-header {
-  margin-bottom: 30px;
-}
-
-.page-header h1 {
-  margin: 0 0 10px 0;
+.management-header h2 {
+  margin: 0 0 5px 0;
   color: #303133;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
 }
 
-.page-description {
+.management-header p {
   margin: 0;
   color: #606266;
   font-size: 14px;
-}
-
-.feature-cards {
-  margin-bottom: 30px;
-}
-
-.feature-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 120px;
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.card-content {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.card-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 24px;
-  color: white;
-}
-
-.card-icon.dashboard {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.card-icon.permissions {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.card-icon.roles {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.card-icon.data {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.card-info h3 {
-  margin: 0 0 8px 0;
-  color: #303133;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.card-info p {
-  margin: 0;
-  color: #606266;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.stats-section {
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  height: 80px;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 20px;
-  color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #303133;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #606266;
-}
-
-.recent-activity {
-  margin-bottom: 20px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.activity-content {
-  padding-left: 10px;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 4px;
-}
-
-.activity-description {
-  font-size: 12px;
-  color: #606266;
-  line-height: 1.4;
 }
 </style>

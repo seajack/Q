@@ -1,7 +1,7 @@
 <template>
   <div class="integration-dashboard">
     <div class="page-header">
-      <h1>集成管理</h1>
+      <h1>系统监控</h1>
       <div class="header-actions">
         <el-button @click="refreshData">
           <el-icon><Refresh /></el-icon>
@@ -10,88 +10,7 @@
       </div>
     </div>
 
-    <!-- 子页面导航 -->
-    <div class="sub-nav">
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <el-tab-pane label="仪表板" name="dashboard" />
-        <el-tab-pane label="集成系统" name="systems" />
-        <el-tab-pane label="API网关" name="gateways" />
-        <el-tab-pane label="数据同步" name="sync-rules" />
-      </el-tabs>
-    </div>
 
-    <!-- 概览统计 -->
-    <el-row :gutter="20" class="overview-cards">
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon systems">
-              <el-icon><Monitor /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.systems?.total || 0 }}</div>
-              <div class="stat-label">集成系统</div>
-              <div class="stat-detail">
-                活跃: {{ overview.systems?.active || 0 }} | 
-                禁用: {{ overview.systems?.inactive || 0 }}
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon sync">
-              <el-icon><Refresh /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.sync_rules?.total || 0 }}</div>
-              <div class="stat-label">同步规则</div>
-              <div class="stat-detail">
-                活跃: {{ overview.sync_rules?.active || 0 }} | 
-                禁用: {{ overview.sync_rules?.inactive || 0 }}
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon requests">
-              <el-icon><Connection /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.api_requests?.total || 0 }}</div>
-              <div class="stat-label">API请求</div>
-              <div class="stat-detail">
-                成功率: {{ overview.api_requests?.success_rate?.toFixed(1) || 0 }}%
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon sync-status">
-              <el-icon><DataAnalysis /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ overview.recent_syncs?.total || 0 }}</div>
-              <div class="stat-label">最近同步</div>
-              <div class="stat-detail">
-                成功率: {{ overview.recent_syncs?.success_rate?.toFixed(1) || 0 }}%
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
 
     <!-- 系统健康状态 -->
     <el-card class="health-card" v-loading="healthLoading">
@@ -176,7 +95,6 @@ import api from '@/utils/api'
 import * as echarts from 'echarts'
 
 // 响应式数据
-const activeTab = ref('dashboard')
 const overview = reactive({
   systems: {},
   sync_rules: {},
@@ -417,18 +335,6 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleString()
 }
 
-const handleTabChange = (tabName: string) => {
-  const routes: Record<string, string> = {
-    dashboard: '/integration-dashboard',
-    systems: '/integration-systems',
-    gateways: '/api-gateways',
-    'sync-rules': '/data-sync-rules'
-  }
-  
-  if (routes[tabName]) {
-    window.location.href = routes[tabName]
-  }
-}
 
 // 生命周期
 onMounted(() => {
@@ -460,74 +366,7 @@ onUnmounted(() => {
   gap: 10px;
 }
 
-.sub-nav {
-  margin-bottom: 20px;
-}
 
-.overview-cards {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  height: 120px;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 24px;
-  color: white;
-}
-
-.stat-icon.systems {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-icon.sync {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-icon.requests {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-icon.sync-status {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: bold;
-  color: #303133;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #606266;
-  margin-bottom: 5px;
-}
-
-.stat-detail {
-  font-size: 12px;
-  color: #909399;
-}
 
 .health-card,
 .performance-card,

@@ -114,17 +114,15 @@
             </div>
             
             <div class="config-info">
-              <h4 class="config-key">{{ config.key }}</h4>
-              <p class="config-description">{{ config.description || '暂无描述' }}</p>
+              <h4 class="config-title">{{ config.description || '暂无描述' }}</h4>
+              <div class="config-value">
+                <span class="value-label">配置值</span>
+                <span class="value-content">{{ formatConfigValue(config.value, config.data_type) }}</span>
+              </div>
               <div class="config-meta">
                 <span class="config-type">{{ config.data_type }}</span>
                 <span class="config-category">{{ getCategoryName(config.category) }}</span>
               </div>
-            </div>
-            
-            <div class="config-value">
-              <div class="value-label">配置值</div>
-              <div class="value-content">{{ formatConfigValue(config.value, config.data_type) }}</div>
             </div>
             
             <div class="config-actions">
@@ -590,31 +588,21 @@ onMounted(() => {
 
 .config-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .config-card {
   background: white;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.75rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-}
-
-.config-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #6366f1, #4f46e5);
 }
 
 .config-card:hover {
@@ -651,11 +639,38 @@ onMounted(() => {
   margin-bottom: 1rem;
 }
 
-.config-key {
+.config-title {
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
   margin: 0 0 0.5rem 0;
+}
+
+.config-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.config-value .value-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.config-value .value-content {
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+  color: #1f2937;
+  background: #f8fafc;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  text-align: right;
+  min-width: 80px;
+  display: inline-block;
 }
 
 .config-description {

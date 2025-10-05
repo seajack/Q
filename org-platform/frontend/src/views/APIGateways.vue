@@ -485,10 +485,10 @@ const testRoute = async (row: any) => {
     const response = await api.post(`/integration/routes/${row.id}/test_route/`, {
       data: { test: 'data' }
     })
-    if (response.data.success) {
+    if (response.success) {
       ElMessage.success('路由测试成功')
     } else {
-      ElMessage.error(`路由测试失败: ${response.data.error}`)
+      ElMessage.error(`路由测试失败: ${response.error}`)
     }
   } catch (error) {
     ElMessage.error('路由测试失败')

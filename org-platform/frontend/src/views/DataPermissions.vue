@@ -313,7 +313,7 @@ const loadDataPermissions = async () => {
       scope_type: filterScope.value
     }
     const response = await api.get('/permission/data-permissions/', { params })
-    dataPermissions.value = response.data.results
+    dataPermissions.value = response.results
   } catch (error) {
     ElMessage.error('加载数据权限列表失败')
   } finally {
@@ -324,7 +324,7 @@ const loadDataPermissions = async () => {
 const loadDepartments = async () => {
   try {
     const response = await api.get('/api/departments/')
-    departments.value = response.data.results
+    departments.value = response.results
   } catch (error) {
     console.error('加载部门列表失败:', error)
   }
@@ -332,8 +332,8 @@ const loadDepartments = async () => {
 
 const loadUsers = async () => {
   try {
-    const response = await api.get('/api/users/')
-    users.value = response.data.results
+    const response = await api.get('/simple-permission/users/')
+    users.value = response.data
   } catch (error) {
     console.error('加载用户列表失败:', error)
   }

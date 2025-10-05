@@ -397,8 +397,8 @@ const loadSyncRules = async () => {
       status: filterStatus.value
     }
     const response = await api.get('/integration/sync-rules/', { params })
-    syncRules.value = response.data.results
-    total.value = response.data.count
+    syncRules.value = response.results
+    total.value = response.count
   } catch (error) {
     ElMessage.error('加载同步规则失败')
   } finally {
@@ -409,7 +409,7 @@ const loadSyncRules = async () => {
 const loadSystems = async () => {
   try {
     const response = await api.get('/integration/systems/')
-    systems.value = response.data.results
+    systems.value = response.results
   } catch (error) {
     ElMessage.error('加载系统列表失败')
   }

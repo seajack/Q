@@ -263,8 +263,8 @@ const loadPermissionTree = async () => {
 
 const loadUsers = async () => {
   try {
-    const response = await api.get('/api/users/')
-    allUsers.value = response.results.map(user => ({
+    const response = await api.get('/simple-permission/users/')
+    allUsers.value = response.data.map(user => ({
       key: user.id,
       label: user.username,
       disabled: false

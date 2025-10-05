@@ -110,7 +110,7 @@
               <p class="item-description">{{ result.description }}</p>
               <div class="item-recommendations">
                 <el-tag 
-                  v-for="rec in result.recommendations.slice(0, 2)" 
+                  v-for="rec in (result.recommendations || []).slice(0, 2)" 
                   :key="rec"
                   size="small"
                   class="recommendation-tag"
@@ -130,7 +130,7 @@
           
           <div class="suggestions-list">
             <div 
-              v-for="suggestion in suggestions.slice(0, 5)" 
+              v-for="suggestion in (suggestions || []).slice(0, 5)" 
               :key="suggestion.id"
               class="suggestion-item"
               :class="`priority-${suggestion.priority}`"
@@ -270,14 +270,17 @@ const fetchAnalysisData = async () => {
 const fetchSuggestions = async () => {
   try {
     const response = await intelligenceApi.getSuggestions()
-    if (response.success) {
-      suggestions.value = response.data.by_priority.high.concat(
-        response.data.by_priority.medium,
-        response.data.by_priority.low
-      )
+    if (response.success && response.data && response.data.by_priority) {
+      const high = response.data.by_priority.high || []
+      const medium = response.data.by_priority.medium || []
+      const low = response.data.by_priority.low || []
+      suggestions.value = high.concat(medium, low)
+    } else {
+      suggestions.value = []
     }
   } catch (error) {
     console.error('获取建议失败:', error)
+    suggestions.value = []
   }
 }
 
@@ -286,7 +289,13 @@ const refreshAnalysis = async () => {
     loading.value = true
     const response = await intelligenceApi.refreshAnalysis()
     if (response.success) {
-      Object.assign(analysisData, response.data)
+      // 安全地更新数据，确保所有字段都有默认值
+      analysisData.overall_score = response.data.overall_score || 0
+      analysisData.health_level = response.data.health_level || 'unknown'
+      analysisData.analysis_results = response.data.analysis_results || []
+      analysisData.recommendations = response.data.recommendations || []
+      analysisData.metrics = response.data.metrics || {}
+      analysisData.timestamp = response.data.timestamp || null
       ElMessage.success('分析结果已刷新')
       await fetchSuggestions()
     }

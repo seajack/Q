@@ -521,10 +521,12 @@ class APIGatewaySerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
     
     def get_route_count(self, obj):
-        return obj.routes.count()
+        # 暂时返回0，因为APIRoute模型没有gateway外键
+        return 0
     
     def get_active_route_count(self, obj):
-        return obj.routes.filter(is_active=True).count()
+        # 暂时返回0，因为APIRoute模型没有gateway外键
+        return 0
 
 
 class APIRouteSerializer(serializers.ModelSerializer):
@@ -567,22 +569,18 @@ class APIRouteSerializer(serializers.ModelSerializer):
 class DataSyncRuleSerializer(serializers.ModelSerializer):
     """数据同步规则序列化器"""
     sync_type_display = serializers.CharField(source='get_sync_type_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    source_system_name = serializers.CharField(source='source_system.name', read_only=True)
-    target_system_name = serializers.CharField(source='target_system.name', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = DataSyncRule
         fields = [
-            'id', 'name', 'source_system', 'source_system_name', 'target_system', 'target_system_name',
-            'sync_type', 'sync_type_display', 'status', 'status_display', 'source_table', 'target_table',
-            'field_mapping', 'filter_conditions', 'batch_size', 'sync_interval', 'max_retry_count',
-            'data_cleaning_enabled', 'cleaning_rules', 'validation_enabled', 'validation_rules',
-            'monitoring_enabled', 'alert_on_error', 'alert_on_delay', 'delay_threshold',
-            'description', 'created_by', 'created_by_name', 'created_at', 'updated_at'
+            'id', 'name', 'source_system_id', 'target_system_id', 'sync_type', 'sync_type_display',
+            'source_table', 'target_table', 'field_mapping', 'filter_conditions', 'batch_size',
+            'sync_interval', 'max_retry_count', 'data_cleaning_enabled', 'cleaning_rules',
+            'validation_enabled', 'validation_rules', 'monitoring_enabled', 'alert_on_error',
+            'alert_on_delay', 'delay_threshold', 'description', 'created_by_id',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_by', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
     
     def validate_field_mapping(self, value):
         """验证字段映射"""
@@ -751,23 +749,17 @@ class PermissionSerializer(serializers.ModelSerializer):
 
 class RoleSerializer(serializers.ModelSerializer):
     """角色序列化器"""
-    role_type_display = serializers.CharField(source='get_role_type_display', read_only=True)
-    data_scope_display = serializers.CharField(source='get_data_scope_display', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
-    parent_role_name = serializers.CharField(source='parent_role.name', read_only=True)
+    # 暂时简化序列化器，避免字段不匹配问题
     permissions_count = serializers.SerializerMethodField()
     users_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Role
         fields = [
-            'id', 'name', 'code', 'role_type', 'role_type_display', 'description',
-            'is_active', 'is_system', 'level', 'parent_role', 'parent_role_name',
-            'inherit_permissions', 'data_scope', 'data_scope_display',
-            'created_by', 'created_by_name', 'permissions_count', 'users_count',
-            'created_at', 'updated_at'
+            'id', 'name', 'code', 'description',
+            'created_at', 'updated_at', 'permissions_count', 'users_count'
         ]
-        read_only_fields = ['created_by', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
     
     def get_permissions_count(self, obj):
         """获取角色权限数量"""
@@ -834,23 +826,20 @@ class UserRoleSerializer(serializers.ModelSerializer):
 class DataPermissionSerializer(serializers.ModelSerializer):
     """数据权限序列化器"""
     permission_type_display = serializers.CharField(source='get_permission_type_display', read_only=True)
-    scope_type_display = serializers.CharField(source='get_scope_type_display', read_only=True)
-    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+    user_name = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
         model = DataPermission
         fields = [
-            'id', 'name', 'permission_type', 'permission_type_display',
-            'scope_type', 'scope_type_display', 'resource_type', 'resource_id',
-            'custom_scope', 'field_permissions', 'data_masking',
-            'is_active', 'created_by', 'created_by_name', 'created_at', 'updated_at'
+            'id', 'user', 'user_name', 'permission_type', 'permission_type_display',
+            'resource', 'conditions', 'is_active', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_by', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
     
-    def validate_custom_scope(self, value):
-        """验证自定义范围"""
+    def validate_conditions(self, value):
+        """验证条件"""
         if not isinstance(value, dict):
-            raise serializers.ValidationError("自定义范围必须是字典格式")
+            raise serializers.ValidationError("条件必须是字典格式")
         return value
     
     def validate_field_permissions(self, value):

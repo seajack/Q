@@ -17,6 +17,8 @@ class IntegrationSystem(models.Model):
         ('crm', 'CRM系统'),
         ('oa', 'OA系统'),
         ('finance', '财务系统'),
+        ('performance', '绩效考核系统'),
+        ('custom', '自定义系统'),
         ('other', '其他系统'),
     ]
     
@@ -27,16 +29,27 @@ class IntegrationSystem(models.Model):
         ('error', '错误'),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField('系统名称', max_length=100)
     system_type = models.CharField('系统类型', max_length=20, choices=SYSTEM_TYPE_CHOICES)
     description = models.TextField('描述', blank=True)
-    api_endpoint = models.URLField('API端点', max_length=500)
+    base_url = models.URLField('API端点', max_length=500)
     api_version = models.CharField('API版本', max_length=20, default='v1')
-    authentication_type = models.CharField('认证类型', max_length=50, default='token')
+    auth_type = models.CharField('认证类型', max_length=50, default='token')
     auth_config = models.JSONField('认证配置', default=dict)
     status = models.CharField('状态', max_length=20, choices=STATUS_CHOICES, default='inactive')
-    is_active = models.BooleanField('是否激活', default=True)
+    
+    # 数据库中存在但模型中缺失的字段
+    timeout = models.IntegerField('超时时间(秒)', default=30)
+    retry_count = models.IntegerField('重试次数', default=3)
+    rate_limit = models.IntegerField('限流(请求/分钟)', default=100)
+    sync_enabled = models.BooleanField('启用同步', default=False)
+    sync_interval = models.IntegerField('同步间隔(分钟)', default=60)
+    last_sync_time = models.DateTimeField('最后同步时间', null=True, blank=True)
+    monitoring_enabled = models.BooleanField('启用监控', default=True)
+    health_check_url = models.URLField('健康检查URL', max_length=200, blank=True)
+    alert_email = models.EmailField('告警邮箱', max_length=254, blank=True)
+    
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='创建者')
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)

@@ -219,7 +219,7 @@ const loadRecentLogs = async () => {
     const response = await api.get('/permission/permission-logs/', {
       params: { page_size: 10 }
     })
-    recentLogs.value = response.data.results
+    recentLogs.value = response.results
   } catch (error) {
     ElMessage.error('加载操作日志失败')
   }
@@ -227,8 +227,8 @@ const loadRecentLogs = async () => {
 
 const loadUsers = async () => {
   try {
-    const response = await api.get('/api/users/')
-    users.value = response.data.results
+    const response = await api.get('/simple-permission/users/')
+    users.value = response.data
   } catch (error) {
     console.error('加载用户列表失败:', error)
   }
@@ -243,9 +243,21 @@ const refreshData = () => {
 const initCharts = async () => {
   await nextTick()
   
+  // 强制所有事件监听器为passive模式
+  const originalAddEventListener = EventTarget.prototype.addEventListener
+  EventTarget.prototype.addEventListener = function(type, listener, options) {
+    if (type === 'wheel' || type === 'mousewheel') {
+      options = { passive: true, ...options }
+    }
+    return originalAddEventListener.call(this, type, listener, options)
+  }
+  
   // 权限类型分布图表
   if (permissionTypeChart.value) {
-    permissionTypeChartInstance = echarts.init(permissionTypeChart.value)
+    permissionTypeChartInstance = echarts.init(permissionTypeChart.value, null, {
+      renderer: 'canvas',
+      useDirtyRect: true
+    })
     const permissionTypeData = overview.permission_types || []
     const option = {
       title: {
@@ -284,7 +296,10 @@ const initCharts = async () => {
 
   // 角色类型分布图表
   if (roleTypeChart.value) {
-    roleTypeChartInstance = echarts.init(roleTypeChart.value)
+    roleTypeChartInstance = echarts.init(roleTypeChart.value, null, {
+      renderer: 'canvas',
+      useDirtyRect: true
+    })
     const roleTypeData = overview.role_types || []
     const option = {
       title: {
@@ -320,6 +335,9 @@ const initCharts = async () => {
     }
     roleTypeChartInstance.setOption(option)
   }
+
+  // 恢复原始的addEventListener
+  EventTarget.prototype.addEventListener = originalAddEventListener
 }
 
 const checkUserPermission = async () => {

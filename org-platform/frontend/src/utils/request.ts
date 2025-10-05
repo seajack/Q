@@ -57,10 +57,10 @@ service.interceptors.response.use(
     
     // 统一处理成功响应
     if (status === 200 || status === 201) {
-      return data
+      return response.data
     }
     
-    return response
+    return response.data
   },
   (error) => {
     // 对响应错误做点什么

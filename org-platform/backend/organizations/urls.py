@@ -7,6 +7,8 @@ from . import views_intelligence
 from . import views_workflow_designer
 from . import health_views
 from .integration_views import DownloadTemplateView, ImportDepartmentsView
+from . import workflow_urls
+from . import notification_urls
 
 router = DefaultRouter()
 router.register(r'departments', views.DepartmentViewSet)
@@ -69,10 +71,14 @@ urlpatterns = [
     path('workflow/', include(workflow_router.urls)),
     path('api/workflow-templates/', views_workflow_designer.workflow_templates, name='workflow_templates'),
     path('api/workflow-create-from-template/', views_workflow_designer.create_from_template, name='create_from_template'),
+    # 工作流API
+    path('api/', include(workflow_urls.urlpatterns)),
     # 系统集成API
     path('api/integration/', include(integration_router.urls)),
     # 权限管理API
     path('api/permission/', include(permission_router.urls)),
+    # 消息通知API
+    path('api/notification/', include(notification_urls.urlpatterns)),
     # 绩效考核系统代理API
     path('performance-api/stats/overview/', views.performance_overview_stats, name='performance_overview_stats'),
     path('performance-api/stats/cycle/<int:cycle_id>/', views.performance_cycle_stats, name='performance_cycle_stats'),

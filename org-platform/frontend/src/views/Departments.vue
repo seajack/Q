@@ -263,44 +263,48 @@ const activeEmployees = computed(() => organizationStore.activeEmployees)
 // 统计方法
 const getTotalDepartments = () => {
   const countDepartments = (depts: Department[]): number => {
+    if (!depts || !Array.isArray(depts)) return 0
     return depts.reduce((count, dept) => {
       return count + 1 + (dept.children ? countDepartments(dept.children) : 0)
     }, 0)
   }
-  return countDepartments(departmentTree.value)
+  return countDepartments(departmentTree.value || [])
 }
 
 const getActiveDepartments = () => {
   const countActive = (depts: Department[]): number => {
+    if (!depts || !Array.isArray(depts)) return 0
     return depts.reduce((count, dept) => {
       const current = dept.is_active ? 1 : 0
       const children = dept.children ? countActive(dept.children) : 0
       return count + current + children
     }, 0)
   }
-  return countActive(departmentTree.value)
+  return countActive(departmentTree.value || [])
 }
 
 const getTotalEmployees = () => {
   const countEmployees = (depts: Department[]): number => {
+    if (!depts || !Array.isArray(depts)) return 0
     return depts.reduce((count, dept) => {
       const current = dept.employee_count || 0
       const children = dept.children ? countEmployees(dept.children) : 0
       return count + current + children
     }, 0)
   }
-  return countEmployees(departmentTree.value)
+  return countEmployees(departmentTree.value || [])
 }
 
 const getMaxLevel = () => {
   const findMaxLevel = (depts: Department[], currentMax = 0): number => {
+    if (!depts || !Array.isArray(depts)) return currentMax
     return depts.reduce((max, dept) => {
       const deptLevel = dept.level || 0
       const childrenMax = dept.children ? findMaxLevel(dept.children, deptLevel) : deptLevel
       return Math.max(max, childrenMax)
     }, currentMax)
   }
-  return findMaxLevel(departmentTree.value)
+  return findMaxLevel(departmentTree.value || [])
 }
 
 const getDepartmentPath = (dept: Department): string => {
@@ -310,13 +314,14 @@ const getDepartmentPath = (dept: Department): string => {
 
 const departmentTreeOptions = computed(() => {
   const buildOptions = (departments: Department[]): any[] => {
+    if (!departments || !Array.isArray(departments)) return []
     return departments.map(dept => ({
       value: dept.id,
       label: dept.name,
       children: dept.children ? buildOptions(dept.children) : undefined
     }))
   }
-  return buildOptions(departmentTree.value)
+  return buildOptions(departmentTree.value || [])
 })
 
 // 选择部门
@@ -420,6 +425,9 @@ const deleteDepartment = async (department: Department) => {
 const loadData = async () => {
   try {
     await organizationStore.fetchDepartmentTree()
+    console.log('部门树数据:', departmentTree.value)
+    console.log('部门树数据类型:', typeof departmentTree.value)
+    console.log('部门树是否为数组:', Array.isArray(departmentTree.value))
   } catch (error) {
     console.error('加载部门树失败:', error)
     ElMessage.error('加载数据失败')

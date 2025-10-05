@@ -340,8 +340,8 @@ const loadSystems = async () => {
       status: filterStatus.value
     }
     const response = await api.get('/integration/systems/', { params })
-    systems.value = response.data.results
-    total.value = response.data.count
+    systems.value = response.results
+    total.value = response.count
   } catch (error) {
     ElMessage.error('加载系统列表失败')
   } finally {

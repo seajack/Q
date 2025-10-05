@@ -123,7 +123,7 @@ class PermissionLog(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户', related_name='permission_logs')
-    action = models.CharField('操作', max_length=20, choices=ACTION_CHOICES)
+    action = models.CharField('操作', max_length=20, choices=ACTION_CHOICES, default='access')
     resource = models.CharField('资源', max_length=200, blank=True)
     description = models.TextField('描述', blank=True)
     ip_address = models.GenericIPAddressField('IP地址', null=True, blank=True)
@@ -154,9 +154,9 @@ class DataPermission(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户', related_name='data_permissions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户', related_name='data_permissions', null=True, blank=True)
     permission_type = models.CharField('权限类型', max_length=20, choices=PERMISSION_TYPE_CHOICES)
-    resource = models.CharField('资源', max_length=200)
+    resource = models.CharField('资源', max_length=200, default='')
     conditions = models.JSONField('条件', default=dict, blank=True)
     is_active = models.BooleanField('是否激活', default=True)
     created_at = models.DateTimeField('创建时间', auto_now_add=True)

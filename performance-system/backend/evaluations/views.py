@@ -241,6 +241,29 @@ class EvaluationTaskViewSet(viewsets.ModelViewSet):
     search_fields = ['evaluation_code', 'evaluator__name', 'evaluatee__name']
     ordering_fields = ['assigned_at', 'completed_at', 'status']
     
+    def create(self, request, *args, **kwargs):
+        """创建考核任务时验证考核周期状态"""
+        try:
+            # 获取考核周期信息
+            cycle_id = request.data.get('cycle')
+            if cycle_id:
+                try:
+                    cycle = EvaluationCycle.objects.get(id=cycle_id)
+                    if cycle.status != 'active':
+                        return Response({
+                            'error': '考核周期未激活，无法创建考核任务'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except EvaluationCycle.DoesNotExist:
+                    return Response({
+                        'error': '考核周期不存在'
+                    }, status=status.HTTP_404_NOT_FOUND)
+            
+            return super().create(request, *args, **kwargs)
+        except Exception as e:
+            return Response({
+                'error': f'创建考核任务失败: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
     def get_queryset(self):
         queryset = super().get_queryset()
         cycle_id = self.request.query_params.get('cycle_id')

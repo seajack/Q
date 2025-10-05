@@ -194,7 +194,7 @@ const loadPermissions = async () => {
       level: filterLevel.value
     }
     const response = await api.get('/permission/permissions/', { params })
-    permissions.value = response.data.results
+    permissions.value = response.results
   } catch (error) {
     ElMessage.error('加载权限列表失败')
   } finally {

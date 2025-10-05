@@ -221,20 +221,41 @@ const employeeSkills = computed(() => stats.value.employee_skills || [])
 
 // 初始化图表
 const initCharts = () => {
+  // 强制所有事件监听器为passive模式
+  const originalAddEventListener = EventTarget.prototype.addEventListener
+  EventTarget.prototype.addEventListener = function(type, listener, options) {
+    if (type === 'wheel' || type === 'mousewheel') {
+      options = { passive: true, ...options }
+    }
+    return originalAddEventListener.call(this, type, listener, options)
+  }
+
   if (deptLevelChart.value) {
-    deptLevelChartInstance = echarts.init(deptLevelChart.value)
+    deptLevelChartInstance = echarts.init(deptLevelChart.value, null, {
+      renderer: 'canvas',
+      useDirtyRect: true
+    })
     updateDeptLevelChart()
   }
   
   if (positionLevelChart.value) {
-    positionLevelChartInstance = echarts.init(positionLevelChart.value)
+    positionLevelChartInstance = echarts.init(positionLevelChart.value, null, {
+      renderer: 'canvas',
+      useDirtyRect: true
+    })
     updatePositionLevelChart()
   }
   
   if (radarChart.value) {
-    radarChartInstance = echarts.init(radarChart.value)
+    radarChartInstance = echarts.init(radarChart.value, null, {
+      renderer: 'canvas',
+      useDirtyRect: true
+    })
     updateRadarChart()
   }
+
+  // 恢复原始的addEventListener
+  EventTarget.prototype.addEventListener = originalAddEventListener
 }
 
 // 更新部门层级图表

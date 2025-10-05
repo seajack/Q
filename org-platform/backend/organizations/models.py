@@ -233,12 +233,14 @@ class Dictionary(models.Model):
     CATEGORY_CHOICES = [
         ('employee_status', '员工状态'),
         ('position_type', '职位类型'),
+        ('position_level', '职位级别'),
         ('department_type', '部门类型'),
         ('education_level', '学历层次'),
         ('skill_level', '技能等级'),
         ('language', '语言类型'),
         ('nationality', '国籍'),
         ('marital_status', '婚姻状况'),
+        ('workflow_status', '工作流状态'),
         ('custom', '自定义'),
     ]
     
@@ -312,7 +314,7 @@ class WorkflowRule(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('规则名称', max_length=100)
-    code = models.CharField('规则编码', max_length=50, unique=True)
+    code = models.CharField('规则编码', max_length=50, unique=True, default='')
     description = models.TextField('规则描述', blank=True)
     rule_type = models.CharField('规则类型', max_length=50, choices=RULE_TYPES)
     

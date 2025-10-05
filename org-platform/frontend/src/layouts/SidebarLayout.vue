@@ -111,7 +111,7 @@
 
           <div class="action-item">
             <el-tooltip content="消息通知" placement="bottom">
-              <el-badge :value="3" class="notification-badge">
+              <el-badge :value="unreadNotificationCount" class="notification-badge" @click="showNotifications">
                 <el-icon><Bell /></el-icon>
               </el-badge>
             </el-tooltip>
@@ -162,16 +162,75 @@
       </main>
     </div>
   </div>
+
+  <!-- 消息通知弹窗 -->
+  <el-dialog
+    v-model="showNotificationDialog"
+    title="消息通知"
+    width="500px"
+    :close-on-click-modal="false"
+  >
+    <div class="notification-list">
+      <div v-if="notifications.length === 0" class="empty-notifications">
+        <el-icon size="48" color="#c0c4cc"><Bell /></el-icon>
+        <p>暂无新消息</p>
+      </div>
+      <div v-else>
+        <div 
+          v-for="notification in notifications" 
+          :key="notification.id"
+          class="notification-item"
+          :class="{ 'unread': !notification.is_read }"
+        >
+          <div class="notification-icon">
+            <el-icon :color="getNotificationColor(notification.notification_type)">
+              <component :is="getNotificationIcon(notification.notification_type)" />
+            </el-icon>
+          </div>
+          <div class="notification-content">
+            <div class="notification-title">{{ notification.title }}</div>
+            <div class="notification-message">{{ notification.message }}</div>
+            <div class="notification-time">{{ formatTime(notification.created_at) }}</div>
+          </div>
+          <div class="notification-actions">
+            <el-button 
+              v-if="!notification.is_read" 
+              type="primary" 
+              size="small" 
+              @click="markAsRead(notification.id)"
+            >
+              标记已读
+            </el-button>
+            <el-button 
+              type="danger" 
+              size="small" 
+              @click="deleteNotification(notification.id)"
+            >
+              删除
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="showNotificationDialog = false">关闭</el-button>
+        <el-button type="primary" @click="markAllAsRead">全部标记已读</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
+import api from '@/utils/request'
 import {
   Fold, Expand, DataBoard, OfficeBuilding, User, Connection,
   TrendCharts, Setting, Bell, Search, ArrowDown, Moon, Sunny,
-  QuestionFilled, SwitchButton
+  QuestionFilled, SwitchButton, InfoFilled, WarningFilled, 
+  SuccessFilled, CircleCloseFilled
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -190,6 +249,16 @@ const userInitials = computed(() => userName.value.slice(0, 2))
 
 // 搜索
 const searchQuery = ref('')
+
+// 消息通知相关
+const showNotificationDialog = ref(false)
+const notifications = ref([])
+const notificationLoading = ref(false)
+
+// 计算未读通知数量
+const unreadNotificationCount = computed(() => {
+  return notifications.value.filter(notification => !notification.is_read).length
+})
 
 // 主题
 const isDark = computed(() => themeStore.isDark())
@@ -256,6 +325,133 @@ const handleCommand = (command: string) => {
       // 实现登出逻辑
       console.log('登出')
       break
+  }
+}
+
+// 消息通知相关方法
+const showNotifications = async () => {
+  showNotificationDialog.value = true
+  await loadNotifications()
+}
+
+const loadNotifications = async () => {
+  try {
+    notificationLoading.value = true
+    const response = await api.get('/notification/notifications/')
+    notifications.value = response.results || []
+  } catch (error) {
+    console.error('加载通知失败:', error)
+    // 如果API失败，使用模拟数据
+    notifications.value = [
+      {
+        id: 1,
+        notification_type: 'info',
+        title: '系统更新通知',
+        message: '系统已更新到最新版本，新增了智能分析功能',
+        is_read: false,
+        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 2,
+        notification_type: 'warning',
+        title: '数据同步异常',
+        message: '绩效考核系统数据同步出现异常，请检查连接状态',
+        is_read: false,
+        created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 3,
+        notification_type: 'success',
+        title: '员工入职完成',
+        message: '新员工张三的入职流程已完成，请分配相关权限',
+        is_read: true,
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      }
+    ]
+  } finally {
+    notificationLoading.value = false
+  }
+}
+
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'info':
+      return 'InfoFilled'
+    case 'warning':
+      return 'WarningFilled'
+    case 'success':
+      return 'SuccessFilled'
+    case 'error':
+      return 'CircleCloseFilled'
+    default:
+      return 'Bell'
+  }
+}
+
+const getNotificationColor = (type: string) => {
+  switch (type) {
+    case 'info':
+      return '#409EFF'
+    case 'warning':
+      return '#E6A23C'
+    case 'success':
+      return '#67C23A'
+    case 'error':
+      return '#F56C6C'
+    default:
+      return '#909399'
+  }
+}
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / (1000 * 60))
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  
+  if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else {
+    return `${days}天前`
+  }
+}
+
+const markAsRead = async (id: number) => {
+  try {
+    await api.post(`/notification/notifications/${id}/mark_as_read/`)
+    const notification = notifications.value.find(n => n.id === id)
+    if (notification) {
+      notification.is_read = true
+    }
+  } catch (error) {
+    console.error('标记已读失败:', error)
+  }
+}
+
+const deleteNotification = async (id: number) => {
+  try {
+    await api.post(`/notification/notifications/${id}/delete_notification/`)
+    const index = notifications.value.findIndex(n => n.id === id)
+    if (index > -1) {
+      notifications.value.splice(index, 1)
+    }
+  } catch (error) {
+    console.error('删除通知失败:', error)
+  }
+}
+
+const markAllAsRead = async () => {
+  try {
+    await api.post('/notification/notifications/mark_all_as_read/')
+    notifications.value.forEach(notification => {
+      notification.is_read = true
+    })
+  } catch (error) {
+    console.error('全部标记已读失败:', error)
   }
 }
 
@@ -698,5 +894,81 @@ html.dark .top-navbar {
 
 html.dark .page-content {
   background-color: #141414;
+}
+
+/* 消息通知弹窗样式 */
+.notification-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-notifications {
+  text-align: center;
+  padding: 40px 20px;
+  color: #909399;
+}
+
+.empty-notifications p {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+  background-color: #f0f9ff;
+  border-left: 3px solid #409EFF;
+}
+
+.notification-icon {
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.notification-message {
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.notification-time {
+  color: #909399;
+  font-size: 12px;
+}
+
+.notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 12px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>

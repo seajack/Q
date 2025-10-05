@@ -333,7 +333,7 @@ const loadGateways = async () => {
   loading.value = true
   try {
     const response = await api.get('/integration/gateways/')
-    gateways.value = response.data.results
+    gateways.value = response.results
   } catch (error) {
     ElMessage.error('加载网关列表失败')
   } finally {

@@ -46,8 +46,23 @@ class IntegrationService:
         """测试连接"""
         try:
             start_time = time.time()
+            
+            # 根据系统类型选择不同的测试端点
+            if self.system.system_type == 'performance' or ('performance' in self.system.name.lower()):
+                # 绩效考核系统使用cycles端点
+                test_url = f"{self.system.base_url}/api/cycles/"
+            elif self.system.system_type == 'finance':
+                # 财务系统使用health端点
+                test_url = f"{self.system.base_url}/health"
+            elif self.system.system_type == 'oa':
+                # OA系统使用health端点
+                test_url = f"{self.system.base_url}/health"
+            else:
+                # 其他系统使用health端点
+                test_url = f"{self.system.base_url}/health"
+            
             response = self.session.get(
-                f"{self.system.base_url}/health",
+                test_url,
                 timeout=self.system.timeout
             )
             response_time = (time.time() - start_time) * 1000

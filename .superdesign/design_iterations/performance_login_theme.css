@@ -1,0 +1,103 @@
+:root {
+  --background: oklch(0.9800 0 0);
+  --foreground: oklch(0.1200 0 0);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.1200 0 0);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.1200 0 0);
+  --primary: oklch(0.2500 0.1500 240);
+  --primary-foreground: oklch(0.9800 0 0);
+  --secondary: oklch(0.9600 0 0);
+  --secondary-foreground: oklch(0.2500 0 0);
+  --muted: oklch(0.9600 0 0);
+  --muted-foreground: oklch(0.4500 0 0);
+  --accent: oklch(0.2500 0.1500 240);
+  --accent-foreground: oklch(0.9800 0 0);
+  --destructive: oklch(0.5500 0.2000 15);
+  --destructive-foreground: oklch(0.9800 0 0);
+  --border: oklch(0.9000 0 0);
+  --input: oklch(0.9000 0 0);
+  --ring: oklch(0.2500 0.1500 240);
+  --chart-1: oklch(0.2500 0.1500 240);
+  --chart-2: oklch(0.4000 0.1200 200);
+  --chart-3: oklch(0.3500 0.1000 160);
+  --chart-4: oklch(0.3000 0.0800 120);
+  --chart-5: oklch(0.2500 0.0600 80);
+  --sidebar: oklch(0.9800 0 0);
+  --sidebar-foreground: oklch(0.1200 0 0);
+  --sidebar-primary: oklch(0.2500 0.1500 240);
+  --sidebar-primary-foreground: oklch(0.9800 0 0);
+  --sidebar-accent: oklch(0.9600 0 0);
+  --sidebar-accent-foreground: oklch(0.2500 0 0);
+  --sidebar-border: oklch(0.9000 0 0);
+  --sidebar-ring: oklch(0.2500 0.1500 240);
+  --font-sans: 'Inter', 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --radius: 0.75rem;
+  --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 2px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.10), 0 4px 6px -2px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.10), 0 10px 10px -5px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* 企业级渐变背景 */
+.gradient-bg {
+  background: linear-gradient(135deg, oklch(0.2500 0.1500 240) 0%, oklch(0.4000 0.1200 200) 50%, oklch(0.3500 0.1000 160) 100%);
+}
+
+/* 玻璃态效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 企业级按钮样式 */
+.btn-primary {
+  background: linear-gradient(135deg, oklch(0.2500 0.1500 240), oklch(0.4000 0.1200 200));
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px oklch(0.2500 0.1500 240 / 0.4);
+}
+
+/* 输入框样式 */
+.input-field {
+  border: 2px solid oklch(0.9000 0 0);
+  transition: all 0.3s ease;
+}
+
+.input-field:focus {
+  border-color: oklch(0.2500 0.1500 240);
+  box-shadow: 0 0 0 3px oklch(0.2500 0.1500 240 / 0.1);
+}
+
+/* 装饰性几何元素 */
+.geometric-shape {
+  position: absolute;
+  background: linear-gradient(45deg, oklch(0.2500 0.1500 240 / 0.1), oklch(0.4000 0.1200 200 / 0.1));
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}

@@ -17,4 +17,11 @@ urlpatterns = [
     path('', include(router.urls)),
     path('stats/overview/', views.stats_overview, name='stats_overview'),
     path('stats/cycle/<int:cycle_id>/', views.stats_cycle, name='stats_cycle'),
+    path('deadline-reminders/', views.deadline_reminders, name='deadline_reminders'),
+    # 用户相关API
+    path('user/profile/', views.user_profile, name='user_profile'),
+    path('user/profile/', views.update_user_profile, name='update_user_profile'),
+    path('user/avatar/', views.upload_user_avatar, name='upload_user_avatar'),
+    path('user/login-history/', views.user_login_history, name='user_login_history'),
+    path('user/change-password/', views.change_user_password, name='change_user_password'),
 ]

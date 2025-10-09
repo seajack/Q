@@ -61,7 +61,7 @@
       <div v-else class="error-content">
         <el-result icon="error" title="考核任务不存在" sub-title="请检查考核码是否正确">
           <template #extra>
-            <el-button type="primary" @click="$router.push('/dashboard')">返回首页</el-button>
+            <el-button type="primary" @click="$router.push('/dashboard-new')">返回首页</el-button>
           </template>
         </el-result>
       </div>
@@ -138,7 +138,7 @@ const submitEvaluation = async () => {
           router.push('/evaluation')
         } else {
           // 所有任务都已完成，跳转到仪表板
-          router.push('/dashboard')
+          router.push('/dashboard-new')
         }
       } catch (error) {
         console.error('检查任务状态失败:', error)
@@ -147,7 +147,7 @@ const submitEvaluation = async () => {
       }
     } else {
       // 没有考核码，跳转到仪表板
-      router.push('/dashboard')
+      router.push('/dashboard-new')
     }
   } catch (error) {
     console.error('提交评分失败:', error)
@@ -162,7 +162,7 @@ onMounted(async () => {
   
   if (!taskId) {
     ElMessage.error('缺少任务ID参数')
-    router.push('/dashboard')
+    router.push('/dashboard-new')
     return
   }
   

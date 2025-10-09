@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考核周期管理 - 更新版</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.8/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.full.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.1.0/dist/index.iife.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .cycles-modern {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 0;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            position: relative;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .page-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .page-info {
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0 0 20px 0;
+            font-weight: 400;
+        }
+
+        .stats-overview {
+            display: flex;
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-btn.primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e40af;
+        }
+
+        .action-btn.primary:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* 筛选区域 */
+        .filter-section {
+            max-width: 1200px;
+            margin: 0 auto 32px auto;
+            padding: 0 24px;
+        }
+
+        .filter-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .filter-left {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .search-input {
+            max-width: 300px;
+        }
+
+        .status-filter {
+            width: 150px;
+        }
+
+        .filter-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 内容区域 */
+        .content-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px 32px 24px;
+        }
+
+        /* 卡片视图 */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .cycle-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cycle-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #e5e7eb;
+        }
+
+        .cycle-card.status-active::before {
+            background: #3b82f6;
+        }
+
+        .cycle-card.status-completed::before {
+            background: #f59e0b;
+        }
+
+        .cycle-card.status-draft::before {
+            background: #6b7280;
+        }
+
+        .cycle-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .title-icon {
+            color: #3b82f6;
+            font-size: 20px;
+        }
+
+        .card-status {
+            flex-shrink: 0;
+        }
+
+        .status-tag {
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            color: white;
+        }
+
+        .status-active {
+            background: #3b82f6;
+        }
+
+        .status-completed {
+            background: #f59e0b;
+        }
+
+        .status-draft {
+            background: #6b7280;
+        }
+
+        .card-content {
+            margin-bottom: 20px;
+        }
+
+        .card-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .card-dates {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .card-rule {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            background: #f9fafb;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .card-actions .action-btn {
+            flex: 1;
+            min-width: 80px;
+            font-size: 12px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .action-btn.edit {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .action-btn.edit:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .action-btn.generate {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .action-btn.generate:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        .action-btn.view {
+            background: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+
+        .action-btn.view:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+        .action-btn.delete {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .action-btn.delete:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        /* 表格视图 */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: nowrap;
+        }
+
+        .action-btn {
+            min-width: 60px;
+            height: 28px;
+            font-size: 11px;
+            padding: 4px 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 6px;
+            flex: 1;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .page-title {
+                font-size: 24px;
+            }
+            
+            .stats-overview {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-left {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                max-width: none;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="cycles-modern">
+            <!-- 页面头部 -->
+            <div class="page-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="page-icon">
+                            <i class="el-icon-calendar"></i>
+                        </div>
+                        <div class="page-info">
+                            <h1 class="page-title">考核周期管理</h1>
+                            <p class="page-subtitle">创建和管理绩效考核周期，设置考核规则和时间范围</p>
+                            <div class="stats-overview">
+                                <div class="stat-item">
+                                    <span class="stat-value">5</span>
+                                    <span class="stat-label">总周期数</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">2</span>
+                                    <span class="stat-label">进行中</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">0</span>
+                                    <span class="stat-label">已完成</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">3</span>
+                                    <span class="stat-label">草稿</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn primary">
+                            <i class="el-icon-plus"></i>
+                            新建考核周期
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选和搜索 -->
+            <div class="filter-section">
+                <div class="filter-container">
+                    <div class="filter-left">
+                        <input type="text" placeholder="搜索考核周期..." class="search-input" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <select class="status-filter" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                            <option>全部状态</option>
+                            <option>草稿</option>
+                            <option>进行中</option>
+                            <option>已完成</option>
+                        </select>
+                    </div>
+                    <div class="filter-right">
+                        <button class="action-btn primary" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-right: 8px;">
+                            <i class="el-icon-grid"></i>
+                            卡片视图
+                        </button>
+                        <button class="action-btn secondary" style="background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 8px;">
+                            <i class="el-icon-list"></i>
+                            列表视图
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 内容区域 -->
+            <div class="content-section">
+                <div class="cards-container">
+                    <div class="cycle-card status-active">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="el-icon-calendar title-icon"></i>
+                                <span>2025年第四季度考核</span>
+                            </div>
+                            <div class="card-status">
+                                <span class="status-tag status-active">进行中</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="card-description">
+                                2025年第四季度绩效考核
+                            </div>
+                            <div class="card-dates">
+                                <div class="date-item">
+                                    <i class="el-icon-calendar"></i>
+                                    <span>开始：2025-09-28</span>
+                                </div>
+                                <div class="date-item">
+                                    <i class="el-icon-calendar"></i>
+                                    <span>结束：2025-10-11</span>
+                                </div>
+                            </div>
+                            <div class="card-rule">
+                                <i class="el-icon-setting"></i>
+                                <span>默认考核规则</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button class="action-btn edit">
+                                <i class="el-icon-edit"></i>
+                                编辑
+                            </button>
+                            <button class="action-btn generate">
+                                <i class="el-icon-plus"></i>
+                                生成任务
+                            </button>
+                            <button class="action-btn view">
+                                <i class="el-icon-list"></i>
+                                查看任务
+                            </button>
+                            <button class="action-btn delete">
+                                <i class="el-icon-delete"></i>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cycle-card status-active">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="el-icon-calendar title-icon"></i>
+                                <span>2025年第三季度考核</span>
+                            </div>
+                            <div class="card-status">
+                                <span class="status-tag status-active">进行中</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="card-description">
+                                2025年第三季度绩效考核
+                            </div>
+                            <div class="card-dates">
+                                <div class="date-item">
+                                    <i class="el-icon-calendar"></i>
+                                    <span>开始：2025-07-01</span>
+                                </div>
+                                <div class="date-item">
+                                    <i class="el-icon-calendar"></i>
+                                    <span>结束：2025-09-30</span>
+                                </div>
+                            </div>
+                            <div class="card-rule">
+                                <i class="el-icon-setting"></i>
+                                <span>季度考核规则</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button class="action-btn edit">
+                                <i class="el-icon-edit"></i>
+                                编辑
+                            </button>
+                            <button class="action-btn generate">
+                                <i class="el-icon-plus"></i>
+                                生成任务
+                            </button>
+                            <button class="action-btn view">
+                                <i class="el-icon-list"></i>
+                                查看任务
+                            </button>
+                            <button class="action-btn delete">
+                                <i class="el-icon-delete"></i>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cycle-card status-draft">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="el-icon-calendar title-icon"></i>
+                                <span>2025同级互评</span>
+                            </div>
+                            <div class="card-status">
+                                <span class="status-tag status-draft">草稿</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="card-description">
+                                暂无描述
+                            </div>
+                            <div class="card-dates">
+                                <div class="date-item">
+                                    <i class="el-icon-calendar"></i>
+                                    <span>开始：2025-09-07</span>
+                                </div>
+                                <div class="date-item">
+                                    <i class="el-icon-calendar"></i>
+                                    <span>结束：2025-09-16</span>
+                                </div>
+                            </div>
+                            <div class="card-rule">
+                                <i class="el-icon-setting"></i>
+                                <span>同级互评规则</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button class="action-btn edit">
+                                <i class="el-icon-edit"></i>
+                                编辑
+                            </button>
+                            <button class="action-btn generate">
+                                <i class="el-icon-plus"></i>
+                                生成任务
+                            </button>
+                            <button class="action-btn view">
+                                <i class="el-icon-list"></i>
+                                查看任务
+                            </button>
+                            <button class="action-btn delete">
+                                <i class="el-icon-delete"></i>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                return {};
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

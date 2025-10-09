@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS头像样式测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .avatar-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1890ff, #096dd9);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 32px;
+            margin: 10px;
+        }
+        .avatar-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 16px;
+            display: block !important;
+            border: 2px solid #e5e7eb;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 10 !important;
+            position: relative !important;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #096dd9;
+        }
+        .debug {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .test-images {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .test-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSS头像样式测试</h1>
+        
+        <div class="avatar-section">
+            <h3>测试1: 默认头像圆圈</h3>
+            <div class="avatar-circle">U</div>
+        </div>
+        
+        <div class="avatar-section">
+            <h3>测试2: 头像图片（CSS类）</h3>
+            <img src="https://via.placeholder.com/80x80?text=CSS" alt="CSS测试头像" class="avatar-image" />
+        </div>
+        
+        <div class="avatar-section">
+            <h3>测试3: 头像图片（内联样式）</h3>
+            <img 
+                src="https://via.placeholder.com/80x80?text=Inline" 
+                alt="内联样式测试头像" 
+                style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 80px !important; height: 80px !important; border-radius: 50% !important; border: 2px solid #e5e7eb !important; margin: 0 auto 16px;"
+            />
+        </div>
+        
+        <div class="avatar-section">
+            <h3>测试4: 多种头像对比</h3>
+            <div class="test-images">
+                <img src="https://via.placeholder.com/80x80?text=1" alt="测试1" class="test-image" />
+                <img src="https://via.placeholder.com/80x80?text=2" alt="测试2" class="test-image" />
+                <img src="https://via.placeholder.com/80x80?text=3" alt="测试3" class="test-image" />
+            </div>
+        </div>
+        
+        <div class="debug">
+            <h3>样式检查:</h3>
+            <div id="style-check"></div>
+        </div>
+        
+        <button class="btn" onclick="checkStyles()">检查样式</button>
+    </div>
+
+    <script>
+        function checkStyles() {
+            const images = document.querySelectorAll('img');
+            const styleCheck = document.getElementById('style-check');
+            let html = '';
+            
+            images.forEach((img, index) => {
+                const computedStyle = getComputedStyle(img);
+                html += `<div>图片 ${index + 1}:</div>`;
+                html += `<div>  display: ${computedStyle.display}</div>`;
+                html += `<div>  visibility: ${computedStyle.visibility}</div>`;
+                html += `<div>  opacity: ${computedStyle.opacity}</div>`;
+                html += `<div>  width: ${computedStyle.width}</div>`;
+                html += `<div>  height: ${computedStyle.height}</div>`;
+                html += `<div>  border-radius: ${computedStyle.borderRadius}</div>`;
+                html += `<div>  src: ${img.src}</div>`;
+                html += `<div>  alt: ${img.alt}</div>`;
+                html += `<br>`;
+            });
+            
+            styleCheck.innerHTML = html;
+        }
+        
+        // 页面加载时自动检查
+        window.onload = function() {
+            setTimeout(checkStyles, 100);
+        };
+    </script>
+</body>
+</html>

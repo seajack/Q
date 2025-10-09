@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考核周期管理 - 简化测试</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.8/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.full.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.1.0/dist/index.iife.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .test-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 5px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="test-container">
+            <div class="test-header">
+                <h1>考核周期管理 - 组件测试</h1>
+                <p>测试现代化考核周期管理组件是否正常工作</p>
+            </div>
+            
+            <div class="test-content">
+                <h2>测试状态</h2>
+                <div id="test-results">
+                    <div class="status-indicator status-warning">正在加载...</div>
+                </div>
+                
+                <h3>测试操作</h3>
+                <button class="test-button" @click="testVue">测试 Vue.js</button>
+                <button class="test-button" @click="testElementPlus">测试 Element Plus</button>
+                <button class="test-button" @click="testIcons">测试图标</button>
+                <button class="test-button" @click="testRouter">测试路由</button>
+                
+                <h3>模拟数据</h3>
+                <div v-if="testData.length > 0">
+                    <div v-for="(item, index) in testData" :key="index" style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>{{ item.name }}</strong> - {{ item.status }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                const testData = ref([
+                    { name: '2025年第四季度考核', status: '进行中' },
+                    { name: '2025同级互评', status: '草稿' },
+                    { name: '2025全公司上对下', status: '草稿' }
+                ]);
+
+                const updateTestResults = (message, type = 'success') => {
+                    const resultsDiv = document.getElementById('test-results');
+                    resultsDiv.innerHTML = `<div class="status-indicator status-${type}">${message}</div>`;
+                };
+
+                const testVue = () => {
+                    try {
+                        if (typeof Vue !== 'undefined') {
+                            updateTestResults('✓ Vue.js 3 正常工作', 'success');
+                        } else {
+                            updateTestResults('✗ Vue.js 未加载', 'error');
+                        }
+                    } catch (error) {
+                        updateTestResults(`✗ Vue.js 测试失败: ${error.message}`, 'error');
+                    }
+                };
+
+                const testElementPlus = () => {
+                    try {
+                        if (typeof ElementPlus !== 'undefined') {
+                            updateTestResults('✓ Element Plus 正常工作', 'success');
+                        } else {
+                            updateTestResults('✗ Element Plus 未加载', 'error');
+                        }
+                    } catch (error) {
+                        updateTestResults(`✗ Element Plus 测试失败: ${error.message}`, 'error');
+                    }
+                };
+
+                const testIcons = () => {
+                    try {
+                        if (typeof ElementPlusIconsVue !== 'undefined') {
+                            updateTestResults('✓ Element Plus Icons 正常工作', 'success');
+                        } else {
+                            updateTestResults('✗ Element Plus Icons 未加载', 'error');
+                        }
+                    } catch (error) {
+                        updateTestResults(`✗ Icons 测试失败: ${error.message}`, 'error');
+                    }
+                };
+
+                const testRouter = () => {
+                    try {
+                        // 测试路由跳转
+                        const currentPath = window.location.pathname;
+                        updateTestResults(`✓ 当前路径: ${currentPath}`, 'success');
+                        
+                        // 测试路由跳转
+                        setTimeout(() => {
+                            window.location.href = '/cycles';
+                        }, 1000);
+                    } catch (error) {
+                        updateTestResults(`✗ 路由测试失败: ${error.message}`, 'error');
+                    }
+                };
+
+                return {
+                    testData,
+                    testVue,
+                    testElementPlus,
+                    testIcons,
+                    testRouter
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+
+        // 页面加载完成后自动运行测试
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('test-results').innerHTML = 
+                    '<div class="status-indicator status-success">✓ 页面加载完成，所有组件已就绪</div>';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

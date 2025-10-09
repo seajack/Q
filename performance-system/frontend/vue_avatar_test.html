@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue头像测试</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .avatar-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1890ff, #096dd9);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 32px;
+            margin: 10px;
+        }
+        .avatar-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            margin: 10px;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #096dd9;
+        }
+        .debug {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Vue头像测试</h1>
+        
+        <div class="avatar-section">
+            <div v-if="!avatarUrl || avatarUrl === '' || avatarUrl === null">
+                <div class="avatar-circle">{{ userName.charAt(0).toUpperCase() }}</div>
+            </div>
+            <img v-else-if="avatarUrl" :src="avatarUrl" alt="头像" class="avatar-image" />
+            
+            <div>
+                <button class="btn" @click="uploadAvatar">上传头像</button>
+                <button class="btn" @click="setTestAvatar">设置测试头像</button>
+                <button class="btn" @click="clearAvatar">清除头像</button>
+            </div>
+        </div>
+        
+        <div class="debug">
+            <h3>调试信息:</h3>
+            <div>avatarUrl: {{ avatarUrl || '空' }}</div>
+            <div>显示头像: {{ avatarUrl ? '是' : '否' }}</div>
+            <div>头像类型: {{ typeof avatarUrl }}</div>
+            <div>条件判断: {{ !avatarUrl || avatarUrl === '' || avatarUrl === null ? '显示默认头像' : '显示头像图片' }}</div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        
+        createApp({
+            setup() {
+                const avatarUrl = ref('');
+                const userName = ref('测试用户');
+                
+                const uploadAvatar = () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = function(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        if (!file.type.startsWith('image/')) {
+                            alert('请选择图片文件');
+                            return;
+                        }
+                        
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert('图片大小不能超过2MB');
+                            return;
+                        }
+                        
+                        const previewUrl = URL.createObjectURL(file);
+                        avatarUrl.value = previewUrl;
+                        console.log('设置头像URL:', previewUrl);
+                    };
+                    input.click();
+                };
+                
+                const setTestAvatar = () => {
+                    const testUrl = 'https://via.placeholder.com/80x80?text=Test';
+                    avatarUrl.value = testUrl;
+                    console.log('设置测试头像URL:', testUrl);
+                };
+                
+                const clearAvatar = () => {
+                    avatarUrl.value = '';
+                    console.log('清除头像');
+                };
+                
+                return {
+                    avatarUrl,
+                    userName,
+                    uploadAvatar,
+                    setTestAvatar,
+                    clearAvatar
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

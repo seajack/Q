@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>路由调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>路由调试页面</h1>
+    
+    <div class="debug-info">
+        <h3>当前页面信息</h3>
+        <p><strong>URL:</strong> <span id="current-url"></span></p>
+        <p><strong>路径:</strong> <span id="current-path"></span></p>
+        <p><strong>时间:</strong> <span id="current-time"></span></p>
+    </div>
+
+    <div class="debug-info">
+        <h3>路由测试</h3>
+        <button onclick="testRoute('/cycles')">测试 /cycles 路由</button>
+        <button onclick="testRoute('/dashboard-new')">测试 /dashboard-new 路由</button>
+        <button onclick="testRoute('/indicators')">测试 /indicators 路由</button>
+        <div id="route-result"></div>
+    </div>
+
+    <div class="debug-info">
+        <h3>Vue Router 检查</h3>
+        <div id="vue-router-status"></div>
+    </div>
+
+    <script>
+        // 更新页面信息
+        function updatePageInfo() {
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('current-path').textContent = window.location.pathname;
+            document.getElementById('current-time').textContent = new Date().toLocaleString();
+        }
+
+        // 测试路由
+        function testRoute(path) {
+            const resultDiv = document.getElementById('route-result');
+            try {
+                // 尝试导航到指定路径
+                window.location.href = path;
+                resultDiv.innerHTML = `<div class="success">正在导航到: ${path}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">导航失败: ${error.message}</div>`;
+            }
+        }
+
+        // 检查Vue Router
+        function checkVueRouter() {
+            const statusDiv = document.getElementById('vue-router-status');
+            
+            if (typeof window.Vue !== 'undefined') {
+                statusDiv.innerHTML = '<div class="success">✓ Vue.js 已加载</div>';
+            } else {
+                statusDiv.innerHTML = '<div class="error">✗ Vue.js 未加载</div>';
+            }
+
+            if (typeof window.VueRouter !== 'undefined') {
+                statusDiv.innerHTML += '<div class="success">✓ Vue Router 已加载</div>';
+            } else {
+                statusDiv.innerHTML += '<div class="error">✗ Vue Router 未加载</div>';
+            }
+        }
+
+        // 页面加载时执行
+        updatePageInfo();
+        checkVueRouter();
+        
+        // 每秒更新一次时间
+        setInterval(updatePageInfo, 1000);
+    </script>
+</body>
+</html>

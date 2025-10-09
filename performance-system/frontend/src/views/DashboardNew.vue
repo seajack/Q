@@ -29,24 +29,6 @@
               <i class="el-icon-question"></i>
             </el-tooltip>
           </div>
-          
-          <div class="action-item">
-            <el-dropdown trigger="click" @command="handleCommand">
-              <div class="user-profile">
-                <div class="avatar-circle">AD</div>
-                <div class="user-info">
-                  <div class="username">Admin</div>
-                  <div class="role">系统管理员</div>
-                </div>
-                <i class="el-icon-caret-bottom"></i>
-              </div>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
-                <el-dropdown-item command="settings">账号设置</el-dropdown-item>
-                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </div>
         </div>
       </div>
       
@@ -63,7 +45,6 @@
               <el-option v-for="cycle in cycles" :key="cycle.id" :label="cycle.name" :value="cycle.id" />
             </el-select>
             <el-input v-model="keyword" placeholder="搜索员工、部门…" style="width:240px" clearable @keyup.enter="onSearch" />
-            <el-button type="primary" @click="onCreate">新增评审</el-button>
             <el-button @click="refreshData">刷新</el-button>
           </div>
         </div>
@@ -283,10 +264,9 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { statsApi, cycleApi, taskApi } from '@/utils/api'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import DeadlineReminder from '@/components/DeadlineReminder.vue'
 
 // 品牌色
@@ -370,16 +350,6 @@ const handleMenuSelect = (index: string) => {
   console.log(`导航到: ${index}`)
 }
 
-const handleCommand = (command: string) => {
-  if (command === 'logout') {
-    // 退出登录逻辑
-    console.log('退出登录')
-  } else if (command === 'profile') {
-    console.log('查看个人信息')
-  } else if (command === 'settings') {
-    console.log('账号设置')
-  }
-}
 
 // 仪表盘事件处理
 const onCycleChange = () => {
@@ -685,12 +655,17 @@ const loadAllCharts = async () => {
 }
 
 const loadDistributionChart = async () => {
-  if (!distributionChart) return
+  if (!distributionChart) {
+    console.warn('评分分布图未初始化')
+    return
+  }
   
   try {
     const distribution = kpi.value.score_distribution || {}
     const grades = ['C', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
     const counts = grades.map(grade => distribution[grade] || 0)
+    
+    console.log('评分分布图数据:', { distribution, grades, counts })
     
     distributionChart.setOption({
       tooltip: {
@@ -739,13 +714,18 @@ const loadDistributionChart = async () => {
 }
 
 const loadDeptPerformanceChart = async () => {
-  if (!deptPerformanceChart) return
+  if (!deptPerformanceChart) {
+    console.warn('部门绩效图未初始化')
+    return
+  }
   
   try {
     const deptData = kpi.value.dept_performance || []
     const departments = deptData.map((dept: any) => dept.department)
     const completionRates = deptData.map((dept: any) => dept.completion_rate)
     const avgScores = deptData.map((dept: any) => dept.avg_score)
+    
+    console.log('部门绩效图数据:', { deptData, departments, completionRates, avgScores })
     
     deptPerformanceChart.setOption({
       tooltip: {
@@ -816,12 +796,17 @@ const loadDeptPerformanceChart = async () => {
 }
 
 const loadTrendChart = async () => {
-  if (!trendChart) return
+  if (!trendChart) {
+    console.warn('趋势图未初始化')
+    return
+  }
   
   try {
     const trendData = kpi.value.performance_trend || []
     const dates = trendData.map((item: any) => item.date.split('-').slice(1).join('/'))
     const completed = trendData.map((item: any) => item.completed)
+    
+    console.log('趋势图数据:', { trendData, dates, completed })
     
     trendChart.setOption({
       tooltip: {
@@ -870,12 +855,17 @@ const loadTrendChart = async () => {
 }
 
 const loadCycleProgressChart = async () => {
-  if (!cycleProgressChart) return
+  if (!cycleProgressChart) {
+    console.warn('周期进度图未初始化')
+    return
+  }
   
   try {
     const cycleData = kpi.value.cycle_progress || []
     const cycles = cycleData.map((cycle: any) => cycle.name)
     const progress = cycleData.map((cycle: any) => cycle.progress)
+    
+    console.log('周期进度图数据:', { cycleData, cycles, progress })
     
     cycleProgressChart.setOption({
       tooltip: {
@@ -1015,7 +1005,13 @@ const initCharts = () => {
 onMounted(async () => {
   // 从本地存储恢复侧边栏状态
   
+  // 先初始化图表
   initCharts()
+  
+  // 等待下一个tick确保DOM元素已准备好
+  await nextTick()
+  
+  // 加载数据
   await loadData()
 })
 
@@ -1101,42 +1097,6 @@ const getStatusText = (status: string) => {
   line-height: 1;
 }
 
-.user-profile {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.avatar-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1890ff, #096dd9);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  margin-right: 8px;
-}
-
-.user-info {
-  margin-right: 8px;
-}
-
-.username {
-  font-size: 14px;
-  font-weight: 500;
-  color: #262626;
-  line-height: 1.2;
-}
-
-.role {
-  font-size: 12px;
-  color: #8c8c8c;
-  line-height: 1.2;
-}
 
 /* 仪表盘容器样式 */
 .dashboard-container {
@@ -1180,6 +1140,7 @@ const getStatusText = (status: string) => {
   gap: 12px;
   align-items: center;
 }
+
 
 /* KPI 卡片样式 */
 .kpi-section {
@@ -1541,6 +1502,20 @@ const getStatusText = (status: string) => {
   
   .chart-container {
     height: 200px;
+  }
+  
+  /* 移动端用户菜单优化 */
+  .navbar-right {
+    gap: 8px;
+  }
+  
+  .action-item {
+    padding: 0 8px;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }
 </style>

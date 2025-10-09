@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颜色修复验证</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .banner-test {
+            position: relative;
+            background: linear-gradient(135deg, #2647b2 0%, #3b82f6 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 32px;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .page-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .page-info {
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0 0 20px 0;
+            font-weight: 400;
+        }
+
+        .stats-overview {
+            display: flex;
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* 使用 !important 确保颜色生效 */
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff6b35 !important;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #fbbf24 !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-verification {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .color-verification h3 {
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .color-demo {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .color-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .color-name {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .color-hex {
+            font-size: 12px;
+            color: #6b7280;
+            font-family: monospace;
+        }
+
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .instructions {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #0369a1;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .instructions ul {
+            color: #0c4a6e;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .instructions li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; color: #1f2937; margin-bottom: 40px;">颜色修复验证</h1>
+        
+        <!-- 横幅测试 -->
+        <div class="banner-test">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="page-icon">
+                        📅
+                    </div>
+                    <div class="page-info">
+                        <h1 class="page-title">考核周期管理</h1>
+                        <p class="page-subtitle">创建和管理绩效考核周期，设置考核规则和时间范围</p>
+                        <div class="stats-overview">
+                            <div class="stat-item">
+                                <span class="stat-value">5</span>
+                                <span class="stat-label">总周期数</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">2</span>
+                                <span class="stat-label">进行中</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">已完成</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">3</span>
+                                <span class="stat-label">草稿</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 颜色验证 -->
+        <div class="color-verification">
+            <h3>🎨 颜色验证</h3>
+            <div class="color-demo">
+                <div class="color-item">
+                    <div class="color-box" style="background: #ff6b35;"></div>
+                    <div class="color-info">
+                        <div class="color-name">数值颜色</div>
+                        <div class="color-hex">#ff6b35</div>
+                    </div>
+                    <div class="status-indicator status-success">✅ 已应用</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #fbbf24;"></div>
+                    <div class="color-info">
+                        <div class="color-name">标签颜色</div>
+                        <div class="color-hex">#fbbf24</div>
+                    </div>
+                    <div class="status-indicator status-success">✅ 已应用</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+        <div class="instructions">
+            <h3>🔧 颜色修复说明</h3>
+            <ul>
+                <li><strong>添加了 !important</strong>：确保颜色样式优先级最高</li>
+                <li><strong>重新构建项目</strong>：使用 <code>npm run build</code> 重新编译</li>
+                <li><strong>清除浏览器缓存</strong>：按 Ctrl+F5 强制刷新</li>
+                <li><strong>检查开发服务器</strong>：确保 <code>npm run dev</code> 正在运行</li>
+                <li><strong>访问正确路径</strong>：确保访问 <code>/cycles</code> 路径</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 检查颜色是否正确应用
+        function checkColors() {
+            const statValues = document.querySelectorAll('.stat-value');
+            const statLabels = document.querySelectorAll('.stat-label');
+            
+            console.log('检查数值颜色:');
+            statValues.forEach((el, index) => {
+                const computedStyle = window.getComputedStyle(el);
+                const color = computedStyle.color;
+                console.log(`数值 ${index + 1}: ${color}`);
+            });
+            
+            console.log('检查标签颜色:');
+            statLabels.forEach((el, index) => {
+                const computedStyle = window.getComputedStyle(el);
+                const color = computedStyle.color;
+                console.log(`标签 ${index + 1}: ${color}`);
+            });
+        }
+
+        // 页面加载后检查颜色
+        window.addEventListener('load', checkColors);
+    </script>
+</body>
+</html>

@@ -2,7 +2,19 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    redirect: '/entry'
+    redirect: '/login'
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '系统登录', layout: 'none' }
+  },
+  {
+    path: '/code-login',
+    name: 'CodeLogin',
+    component: () => import('@/views/CodeLogin.vue'),
+    meta: { title: '考核码登录', layout: 'none' }
   },
   {
     path: '/entry',
@@ -37,7 +49,7 @@ const routes = [
   {
     path: '/cycles',
     name: 'EvaluationCycles',
-    component: () => import('@/views/EvaluationCycles_Enhanced.vue'),
+    component: () => import('@/views/CyclesModern.vue'),
     meta: { title: '考核周期管理', layout: 'topnav' }
   },
   {
@@ -51,6 +63,12 @@ const routes = [
     name: 'CyclesElementPlus',
     component: () => import('@/views/CyclesRefactoredElementPlus.vue'),
     meta: { title: '考核周期管理（Element Plus版）', layout: 'topnav' }
+  },
+  {
+    path: '/cycles-modern',
+    name: 'CyclesModern',
+    component: () => import('@/views/CyclesModern.vue'),
+    meta: { title: '考核周期管理（现代化版）', layout: 'topnav' }
   },
   {
     path: '/indicators',
@@ -292,6 +310,18 @@ const routes = [
     name: 'EvaluationDimensions',
     component: () => import('@/views/EvaluationDimensions.vue'),
     meta: { title: '评估维度管理', layout: 'topnav' }
+  },
+  {
+    path: '/user-profile',
+    name: 'UserProfile',
+    component: () => import('@/views/UserProfile.vue'),
+    meta: { title: '个人信息', layout: 'topnav' }
+  },
+  {
+    path: '/user-settings',
+    name: 'UserSettings',
+    component: () => import('@/views/UserSettings.vue'),
+    meta: { title: '账号设置', layout: 'topnav' }
   }
 ]
 

@@ -149,34 +149,20 @@ const getActionText = (deadline: any) => {
 // 方法
 const loadUpcomingDeadlines = async () => {
   try {
-    // 模拟API调用
-    const mockDeadlines = [
-      {
-        id: 1,
-        title: '张三的考核任务',
-        deadline: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2小时后
-        type: 'evaluation',
-        status: 'pending'
-      },
-      {
-        id: 2,
-        title: '李四的考核任务',
-        deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1天后
-        type: 'evaluation',
-        status: 'in_progress'
-      },
-      {
-        id: 3,
-        title: '王五的考核任务',
-        deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3天后
-        type: 'evaluation',
-        status: 'pending'
-      }
-    ]
+    // 调用真实API获取截止日期提醒数据
+    const { statsApi } = await import('@/utils/api')
+    const response = await statsApi.deadlineReminders()
     
-    upcomingDeadlines.value = mockDeadlines
+    if (response && response.deadlines) {
+      upcomingDeadlines.value = response.deadlines
+    } else {
+      // 如果API调用失败，显示空数组
+      upcomingDeadlines.value = []
+    }
   } catch (error) {
     console.error('加载截止日期失败:', error)
+    // 如果API调用失败，显示空数组
+    upcomingDeadlines.value = []
   }
 }
 

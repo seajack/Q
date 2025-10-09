@@ -1284,6 +1284,72 @@ def stats_overview(request):
 
 
 @api_view(['GET'])
+def deadline_reminders(request):
+    """获取截止日期提醒数据"""
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    try:
+        # 获取当前时间
+        now = timezone.now()
+        
+        # 获取即将到期的考核任务（7天内到期）
+        upcoming_deadlines = []
+        
+        # 获取所有活跃的考核周期
+        active_cycles = EvaluationCycle.objects.filter(
+            status='active',
+            end_date__gte=now.date()
+        )
+        
+        for cycle in active_cycles:
+            # 计算截止日期（周期结束日期）
+            deadline_date = cycle.end_date
+            
+            # 只显示7天内到期的任务
+            days_until_deadline = (deadline_date - now.date()).days
+            if 0 <= days_until_deadline <= 7:
+                # 获取该周期下待完成的考核任务
+                pending_tasks = EvaluationTask.objects.filter(
+                    cycle=cycle,
+                    status__in=['pending', 'in_progress']
+                ).select_related('evaluator', 'evaluatee')
+                
+                for task in pending_tasks:
+                    # 计算剩余时间
+                    hours_left = (deadline_date - now.date()).days * 24 + (24 - now.hour)
+                    
+                    upcoming_deadlines.append({
+                        'id': task.id,
+                        'title': f'{task.evaluator.name} 对 {task.evaluatee.name} 的考核',
+                        'deadline': deadline_date.isoformat(),
+                        'type': 'evaluation',
+                        'status': task.status,
+                        'cycle_name': cycle.name,
+                        'evaluator_name': task.evaluator.name,
+                        'evaluatee_name': task.evaluatee.name,
+                        'relation_type': task.get_relation_type_display(),
+                        'hours_left': hours_left,
+                        'days_left': days_until_deadline
+                    })
+        
+        # 按截止时间排序
+        upcoming_deadlines.sort(key=lambda x: x['deadline'])
+        
+        return Response({
+            'deadlines': upcoming_deadlines,
+            'total_count': len(upcoming_deadlines),
+            'urgent_count': len([d for d in upcoming_deadlines if d['days_left'] <= 1]),
+            'warning_count': len([d for d in upcoming_deadlines if 1 < d['days_left'] <= 3])
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': f'获取截止日期提醒失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
 def stats_cycle(request, cycle_id):
     """获取特定考核周期的统计数据"""
     try:
@@ -1375,4 +1441,111 @@ def stats_cycle(request, cycle_id):
     except Exception as e:
         return Response({
             'error': f'获取周期统计失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# 用户相关API
+@api_view(['GET'])
+def user_profile(request):
+    """获取当前用户信息"""
+    try:
+        # 模拟用户信息，实际应该从认证系统获取
+        user_info = {
+            'username': 'admin',
+            'employeeId': 'EMP001',
+            'name': '系统管理员',
+            'email': 'admin@company.com',
+            'phone': '13800138000',
+            'department': '信息部',
+            'position': '系统管理员',
+            'positionLevel': 'L9',
+            'bio': '负责系统管理和维护工作',
+            'avatar': ''
+        }
+        return Response(user_info)
+    except Exception as e:
+        return Response({
+            'error': f'获取用户信息失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PUT'])
+def update_user_profile(request):
+    """更新用户信息"""
+    try:
+        # 这里应该更新数据库中的用户信息
+        # 目前只是返回成功响应
+        return Response({
+            'message': '用户信息更新成功',
+            'data': request.data
+        })
+    except Exception as e:
+        return Response({
+            'error': f'更新用户信息失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def upload_user_avatar(request):
+    """上传用户头像"""
+    try:
+        # 这里应该处理文件上传和存储
+        # 目前只是返回成功响应
+        return Response({
+            'message': '头像上传成功',
+            'avatar': 'https://via.placeholder.com/80x80?text=Avatar'
+        })
+    except Exception as e:
+        return Response({
+            'error': f'头像上传失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def user_login_history(request):
+    """获取用户登录历史"""
+    try:
+        # 模拟登录历史数据
+        login_history = [
+            {
+                'loginTime': '2025-01-15 14:30:25',
+                'ipAddress': '192.168.1.100',
+                'location': '北京市朝阳区',
+                'device': 'Windows 10 / Chrome 120'
+            },
+            {
+                'loginTime': '2025-01-15 09:15:42',
+                'ipAddress': '192.168.1.100',
+                'location': '北京市朝阳区',
+                'device': 'Windows 10 / Chrome 120'
+            },
+            {
+                'loginTime': '2025-01-14 16:45:18',
+                'ipAddress': '192.168.1.100',
+                'location': '北京市朝阳区',
+                'device': 'Windows 10 / Chrome 120'
+            }
+        ]
+        return Response(login_history)
+    except Exception as e:
+        return Response({
+            'error': f'获取登录历史失败: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def change_user_password(request):
+    """修改用户密码"""
+    try:
+        current_password = request.data.get('currentPassword')
+        new_password = request.data.get('newPassword')
+        
+        # 这里应该验证当前密码并更新新密码
+        # 目前只是返回成功响应
+        return Response({
+            'message': '密码修改成功'
+        })
+    except Exception as e:
+        return Response({
+            'error': f'密码修改失败: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

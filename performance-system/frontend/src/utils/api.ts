@@ -109,6 +109,21 @@ export const manualAssignmentApi = {
   generateTasks: (data: any) => api.post('/manual-assignments/generate-tasks/', data),
 }
 
+// 用户API
+export const userApi = {
+  getProfile: () => api.get('/user/profile/'),
+  updateProfile: (data: any) => api.put('/user/profile/', data),
+  uploadAvatar: (file: File) => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    return api.post('/user/avatar/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+  getLoginHistory: () => api.get('/user/login-history/'),
+  changePassword: (data: any) => api.post('/user/change-password/', data),
+}
+
 // 考核评分API
 export const scoreApi = {
   list: (params?: any) => api.get<ApiResponse<any[]>>('/scores/', { params }),
@@ -150,6 +165,7 @@ export const statsApi = {
   cycleStats: (cycleId: number) => api.get(`/stats/cycle/${cycleId}/`),
   listEmployees: () => api.get('/employees/'),
   getEmployeeSkills: (employeeId: number) => api.get(`/employees/${employeeId}/skills/`),
+  deadlineReminders: () => api.get('/deadline-reminders/'),
 }
 
 // 系统设置API

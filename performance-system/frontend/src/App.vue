@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <component :is="currentLayout">
+    <!-- 无布局页面（如登录页）直接显示 -->
+    <router-view v-if="isNoLayout" />
+    
+    <!-- 有布局的页面使用布局组件 -->
+    <component v-else :is="currentLayout">
       <router-view v-if="isTopNav" />
     </component>
   </div>
@@ -14,6 +18,7 @@ import Layout from './components/Layout.vue'
 import TopNavLayout from './layouts/TopNavLayout.vue'
 
 const route = useRoute()
+const isNoLayout = computed(() => route.meta && (route.meta as any).layout === 'none')
 const isTopNav = computed(() => route.meta && (route.meta as any).layout === 'topnav')
 const currentLayout = computed(() => isTopNav.value ? TopNavLayout : Layout)
 </script>

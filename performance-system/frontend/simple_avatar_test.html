@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单头像测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .avatar-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1890ff, #096dd9);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 32px;
+            margin: 10px;
+        }
+        .avatar-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            margin: 10px;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #096dd9;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #f0f0f0;
+            border: 1px solid #d0d0d0;
+        }
+        .debug {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>简单头像测试</h1>
+        
+        <div class="avatar-section">
+            <div id="avatar-display">
+                <div class="avatar-circle" id="avatar-circle">U</div>
+                <img id="avatar-image" class="avatar-image" style="display: none;" />
+            </div>
+            <div>
+                <button class="btn" onclick="uploadAvatar()">上传头像</button>
+                <button class="btn" onclick="loadUser()">加载用户</button>
+                <button class="btn" onclick="clearUser()">清除用户</button>
+            </div>
+        </div>
+        
+        <div class="status" id="status">准备就绪</div>
+        
+        <div class="debug" id="debug"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const debug = document.getElementById('debug');
+            const timestamp = new Date().toLocaleTimeString();
+            debug.textContent += `[${timestamp}] ${message}\n`;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function showStatus(message) {
+            document.getElementById('status').textContent = message;
+            log(message);
+        }
+
+        function loadUser() {
+            log('开始加载用户信息...');
+            const user = localStorage.getItem('user');
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    log(`用户数据: ${JSON.stringify(userData)}`);
+                    
+                    if (userData.avatar && userData.avatar.trim() !== '') {
+                        log(`显示头像: ${userData.avatar}`);
+                        document.getElementById('avatar-circle').style.display = 'none';
+                        document.getElementById('avatar-image').style.display = 'inline-block';
+                        document.getElementById('avatar-image').src = userData.avatar;
+                        document.getElementById('avatar-image').onerror = function() {
+                            log('头像加载失败，显示默认头像');
+                            document.getElementById('avatar-circle').style.display = 'inline-flex';
+                            document.getElementById('avatar-image').style.display = 'none';
+                        };
+                    } else {
+                        log('无头像，显示默认头像');
+                        document.getElementById('avatar-circle').style.display = 'inline-flex';
+                        document.getElementById('avatar-image').style.display = 'none';
+                        document.getElementById('avatar-circle').textContent = (userData.name || 'U').charAt(0).toUpperCase();
+                    }
+                    
+                    showStatus('用户信息加载成功');
+                } catch (error) {
+                    log(`解析用户数据失败: ${error.message}`);
+                    showStatus('用户数据解析失败');
+                }
+            } else {
+                log('未找到用户数据');
+                showStatus('未找到用户信息');
+            }
+        }
+
+        function uploadAvatar() {
+            log('开始头像上传...');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) {
+                    log('未选择文件');
+                    return;
+                }
+                
+                log(`选择文件: ${file.name}, 大小: ${file.size}, 类型: ${file.type}`);
+                
+                if (!file.type.startsWith('image/')) {
+                    showStatus('请选择图片文件');
+                    return;
+                }
+                
+                if (file.size > 2 * 1024 * 1024) {
+                    showStatus('图片大小不能超过2MB');
+                    return;
+                }
+                
+                const previewUrl = URL.createObjectURL(file);
+                log(`创建预览URL: ${previewUrl}`);
+                
+                // 更新显示
+                document.getElementById('avatar-circle').style.display = 'none';
+                document.getElementById('avatar-image').style.display = 'inline-block';
+                document.getElementById('avatar-image').src = previewUrl;
+                
+                log('头像显示已更新');
+                
+                // 保存到localStorage
+                const userInfo = JSON.parse(localStorage.getItem('user') || '{}');
+                userInfo.avatar = previewUrl;
+                localStorage.setItem('user', JSON.stringify(userInfo));
+                
+                log(`保存到localStorage: ${JSON.stringify(userInfo)}`);
+                showStatus('头像上传成功');
+                
+                // 触发全局事件
+                window.dispatchEvent(new CustomEvent('userInfoUpdated', { 
+                    detail: { avatar: previewUrl } 
+                }));
+                log('已触发全局更新事件');
+            };
+            input.click();
+        }
+
+        function clearUser() {
+            localStorage.removeItem('user');
+            showStatus('用户数据已清除');
+            document.getElementById('avatar-circle').style.display = 'inline-flex';
+            document.getElementById('avatar-image').style.display = 'none';
+            document.getElementById('avatar-circle').textContent = 'U';
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            log('页面加载完成');
+            loadUser();
+        };
+
+        // 监听全局更新事件
+        window.addEventListener('userInfoUpdated', function(event) {
+            log(`收到全局更新事件: ${JSON.stringify(event.detail)}`);
+            loadUser();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表测试页面</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1a202c;
+        }
+        .chart {
+            width: 100%;
+            height: 300px;
+        }
+        .test-button {
+            background: #177fc1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .test-button:hover {
+            background: #115f96;
+        }
+    </style>
+</head>
+<body>
+    <h1>绩效考核系统图表测试</h1>
+    
+    <div>
+        <button class="test-button" onclick="testAPI()">测试API数据</button>
+        <button class="test-button" onclick="testCharts()">测试图表渲染</button>
+        <button class="test-button" onclick="clearCharts()">清空图表</button>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart-title">评分分布图</div>
+        <div id="distributionChart" class="chart"></div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart-title">部门绩效对比</div>
+        <div id="deptChart" class="chart"></div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart-title">绩效趋势图</div>
+        <div id="trendChart" class="chart"></div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart-title">考核周期进度</div>
+        <div id="cycleChart" class="chart"></div>
+    </div>
+
+    <script>
+        let distributionChart, deptChart, trendChart, cycleChart;
+        let apiData = null;
+
+        // 初始化图表
+        function initCharts() {
+            distributionChart = echarts.init(document.getElementById('distributionChart'));
+            deptChart = echarts.init(document.getElementById('deptChart'));
+            trendChart = echarts.init(document.getElementById('trendChart'));
+            cycleChart = echarts.init(document.getElementById('cycleChart'));
+        }
+
+        // 测试API数据
+        async function testAPI() {
+            try {
+                const response = await fetch('http://127.0.0.1:8001/api/stats/overview/');
+                const data = await response.json();
+                apiData = data;
+                console.log('API数据:', data);
+                alert('API数据加载成功！请查看控制台输出。');
+            } catch (error) {
+                console.error('API调用失败:', error);
+                alert('API调用失败: ' + error.message);
+            }
+        }
+
+        // 测试图表渲染
+        function testCharts() {
+            if (!apiData) {
+                alert('请先测试API数据！');
+                return;
+            }
+
+            // 评分分布图
+            const distribution = apiData.score_distribution || {};
+            const grades = ['C', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+            const counts = grades.map(grade => distribution[grade] || 0);
+            
+            distributionChart.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: { type: 'category', data: grades },
+                yAxis: { type: 'value' },
+                series: [{
+                    type: 'bar',
+                    data: counts,
+                    itemStyle: { color: '#177fc1' },
+                    barWidth: '60%'
+                }]
+            });
+
+            // 部门绩效图
+            const deptData = apiData.dept_performance || [];
+            const departments = deptData.map(dept => dept.department);
+            const completionRates = deptData.map(dept => dept.completion_rate);
+            const avgScores = deptData.map(dept => dept.avg_score);
+            
+            deptChart.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+                legend: { data: ['完成率', '平均分'] },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: { type: 'category', data: departments },
+                yAxis: [
+                    { type: 'value', name: '完成率(%)', position: 'left' },
+                    { type: 'value', name: '平均分', position: 'right' }
+                ],
+                series: [
+                    { name: '完成率', type: 'bar', data: completionRates, itemStyle: { color: '#177fc1' } },
+                    { name: '平均分', type: 'line', yAxisIndex: 1, data: avgScores, itemStyle: { color: '#ff6b6b' } }
+                ]
+            });
+
+            // 趋势图
+            const trendData = apiData.performance_trend || [];
+            const dates = trendData.map(item => item.date.split('-').slice(1).join('/'));
+            const completed = trendData.map(item => item.completed);
+            
+            trendChart.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: { type: 'category', data: dates },
+                yAxis: { type: 'value' },
+                series: [{
+                    type: 'line',
+                    data: completed,
+                    smooth: true,
+                    itemStyle: { color: '#177fc1' },
+                    areaStyle: { color: 'rgba(23, 127, 193, 0.3)' }
+                }]
+            });
+
+            // 周期进度图
+            const cycleData = apiData.cycle_progress || [];
+            const cycles = cycleData.map(cycle => cycle.name);
+            const progress = cycleData.map(cycle => cycle.progress);
+            
+            cycleChart.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: { type: 'category', data: cycles },
+                yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
+                series: [{
+                    type: 'bar',
+                    data: progress,
+                    itemStyle: { color: '#4facfe' },
+                    barWidth: '60%',
+                    label: { show: true, position: 'top', formatter: '{c}%' }
+                }]
+            });
+
+            alert('图表渲染完成！');
+        }
+
+        // 清空图表
+        function clearCharts() {
+            distributionChart.clear();
+            deptChart.clear();
+            trendChart.clear();
+            cycleChart.clear();
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            initCharts();
+        };
+    </script>
+</body>
+</html>

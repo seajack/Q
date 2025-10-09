@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菜单路由测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        .test-link:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>菜单路由测试</h1>
+        
+        <div class="test-section">
+            <h2 class="test-title">🔗 路由测试</h2>
+            <p>点击以下链接测试路由是否正常工作：</p>
+            <a href="/cycles" class="test-link">考核周期管理</a>
+            <a href="/dashboard-new" class="test-link">考核看板</a>
+            <a href="/indicators" class="test-link">考核指标</a>
+            <a href="/tasks" class="test-link">考核任务</a>
+            <a href="/results" class="test-link">报表中心</a>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">📋 菜单配置检查</h2>
+            <div id="menu-status">
+                <div class="status warning">正在检查菜单配置...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">🚀 开发服务器状态</h2>
+            <div id="server-status">
+                <div class="status warning">正在检查开发服务器...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">🔧 故障排除</h2>
+            <ul>
+                <li><strong>检查开发服务器</strong>：确保 <code>npm run dev</code> 正在运行</li>
+                <li><strong>检查端口</strong>：默认端口应该是 5173 或 3000</li>
+                <li><strong>清除缓存</strong>：按 Ctrl+F5 强制刷新页面</li>
+                <li><strong>检查控制台</strong>：打开浏览器开发者工具查看错误信息</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 检查当前页面状态
+        function checkPageStatus() {
+            const currentUrl = window.location.href;
+            const currentPath = window.location.pathname;
+            
+            document.getElementById('menu-status').innerHTML = `
+                <div class="status success">
+                    ✅ 当前页面: ${currentPath}<br>
+                    ✅ 完整URL: ${currentUrl}
+                </div>
+            `;
+        }
+
+        // 检查开发服务器状态
+        function checkServerStatus() {
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const port = window.location.port;
+            
+            if (isLocalhost && (port === '5173' || port === '3000' || port === '8080')) {
+                document.getElementById('server-status').innerHTML = `
+                    <div class="status success">
+                        ✅ 开发服务器运行正常<br>
+                        ✅ 端口: ${port}<br>
+                        ✅ 主机: ${window.location.hostname}
+                    </div>
+                `;
+            } else {
+                document.getElementById('server-status').innerHTML = `
+                    <div class="status error">
+                        ❌ 开发服务器可能未启动<br>
+                        ❌ 当前端口: ${port}<br>
+                        ❌ 请运行 <code>npm run dev</code>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载时执行检查
+        window.addEventListener('load', () => {
+            checkPageStatus();
+            checkServerStatus();
+        });
+
+        // 测试路由跳转
+        function testRoute(path) {
+            console.log(`测试路由跳转到: ${path}`);
+            window.location.href = path;
+        }
+    </script>
+</body>
+</html>

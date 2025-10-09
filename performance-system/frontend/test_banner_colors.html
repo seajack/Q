@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>横幅颜色调整测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .comparison-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* 原始版本 */
+        .banner-original {
+            position: relative;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 32px;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .banner-original .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .banner-original .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .banner-original .page-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .banner-original .page-info {
+            flex: 1;
+        }
+
+        .banner-original .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .banner-original .page-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0 0 20px 0;
+            font-weight: 400;
+        }
+
+        .banner-original .stats-overview {
+            display: flex;
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        .banner-original .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .banner-original .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .banner-original .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 优化版本 */
+        .banner-optimized {
+            position: relative;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 32px;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .banner-optimized .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .banner-optimized .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .banner-optimized .page-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .banner-optimized .page-info {
+            flex: 1;
+        }
+
+        .banner-optimized .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .banner-optimized .page-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0 0 20px 0;
+            font-weight: 400;
+        }
+
+        .banner-optimized .stats-overview {
+            display: flex;
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        .banner-optimized .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .banner-optimized .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .banner-optimized .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .version-label {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .improvement-note {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .improvement-note h3 {
+            color: #0369a1;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .improvement-note ul {
+            color: #0c4a6e;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .improvement-note li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; color: #1f2937; margin-bottom: 40px;">横幅颜色调整对比</h1>
+        
+        <!-- 原始版本 -->
+        <div class="comparison-section">
+            <h2 class="section-title">原始版本</h2>
+            <div class="banner-original">
+                <div class="version-label">原始</div>
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="page-icon">
+                            📅
+                        </div>
+                        <div class="page-info">
+                            <h1 class="page-title">考核周期管理</h1>
+                            <p class="page-subtitle">创建和管理绩效考核周期，设置考核规则和时间范围</p>
+                            <div class="stats-overview">
+                                <div class="stat-item">
+                                    <span class="stat-value">5</span>
+                                    <span class="stat-label">总周期数</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">2</span>
+                                    <span class="stat-label">进行中</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">0</span>
+                                    <span class="stat-label">已完成</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">3</span>
+                                    <span class="stat-label">草稿</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 优化版本 -->
+        <div class="comparison-section">
+            <h2 class="section-title">优化版本</h2>
+            <div class="banner-optimized">
+                <div class="version-label">优化</div>
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="page-icon">
+                            📅
+                        </div>
+                        <div class="page-info">
+                            <h1 class="page-title">考核周期管理</h1>
+                            <p class="page-subtitle">创建和管理绩效考核周期，设置考核规则和时间范围</p>
+                            <div class="stats-overview">
+                                <div class="stat-item">
+                                    <span class="stat-value">5</span>
+                                    <span class="stat-label">总周期数</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">2</span>
+                                    <span class="stat-label">进行中</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">0</span>
+                                    <span class="stat-label">已完成</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">3</span>
+                                    <span class="stat-label">草稿</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 改进说明 -->
+        <div class="improvement-note">
+            <h3>🎨 颜色优化说明</h3>
+            <ul>
+                <li><strong>数值颜色</strong>：从纯白色改为 <code>rgba(255, 255, 255, 0.95)</code>，增加透明度，与背景更协调</li>
+                <li><strong>标签颜色</strong>：从 <code>opacity: 0.8</code> 改为 <code>rgba(255, 255, 255, 0.85)</code>，更精确的颜色控制</li>
+                <li><strong>文字阴影</strong>：添加了 <code>text-shadow</code>，增强文字在渐变背景上的可读性</li>
+                <li><strong>视觉层次</strong>：通过不同的透明度创建更好的视觉层次感</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

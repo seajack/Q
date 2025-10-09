@@ -10,12 +10,13 @@ from .models import (
     EvaluationScore, EvaluationResult, Employee, EvaluationRule, ManualEvaluationAssignment,
     PositionWeight
 )
+from organizations.models import Employee as OrgEmployee
 from .serializers import (
     EvaluationCycleSerializer, EvaluationIndicatorSerializer,
     EvaluationTaskSerializer, EvaluationScoreSerializer,
     EvaluationResultSerializer, EvaluationStatsSerializer, EmployeeSerializer,
     EvaluationRuleSerializer, ManualEvaluationAssignmentSerializer,
-    PositionWeightSerializer
+    PositionWeightSerializer, OrgEmployeeSerializer
 )
 import requests
 from django.conf import settings
@@ -868,10 +869,10 @@ def cycle_stats(request, cycle_id):
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """员工管理（本地副本）"""
-    queryset = Employee.objects.all().order_by('id')
-    serializer_class = EmployeeSerializer
+    queryset = OrgEmployee.objects.all().order_by('id')
+    serializer_class = OrgEmployeeSerializer
     # 服务端筛选/检索/排序
-    filterset_fields = ['department_name', 'status', 'is_active']
+    filterset_fields = ['department_name', 'is_active']
     search_fields = ['name', 'email', 'phone', 'employee_id']
     ordering_fields = ['department_name', 'position_level', 'employee_id', 'name']
     

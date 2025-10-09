@@ -138,3 +138,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = '__all__'
+
+class OrgEmployeeSerializer(serializers.ModelSerializer):
+    """组织架构员工序列化器"""
+    class Meta:
+        from organizations.models import Employee as OrgEmployee
+        model = OrgEmployee
+        fields = '__all__'

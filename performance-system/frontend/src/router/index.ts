@@ -97,7 +97,7 @@ const routes = [
   {
     path: '/tasks',
     name: 'EvaluationTasks',
-    component: () => import('@/views/TasksNew.vue'),
+    component: () => import('@/views/EvaluationGraphView.vue'),
     meta: { title: '考核任务', layout: 'topnav' }
   },
   {
@@ -106,6 +106,84 @@ const routes = [
     component: () => import('@/views/TasksRefactored.vue'),
     meta: { title: '考核任务（重构版）', layout: 'topnav' }
   },
+  {
+    path: '/evaluation-graph',
+    name: 'EvaluationGraph',
+    component: () => import('@/views/EvaluationGraphView.vue'),
+    meta: { title: '考核关系可视化', layout: 'topnav' }
+  },
+  {
+    path: '/graph-data-test',
+    name: 'GraphDataTest',
+    component: () => import('@/views/GraphDataTest.vue'),
+    meta: { title: '图形化数据测试', layout: 'topnav' }
+  },
+  {
+    path: '/drag-test',
+    name: 'DragTest',
+    component: () => import('@/views/DragTest.vue'),
+    meta: { title: '拖拽测试', layout: 'topnav' }
+  },
+  {
+    path: '/data-inspection',
+    name: 'DataInspection',
+    component: () => import('@/views/DataInspection.vue'),
+    meta: { title: '数据检查', layout: 'topnav' }
+  },
+      {
+        path: '/simple-data-test',
+        name: 'SimpleDataTest',
+        component: () => import('@/views/SimpleDataTest.vue'),
+        meta: { title: '简单数据测试', layout: 'topnav' }
+      },
+      {
+        path: '/data-cleaner',
+        name: 'DataCleaner',
+        component: () => import('@/views/DataCleaner.vue'),
+        meta: { title: '数据清理工具', layout: 'topnav' }
+      },
+      {
+        path: '/ultimate-data-fix',
+        name: 'UltimateDataFix',
+        component: () => import('@/views/UltimateDataFix.vue'),
+        meta: { title: '终极数据修复', layout: 'topnav' }
+      },
+      {
+        path: '/data-refresh-tool',
+        name: 'DataRefreshTool',
+        component: () => import('@/views/DataRefreshTool.vue'),
+        meta: { title: '数据刷新工具', layout: 'topnav' }
+      },
+      {
+        path: '/evaluation-analysis',
+        name: 'EvaluationAnalysis',
+        component: () => import('@/views/EvaluationAnalysis.vue'),
+        meta: { title: '考核关系分析', layout: 'topnav' }
+      },
+      {
+        path: '/organization-analysis',
+        name: 'OrganizationAnalysis',
+        component: () => import('@/views/OrganizationAnalysis.vue'),
+        meta: { title: '组织架构分析', layout: 'topnav' }
+      },
+      {
+        path: '/data-sync-checker',
+        name: 'DataSyncChecker',
+        component: () => import('@/views/DataSyncChecker.vue'),
+        meta: { title: '数据同步检查', layout: 'topnav' }
+      },
+      {
+        path: '/zhuge-liang-analysis',
+        name: 'ZhugeLiangAnalysis',
+        component: () => import('@/views/ZhugeLiangAnalysis.vue'),
+        meta: { title: '诸葛亮考核关系分析', layout: 'topnav' }
+      },
+      {
+        path: '/machao-data-check',
+        name: 'MaChaoDataCheck',
+        component: () => import('@/views/MaChaoDataCheck.vue'),
+        meta: { title: '马超数据检查', layout: 'topnav' }
+      },
   {
     path: '/evaluation-entry',
     name: 'EvaluationEntry',

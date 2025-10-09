@@ -119,16 +119,18 @@ class OrganizationService:
         return {'synced': synced_count, 'errors': error_count}
     
     def _map_position_level(self, position_name: str) -> int:
-        \"\"\"根据职位名称映射职位级别\"\"\"
-        # 简化的职位级别映射
+        """根据职位名称映射职位级别"""
+        # 修正的职位级别映射，与组织架构中台保持一致
         level_keywords = {
-            8: ['总裁', '总经理', 'CEO', 'CTO', 'CIO'],
-            7: ['副总', '副总裁', '总监'],
-            6: ['经理', '主管', '主任'],
-            5: ['组长', '队长', '领导'],
-            4: ['高级', '资深'],
-            3: ['中级'],
-            2: ['初级', '助理'],
+            13: ['总裁', '总经理', 'CEO', '董事长'],
+            12: ['副总', '副总裁', '副总经理'],
+            11: ['助理', '高层助理'],
+            9: ['经理', '部门经理', '主管', '主任'],  # 部门经理应该是L9
+            8: ['副经理', '副主管'],
+            7: ['助理', '中层助理'],
+            4: ['组长', '队长', '基层正职'],
+            3: ['副组长', '基层副职'],
+            2: ['助理', '基层助理'],
             1: ['员工', '专员', '实习']  # 默认级别
         }
         
@@ -136,10 +138,14 @@ class OrganizationService:
             if any(keyword in position_name for keyword in keywords):
                 return level
         
+        # 如果职位名称包含"部门经理"，强制设置为L9
+        if '部门经理' in position_name:
+            return 9
+        
         return 1  # 默认返回1级
     
     def build_evaluation_relationships(self, cycle_id: int) -> Dict[str, int]:
-        \"\"\"构建考核关系\"\"\"
+        """构建考核关系"""
         from evaluations.models import EvaluationTask, EvaluationCycle
         from .models import Employee as LocalEmployee
         
@@ -208,13 +214,13 @@ class OrganizationService:
                         created_count += 1
                         
             except Exception as e:
-                logger.error(f\"创建考核关系失败: {employee.employee_id} - {str(e)}\")
+                logger.error(f"创建考核关系失败: {employee.employee_id} - {str(e)}")
                 error_count += 1
         
         return {'created': created_count, 'errors': error_count}
     
     def _get_relation_weight(self, relation_type: str, position_level: int) -> float:
-        \"\"\"根据关系类型和职位级别获取权重\"\"\"
+        """根据关系类型和职位级别获取权重"""
         base_weights = {
             'superior': 0.60,     # 上级考核权重60%
             'peer': 0.25,         # 同级互评权重25%

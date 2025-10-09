@@ -102,7 +102,19 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" align="center" />
-          <el-table-column type="index" label="序号" width="80" align="center" :index="getIndex" />
+          <el-table-column type="index" label="序号" width="80" align="center" :index="getIndex">
+            <template #default="{ $index, row }">
+              <div class="index-cell">
+                <span 
+                  class="index-number" 
+                  :class="getIndexClass(row)"
+                  :title="getIndexTitle(row)"
+                >
+                  {{ getIndex($index) }}
+                </span>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column prop="evaluation_code" label="考核码" width="180" show-overflow-tooltip />
           <el-table-column prop="evaluator_name" label="考核人" width="220">
             <template #default="{ row }">
@@ -471,6 +483,65 @@ const getIndex = (index: number) => {
   return (page.value - 1) * size.value + index + 1
 }
 
+// 获取序号样式类
+const getIndexClass = (row: any) => {
+  const classes = []
+  
+  // 根据状态添加样式
+  if (row.status === 'completed') {
+    classes.push('completed')
+  } else if (row.status === 'overdue') {
+    classes.push('urgent')
+  } else if (row.status === 'in_progress') {
+    classes.push('important')
+  }
+  
+  // 根据截止时间判断紧急程度
+  if (row.deadline) {
+    const now = new Date()
+    const deadline = new Date(row.deadline)
+    const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (diffDays <= 1 && row.status !== 'completed') {
+      classes.push('urgent')
+    } else if (diffDays <= 3 && row.status !== 'completed') {
+      classes.push('important')
+    }
+  }
+  
+  return classes.join(' ')
+}
+
+// 获取序号提示信息
+const getIndexTitle = (row: any) => {
+  const statusMap: Record<string, string> = {
+    'pending': '待考核',
+    'in_progress': '进行中',
+    'completed': '已完成',
+    'overdue': '已过期'
+  }
+  
+  let title = `序号: ${getIndex(tasks.value.indexOf(row))}\n状态: ${statusMap[row.status] || '未知'}`
+  
+  if (row.deadline) {
+    const now = new Date()
+    const deadline = new Date(row.deadline)
+    const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (diffDays < 0) {
+      title += `\n已过期 ${Math.abs(diffDays)} 天`
+    } else if (diffDays === 0) {
+      title += '\n今天截止'
+    } else if (diffDays === 1) {
+      title += '\n明天截止'
+    } else {
+      title += `\n还有 ${diffDays} 天截止`
+    }
+  }
+  
+  return title
+}
+
 // 导出Excel功能
 const exportToExcel = async () => {
   try {
@@ -698,6 +769,240 @@ onMounted(async () => {
   .task-actions {
     justify-content: flex-end;
   }
+}
+
+/* 序号列样式 */
+.index-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}
+
+.index-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 
+    0 2px 8px rgba(102, 126, 234, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.index-number::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.index-number:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 
+    0 8px 20px rgba(102, 126, 234, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+}
+
+.index-number:hover::before {
+  left: 100%;
+}
+
+.index-number:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    0 2px 8px rgba(102, 126, 234, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* 序号动画效果 */
+.index-number {
+  animation: indexFadeIn 0.5s ease-out;
+}
+
+@keyframes indexFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 序号特殊状态样式 */
+.index-number.important {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 
+    0 2px 8px rgba(245, 158, 11, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.index-number.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 
+    0 2px 8px rgba(16, 185, 129, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.index-number.urgent {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 
+    0 2px 8px rgba(239, 68, 68, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: urgentPulse 2s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% {
+    box-shadow: 
+      0 2px 8px rgba(239, 68, 68, 0.3),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 4px 16px rgba(239, 68, 68, 0.5),
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* 表格整体美化 */
+:deep(.el-table) {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+:deep(.el-table__header) {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+:deep(.el-table__header th) {
+  background: transparent;
+  border-bottom: 2px solid #e2e8f0;
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
+  padding: 16px 12px;
+}
+
+:deep(.el-table__body tr) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-table__body tr:hover) {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-table__body td) {
+  padding: 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+/* 员工信息样式优化 */
+.employee-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.employee-position {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.position-level {
+  font-weight: 500;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* 状态标签美化 */
+:deep(.el-tag) {
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 6px 12px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-tag--success) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+:deep(.el-tag--warning) {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+:deep(.el-tag--danger) {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+:deep(.el-tag--info) {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+/* 表格卡片样式 */
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.table-wrap {
+  padding: 0;
+}
+
+/* 分页器美化 */
+.pagination-container {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
 }
 
 /* 确保分页器显示 */

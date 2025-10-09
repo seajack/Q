@@ -51,6 +51,13 @@
       @action-click="handleTableAction"
       @page-change="handlePageChange"
     >
+      <!-- 序号列 -->
+      <template #cell-index="{ row, $index }">
+        <div class="index-cell">
+          <span class="index-number">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
+        </div>
+      </template>
+      
       <!-- 任务信息列 -->
       <template #cell-task="{ row }">
         <div class="flex items-center">
@@ -230,6 +237,7 @@ const headerActions = ref([
 
 // 表格列配置
 const tableColumns = ref([
+  { key: 'index', label: '序号', class: 'w-20' },
   { key: 'task', label: '任务信息', class: 'w-64' },
   { key: 'cycle', label: '考核周期', class: 'w-48' },
   { key: 'relation', label: '关系类型', class: 'w-32' },
@@ -515,5 +523,120 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 自定义样式 */
+/* 序号列样式 */
+.index-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.index-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.index-number:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+/* 任务图标样式优化 */
+:deep(.w-10.h-10) {
+  transition: all 0.3s ease;
+}
+
+:deep(.w-10.h-10:hover) {
+  transform: scale(1.1);
+}
+
+/* 状态徽章样式 */
+:deep(.status-badge) {
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 6px 12px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 进度条样式优化 */
+:deep(.bg-gray-200) {
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+:deep(.h-2) {
+  height: 8px;
+}
+
+/* 表格整体美化 */
+:deep(.data-table) {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+:deep(.table-header) {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+:deep(.table-row) {
+  transition: all 0.3s ease;
+}
+
+:deep(.table-row:hover) {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 统计卡片样式优化 */
+:deep(.metric-card) {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+:deep(.metric-card:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮样式优化 */
+:deep(.btn) {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+:deep(.btn:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .index-number {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  
+  :deep(.table-cell) {
+    padding: 12px 8px;
+  }
+}
 </style>

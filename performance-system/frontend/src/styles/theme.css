@@ -1,5 +1,8 @@
 /* 现代化企业级绩效考核系统设计系统 */
 
+/* 引入表格增强样式 */
+@import './table-enhanced.css';
+
 /* 设计令牌 - Design Tokens */
 :root {
   /* 品牌色彩系统 */

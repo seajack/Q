@@ -1,0 +1,640 @@
+/* 绩效考核系统表格美化样式 */
+
+/* 序号列样式 */
+.index-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}
+
+.index-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 
+    0 2px 8px rgba(102, 126, 234, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.index-number::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.index-number:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 
+    0 8px 20px rgba(102, 126, 234, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+}
+
+.index-number:hover::before {
+  left: 100%;
+}
+
+.index-number:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    0 2px 8px rgba(102, 126, 234, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* 序号动画效果 */
+.index-number {
+  animation: indexFadeIn 0.5s ease-out;
+}
+
+@keyframes indexFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 序号特殊状态样式 */
+.index-number.important {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 
+    0 2px 8px rgba(245, 158, 11, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.index-number.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 
+    0 2px 8px rgba(16, 185, 129, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.index-number.urgent {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 
+    0 2px 8px rgba(239, 68, 68, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: urgentPulse 2s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% {
+    box-shadow: 
+      0 2px 8px rgba(239, 68, 68, 0.3),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 4px 16px rgba(239, 68, 68, 0.5),
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Element Plus 表格美化 */
+.el-table {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
+}
+
+.el-table__header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+}
+
+.el-table__header th {
+  background: transparent !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  font-size: 14px !important;
+  padding: 16px 12px !important;
+}
+
+.el-table__body tr {
+  transition: all 0.3s ease !important;
+}
+
+.el-table__body tr:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.el-table__body td {
+  padding: 16px 12px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle !important;
+}
+
+/* 员工信息样式优化 */
+.employee-name {
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  margin-bottom: 4px !important;
+  font-size: 14px !important;
+}
+
+.employee-position {
+  font-size: 12px !important;
+  color: #64748b !important;
+  line-height: 1.4 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.position-level {
+  font-weight: 500 !important;
+  color: #3b82f6 !important;
+  background: #eff6ff !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+}
+
+/* 状态标签美化 */
+.el-tag {
+  border-radius: 20px !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.el-tag--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+}
+
+.el-tag--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+}
+
+.el-tag--danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+}
+
+.el-tag--info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+}
+
+/* 表格卡片样式 */
+.table-card {
+  background: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden !important;
+}
+
+.table-wrap {
+  padding: 0 !important;
+}
+
+/* 分页器美化 */
+.pagination-container {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+.el-pagination {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.el-pagination .el-pager {
+  display: flex !important;
+}
+
+.el-pagination .el-pager li {
+  display: inline-block !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  text-align: center !important;
+  margin: 0 2px !important;
+  border: 1px solid #dcdfe6 !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  transition: all 0.3s ease !important;
+}
+
+.el-pagination .el-pager li:hover {
+  color: #409eff !important;
+  border-color: #409eff !important;
+  transform: translateY(-1px) !important;
+}
+
+.el-pagination .el-pager li.is-active {
+  background: #409eff !important;
+  color: #fff !important;
+  border-color: #409eff !important;
+  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.3) !important;
+}
+
+/* 强制显示分页器所有元素 */
+.el-pagination .el-pagination__total {
+  display: inline-block !important;
+}
+
+.el-pagination .el-pagination__jump {
+  display: inline-block !important;
+}
+
+.el-pagination .el-pagination__sizes {
+  display: inline-block !important;
+}
+
+/* 统计卡片样式优化 */
+.metric-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 按钮样式优化 */
+.btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 进度条样式优化 */
+.progress-bar {
+  background: #e2e8f0 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  height: 8px !important;
+}
+
+.progress-fill {
+  height: 100% !important;
+  border-radius: 10px !important;
+  transition: all 0.5s ease !important;
+}
+
+/* 任务图标样式优化 */
+.task-icon {
+  transition: all 0.3s ease !important;
+}
+
+.task-icon:hover {
+  transform: scale(1.1) !important;
+}
+
+/* 状态徽章样式 */
+.status-badge {
+  border-radius: 20px !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .el-table__body td {
+    padding: 14px 10px !important;
+  }
+  
+  .el-table__header th {
+    padding: 14px 10px !important;
+  }
+  
+  .employee-name {
+    font-size: 13px !important;
+  }
+  
+  .employee-position {
+    font-size: 11px !important;
+  }
+  
+  .index-number {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .index-number {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+  }
+  
+  .el-table__body td {
+    padding: 12px 8px !important;
+  }
+  
+  .el-table__header th {
+    padding: 12px 8px !important;
+    font-size: 13px !important;
+  }
+  
+  .employee-name {
+    font-size: 13px !important;
+  }
+  
+  .employee-position {
+    font-size: 11px !important;
+  }
+  
+  /* 移动端表格优化 */
+  .el-table {
+    font-size: 12px !important;
+  }
+  
+  .el-table__body tr {
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+  
+  .el-table__body tr:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* 移动端隐藏部分列 */
+  .el-table__body td:nth-child(n+6),
+  .el-table__header th:nth-child(n+6) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .index-number {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 10px !important;
+  }
+  
+  .el-table__body td {
+    padding: 10px 6px !important;
+  }
+  
+  .el-table__header th {
+    padding: 10px 6px !important;
+    font-size: 12px !important;
+  }
+  
+  .employee-name {
+    font-size: 12px !important;
+  }
+  
+  .employee-position {
+    font-size: 10px !important;
+  }
+  
+  /* 进一步隐藏列 */
+  .el-table__body td:nth-child(n+5),
+  .el-table__header th:nth-child(n+5) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .index-number {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+  }
+  
+  .el-table__body td {
+    padding: 8px 4px !important;
+  }
+  
+  .el-table__header th {
+    padding: 8px 4px !important;
+    font-size: 11px !important;
+  }
+  
+  .employee-name {
+    font-size: 11px !important;
+  }
+  
+  .employee-position {
+    font-size: 9px !important;
+  }
+  
+  /* 移动端卡片式布局 */
+  .mobile-card-view {
+    display: block !important;
+  }
+  
+  .mobile-card-view .el-table,
+  .mobile-card-view .el-table__header,
+  .mobile-card-view .el-table__body,
+  .mobile-card-view .el-table__body tr,
+  .mobile-card-view .el-table__body td {
+    display: block !important;
+  }
+  
+  .mobile-card-view .el-table__body tr {
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    margin-bottom: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .mobile-card-view .el-table__body td {
+    border: none !important;
+    padding: 4px 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  
+  .mobile-card-view .el-table__body td::before {
+    content: attr(data-label) ": ";
+    font-weight: 600 !important;
+    color: #64748b !important;
+    margin-right: 8px !important;
+  }
+}
+
+/* 平板横屏优化 */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .el-table__body td {
+    padding: 12px 8px !important;
+  }
+  
+  .el-table__header th {
+    padding: 12px 8px !important;
+  }
+  
+  .index-number {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1440px) {
+  .el-table__body td {
+    padding: 20px 16px !important;
+  }
+  
+  .el-table__header th {
+    padding: 20px 16px !important;
+    font-size: 15px !important;
+  }
+  
+  .index-number {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+  }
+  
+  .employee-name {
+    font-size: 15px !important;
+  }
+  
+  .employee-position {
+    font-size: 13px !important;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .el-table__body tr:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .index-number:hover {
+    transform: none !important;
+  }
+  
+  .el-table__body tr:active {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .index-number {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #000 !important;
+  }
+  
+  .el-table__header th {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+    border-bottom: 2px solid #000 !important;
+  }
+  
+  .el-table__body tr {
+    border-bottom: 1px solid #000 !important;
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .index-number,
+  .el-table__body tr,
+  .el-table__body td,
+  .el-table__header th {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .index-number:hover {
+    transform: none !important;
+  }
+  
+  .el-table__body tr:hover {
+    transform: none !important;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-row-enter {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* 加载状态优化 */
+.el-loading-mask {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.el-loading-spinner {
+  color: #667eea !important;
+}
+
+/* 选择框样式优化 */
+.el-checkbox {
+  transition: all 0.3s ease !important;
+}
+
+.el-checkbox:hover {
+  transform: scale(1.1) !important;
+}
+
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-color: #667eea !important;
+}

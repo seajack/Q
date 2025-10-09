@@ -30,7 +30,17 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       loading.value = true
       const response = await departmentApi.list(params)
-      departments.value = response.results
+      console.log('获取部门列表响应:', response)
+      
+      // 检查响应数据结构
+      if (response && response.results) {
+        departments.value = response.results
+      } else if (Array.isArray(response)) {
+        departments.value = response
+      } else {
+        console.error('部门列表响应数据无效:', response)
+        throw new Error('获取部门列表失败')
+      }
     } catch (error) {
       console.error('获取部门列表失败:', error)
       throw error
@@ -68,8 +78,16 @@ export const useOrganizationStore = defineStore('organization', () => {
   const createDepartment = async (data: Partial<Department>) => {
     try {
       const response = await departmentApi.create(data)
-      departments.value.push(response.data)
-      return response.data
+      console.log('创建部门响应:', response)
+      
+      // 检查响应数据
+      if (!response || !response.id) {
+        console.error('响应数据无效:', response)
+        throw new Error('创建部门响应数据无效')
+      }
+      
+      departments.value.push(response)
+      return response
     } catch (error) {
       console.error('创建部门失败:', error)
       throw error
@@ -78,14 +96,54 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   const updateDepartment = async (id: number, data: Partial<Department>) => {
     try {
+      console.log('开始更新部门:', { id, data })
+      
       const response = await departmentApi.update(id, data)
+      console.log('更新部门响应:', response)
+      console.log('响应类型:', typeof response)
+      console.log('响应是否为null:', response === null)
+      console.log('响应是否为undefined:', response === undefined)
+      
+      // 处理可能的响应格式问题
+      let departmentData = response
+      
+      // 如果响应是包装格式，提取实际数据
+      if (response && typeof response === 'object' && 'data' in response) {
+        departmentData = response.data
+        console.log('提取的部门数据:', departmentData)
+      }
+      
+      // 如果API调用失败或返回无效数据，尝试重新获取数据
+      if (!departmentData || !departmentData.id) {
+        console.warn('API响应无效，尝试重新获取部门数据')
+        try {
+          const freshData = await departmentApi.get(id)
+          console.log('重新获取的部门数据:', freshData)
+          departmentData = freshData
+        } catch (getError) {
+          console.error('重新获取部门数据失败:', getError)
+          throw new Error('无法获取有效的部门数据')
+        }
+      }
+      
+      // 最终检查
+      if (!departmentData || !departmentData.id) {
+        console.error('最终响应数据无效:', departmentData)
+        throw new Error('无法获取有效的部门数据')
+      }
+      
       const index = departments.value.findIndex(dept => dept.id === id)
       if (index !== -1) {
-        departments.value[index] = response.data
+        departments.value[index] = departmentData
       }
-      return response.data
+      return departmentData
     } catch (error) {
       console.error('更新部门失败:', error)
+      console.error('错误详情:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
       throw error
     }
   }
@@ -171,9 +229,19 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   const createEmployee = async (data: Partial<Employee>) => {
     try {
+      console.log('开始创建员工:', data)
+      
       const response = await employeeApi.create(data)
-      employees.value.push(response.data)
-      return response.data
+      console.log('创建员工响应:', response)
+      
+      // 检查响应数据
+      if (!response || !response.id) {
+        console.error('创建员工响应数据无效:', response)
+        throw new Error('创建员工响应数据无效')
+      }
+      
+      employees.value.push(response)
+      return response
     } catch (error) {
       console.error('创建员工失败:', error)
       throw error
@@ -182,12 +250,22 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   const updateEmployee = async (id: number, data: Partial<Employee>) => {
     try {
+      console.log('开始更新员工:', { id, data })
+      
       const response = await employeeApi.update(id, data)
+      console.log('更新员工响应:', response)
+      
+      // 检查响应数据
+      if (!response || !response.id) {
+        console.error('更新员工响应数据无效:', response)
+        throw new Error('更新员工响应数据无效')
+      }
+      
       const index = employees.value.findIndex(emp => emp.id === id)
       if (index !== -1) {
-        employees.value[index] = response.data
+        employees.value[index] = response
       }
-      return response.data
+      return response
     } catch (error) {
       console.error('更新员工失败:', error)
       throw error

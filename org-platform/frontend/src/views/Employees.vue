@@ -515,9 +515,14 @@ const handleSubmit = async () => {
 
     dialogVisible.value = false
     resetForm()
+    await loadData() // 重新加载数据
   } catch (error) {
     console.error('提交失败:', error)
+    console.error('错误详情:', error)
     ElMessage.error(isEdit.value ? '更新员工失败' : '创建员工失败')
+    // 即使失败也关闭对话框，避免用户卡住
+    dialogVisible.value = false
+    resetForm()
   } finally {
     submitting.value = false
   }

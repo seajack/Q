@@ -694,24 +694,54 @@ const saveEmployee = async () => {
     const updateData = {
       name: editForm.value.name,
       gender: editForm.value.gender,
-      birth_date: editForm.value.birth_date,
+      birth_date: editForm.value.birth_date || null,
       phone: editForm.value.phone,
       email: editForm.value.email,
       address: editForm.value.address,
       department: editForm.value.department_id,
       position: editForm.value.position_id,
       supervisor: editForm.value.supervisor_id,
-      hire_date: editForm.value.hire_date,
+      hire_date: editForm.value.hire_date, // hire_date是必需字段，不能为null
       status: editForm.value.status
     }
+    
+    // 验证必需字段
+    if (!updateData.name || !updateData.gender || !updateData.department || !updateData.position || !updateData.hire_date || !updateData.status) {
+      ElMessage.error('请填写所有必需字段')
+      return
+    }
+    
+    // 过滤掉空值和无效值，但保留必需字段
+    const filteredData = Object.fromEntries(
+      Object.entries(updateData).filter(([key, value]) => {
+        // 必需字段即使为空也要保留
+        const requiredFields = ['name', 'gender', 'department', 'position', 'hire_date', 'status']
+        if (requiredFields.includes(key)) {
+          return true
+        }
+        // 其他字段过滤空值
+        if (value === null || value === undefined || value === '') {
+          return false
+        }
+        return true
+      })
+    )
+    
+    console.log('准备更新员工数据:', updateData)
+    console.log('过滤后的数据:', filteredData)
+    console.log('员工ID:', selectedEmployee.value.id)
+    console.log('编辑表单数据:', editForm.value)
     
     const response = await fetch(`/api/employees/${selectedEmployee.value.id}/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(updateData)
+      body: JSON.stringify(filteredData)
     })
+    
+    console.log('API响应状态:', response.status)
+    console.log('API响应头:', response.headers)
     
     if (response.ok) {
       ElMessage.success('员工信息更新成功')
@@ -731,7 +761,13 @@ const saveEmployee = async () => {
         _statusMeta: statusMap[updatedEmployee.status] || statusMap.default
       }
     } else {
-      ElMessage.error('保存失败')
+      // 获取错误详情
+      const errorData = await response.json()
+      console.error('API错误响应:', errorData)
+      console.error('错误状态:', response.status)
+      console.error('错误状态文本:', response.statusText)
+      
+      ElMessage.error(`保存失败: ${errorData.detail || errorData.message || '未知错误'}`)
     }
   } catch (error) {
     console.error('保存员工信息失败:', error)

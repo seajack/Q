@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class PermissionViewSet(viewsets.ModelViewSet):
     """权限管理"""
-    queryset = Permission.objects.none()  # 暂时返回空查询集
+    queryset = Permission.objects.all()  # 返回所有权限
     serializer_class = PermissionSerializer
     permission_classes = [AllowAny]  # 临时允许匿名访问，用于开发环境
     filter_backends = [SearchFilter, OrderingFilter]
@@ -99,7 +99,7 @@ class PermissionViewSet(viewsets.ModelViewSet):
 
 class RoleViewSet(viewsets.ModelViewSet):
     """角色管理"""
-    queryset = Role.objects.none()  # 暂时返回空查询集
+    queryset = Role.objects.all()  # 返回所有角色
     serializer_class = RoleSerializer
     permission_classes = [AllowAny]  # 临时允许匿名访问，用于开发环境
     filter_backends = [SearchFilter, OrderingFilter]
@@ -217,13 +217,13 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
 class DataPermissionViewSet(viewsets.ModelViewSet):
     """数据权限管理"""
-    queryset = DataPermission.objects.none()  # 暂时返回空查询集
+    queryset = DataPermission.objects.all()  # 返回所有数据权限
     serializer_class = DataPermissionSerializer
     permission_classes = [AllowAny]  # 临时允许匿名访问，用于开发环境
     filter_backends = [SearchFilter, OrderingFilter]
     # filterset_fields = ['permission_type', 'scope_type', 'resource_type', 'is_active']  # 暂时禁用过滤器
-    search_fields = ['name', 'resource_type']
-    ordering_fields = ['created_at', 'name']
+    search_fields = ['resource', 'permission_type']
+    ordering_fields = ['created_at', 'resource']
     ordering = ['-created_at']
     
     @action(detail=True, methods=['post'])

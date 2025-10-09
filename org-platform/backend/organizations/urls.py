@@ -9,6 +9,7 @@ from . import health_views
 from .integration_views import DownloadTemplateView, ImportDepartmentsView
 from . import workflow_urls
 from . import notification_urls
+from . import tenant_urls
 
 router = DefaultRouter()
 router.register(r'departments', views.DepartmentViewSet)
@@ -79,6 +80,8 @@ urlpatterns = [
     path('api/permission/', include(permission_router.urls)),
     # 消息通知API
     path('api/notification/', include(notification_urls.urlpatterns)),
+    # 多租户管理API
+    path('api/tenant/', include(tenant_urls.urlpatterns)),
     # 绩效考核系统代理API
     path('performance-api/stats/overview/', views.performance_overview_stats, name='performance_overview_stats'),
     path('performance-api/stats/cycle/<int:cycle_id>/', views.performance_cycle_stats, name='performance_cycle_stats'),

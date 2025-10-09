@@ -728,8 +728,8 @@ class PermissionSerializer(serializers.ModelSerializer):
         model = Permission
         fields = [
             'id', 'name', 'code', 'permission_type', 'permission_type_display',
-            'description', 'resource', 'action', 'level', 'parent', 'parent_name',
-            'full_path', 'is_active', 'sort_order', 'children_count',
+            'description', 'resource', 'action', 'parent', 'parent_name',
+            'full_path', 'status', 'is_system', 'sort_order', 'children_count',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -764,7 +764,7 @@ class RoleSerializer(serializers.ModelSerializer):
     
     def get_permissions_count(self, obj):
         """获取角色权限数量"""
-        return obj.role_permissions.filter(is_granted=True).count()
+        return obj.rolepermission_set.filter(granted=True).count()
     
     def get_users_count(self, obj):
         """获取角色用户数量"""
